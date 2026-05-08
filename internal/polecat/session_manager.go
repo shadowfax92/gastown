@@ -24,6 +24,7 @@ import (
 	"github.com/steveyegge/gastown/internal/style"
 	"github.com/steveyegge/gastown/internal/tmux"
 	"github.com/steveyegge/gastown/internal/util"
+	gtworkspace "github.com/steveyegge/gastown/internal/workspace"
 )
 
 // debugSession logs non-fatal errors during session startup when GT_DEBUG_SESSION=1.
@@ -144,24 +145,59 @@ func validateSessionName(sessionName, rigName string) error {
 	return nil
 }
 
-// polecatDir returns the parent directory for a polecat.
-// This is polecats/<name>/ - the polecat's home directory.
+func (m *SessionManager) configuredPolecatsDir() (string, bool) {
+	townRoot := filepath.Dir(m.rig.Path)
+	layout, err := gtworkspace.ResolveProjectLayout(townRoot, m.rig.Name, m.rig.Path)
+	if err != nil || !layout.Enabled {
+		return "", false
+	}
+	return filepath.Join(layout.LinkPath, "polecats"), true
+}
+
+func (m *SessionManager) polecatsDirsForRead() []string {
+	dirs := make([]string, 0, 2)
+	if dir, ok := m.configuredPolecatsDir(); ok {
+		dirs = append(dirs, dir)
+	}
+	legacy := filepath.Join(m.rig.Path, "polecats")
+	if len(dirs) == 0 || dirs[0] != legacy {
+		dirs = append(dirs, legacy)
+	}
+	return dirs
+}
+
+// polecatDir returns the parent directory for a polecat. Existing legacy
+// polecats remain in rig/polecats/<name>; otherwise the configured workspace
+// layout is used when present.
 func (m *SessionManager) polecatDir(polecat string) string {
-	return filepath.Join(m.rig.Path, "polecats", polecat)
+	legacyDir := filepath.Join(m.rig.Path, "polecats", polecat)
+	if configured, ok := m.configuredPolecatsDir(); ok {
+		configuredDir := filepath.Join(configured, polecat)
+		if info, err := os.Stat(configuredDir); err == nil && info.IsDir() {
+			return configuredDir
+		}
+		if info, err := os.Stat(legacyDir); err == nil && info.IsDir() {
+			return legacyDir
+		}
+		return configuredDir
+	}
+	return legacyDir
 }
 
 // clonePath returns the path where the git worktree lives.
 // New structure: polecats/<name>/<rigname>/ - gives LLMs recognizable repo context.
 // Falls back to old structure: polecats/<name>/ for backward compatibility.
 func (m *SessionManager) clonePath(polecat string) string {
+	polecatDir := m.polecatDir(polecat)
+
 	// New structure: polecats/<name>/<rigname>/
-	newPath := filepath.Join(m.rig.Path, "polecats", polecat, m.rig.Name)
+	newPath := filepath.Join(polecatDir, m.rig.Name)
 	if info, err := os.Stat(newPath); err == nil && info.IsDir() {
 		return newPath
 	}
 
 	// Old structure: polecats/<name>/ (backward compat)
-	oldPath := filepath.Join(m.rig.Path, "polecats", polecat)
+	oldPath := polecatDir
 	if info, err := os.Stat(oldPath); err == nil && info.IsDir() {
 		// Check if this is actually a git worktree (has .git file or dir)
 		gitPath := filepath.Join(oldPath, ".git")
@@ -320,20 +356,23 @@ func (m *SessionManager) hasPolecat(polecat string) bool {
 // position among existing polecat directories. This enables port offsetting and
 // resource isolation when multiple polecats run in parallel (GH#954).
 func (m *SessionManager) polecatSlot(polecat string) int {
-	polecatsDir := filepath.Join(m.rig.Path, "polecats")
-	entries, err := os.ReadDir(polecatsDir)
-	if err != nil {
-		return 0
-	}
 	slot := 0
-	for _, e := range entries {
-		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") {
+	seen := make(map[string]bool)
+	for _, polecatsDir := range m.polecatsDirsForRead() {
+		entries, err := os.ReadDir(polecatsDir)
+		if err != nil {
 			continue
 		}
-		if e.Name() == polecat {
-			return slot
+		for _, e := range entries {
+			if !e.IsDir() || strings.HasPrefix(e.Name(), ".") || seen[e.Name()] {
+				continue
+			}
+			seen[e.Name()] = true
+			if e.Name() == polecat {
+				return slot
+			}
+			slot++
 		}
-		slot++
 	}
 	return slot
 }

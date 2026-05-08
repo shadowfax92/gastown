@@ -91,6 +91,11 @@ type TownSettings struct {
 	// Convoy configures convoy behavior settings.
 	Convoy *ConvoyConfig `json:"convoy,omitempty"`
 
+	// Workspace configures where generated workspaces and local review
+	// artifacts are placed. When nil or Root is empty, workers keep using the
+	// historical per-rig directories.
+	Workspace *WorkspaceConfig `json:"workspace,omitempty"`
+
 	// RoleEffort maps role names to effort levels for per-role effort configuration.
 	// Keys are role names: "mayor", "deacon", "witness", "refinery", "polecat", "crew", "boot", "dog".
 	// Values are effort levels: "low", "medium", "high", "max".
@@ -497,6 +502,18 @@ type ConvoyConfig struct {
 	// NotifyOnComplete controls whether convoy completion pushes a notification
 	// into the active Mayor session (in addition to mail). Opt-in; default false.
 	NotifyOnComplete bool `json:"notify_on_complete,omitempty"`
+}
+
+// WorkspaceConfig configures external workspace placement.
+type WorkspaceConfig struct {
+	// Root is the directory under which project workspaces live. Supports ~ and
+	// environment-variable expansion. Relative paths are resolved from the town
+	// root. Empty keeps the legacy in-rig layout.
+	Root string `json:"root,omitempty"`
+
+	// ProjectSymlink is the symlink name created in each rig to expose the
+	// project workspace for local review. Defaults to ".llm".
+	ProjectSymlink string `json:"project_symlink,omitempty"`
 }
 
 // ParseDurationOrDefault parses a Go duration string, returning fallback on error or empty input.

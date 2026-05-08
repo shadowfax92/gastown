@@ -109,6 +109,39 @@ func TestSessionManagerPolecatDir(t *testing.T) {
 	}
 }
 
+func TestSessionManagerPolecatDirUsesLLMWorkspace(t *testing.T) {
+	townRoot := t.TempDir()
+	rigPath := filepath.Join(townRoot, "gastown")
+	llmRoot := filepath.Join(townRoot, "llm")
+	if err := os.MkdirAll(filepath.Join(llmRoot, "gastown", "polecats", "Toast", "gastown"), 0755); err != nil {
+		t.Fatalf("mkdir llm worktree: %v", err)
+	}
+	if err := os.MkdirAll(rigPath, 0755); err != nil {
+		t.Fatalf("mkdir rig: %v", err)
+	}
+	if err := os.Symlink(filepath.Join(llmRoot, "gastown"), filepath.Join(rigPath, ".llm")); err != nil {
+		t.Fatalf("symlink .llm: %v", err)
+	}
+
+	settings := config.NewTownSettings()
+	settings.Workspace = &config.WorkspaceConfig{Root: llmRoot}
+	if err := config.SaveTownSettings(config.TownSettingsPath(townRoot), settings); err != nil {
+		t.Fatalf("SaveTownSettings: %v", err)
+	}
+
+	r := &rig.Rig{Name: "gastown", Path: rigPath}
+	m := NewSessionManager(tmux.NewTmux(), r)
+
+	wantDir := filepath.Join(rigPath, ".llm", "polecats", "Toast")
+	if got := m.polecatDir("Toast"); got != wantDir {
+		t.Fatalf("polecatDir = %q, want %q", got, wantDir)
+	}
+	wantClone := filepath.Join(wantDir, "gastown")
+	if got := m.clonePath("Toast"); got != wantClone {
+		t.Fatalf("clonePath = %q, want %q", got, wantClone)
+	}
+}
+
 func TestHasPolecat(t *testing.T) {
 	root := t.TempDir()
 	// hasPolecat checks filesystem, so create actual directories
@@ -779,11 +812,11 @@ func TestParseFreshBranchName_Rejects(t *testing.T) {
 		"master",
 		"develop",
 		"feature/x",
-		"polecat/",          // empty tail
-		"polecat/alpha",     // no ts or issue
-		"polecat/alpha-",    // trailing dash, no ts
-		"polecat//gt-abc@1", // empty polecat name
-		"polecat/alpha/@1",  // empty issue
+		"polecat/",              // empty tail
+		"polecat/alpha",         // no ts or issue
+		"polecat/alpha-",        // trailing dash, no ts
+		"polecat//gt-abc@1",     // empty polecat name
+		"polecat/alpha/@1",      // empty issue
 		"polecat/alpha/gt-abc@", // empty ts
 		"",
 	}

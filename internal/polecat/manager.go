@@ -30,6 +30,7 @@ import (
 	"github.com/steveyegge/gastown/internal/templates"
 	"github.com/steveyegge/gastown/internal/tmux"
 	"github.com/steveyegge/gastown/internal/util"
+	gtworkspace "github.com/steveyegge/gastown/internal/workspace"
 )
 
 // Retry constants for Dolt operations (matching hook update pattern in sling.go).
@@ -466,10 +467,68 @@ func (m *Manager) repoBase() (*git.Git, error) {
 	return git.NewGit(mayorPath), nil
 }
 
+func (m *Manager) legacyPolecatsDir() string {
+	return filepath.Join(m.rig.Path, "polecats")
+}
+
+func (m *Manager) configuredPolecatsDir() (string, bool) {
+	layout, err := gtworkspace.ResolveProjectLayout(m.townRoot, m.rig.Name, m.rig.Path)
+	if err != nil || !layout.Enabled {
+		return "", false
+	}
+	return filepath.Join(layout.LinkPath, "polecats"), true
+}
+
+func (m *Manager) desiredPolecatsDir() string {
+	if dir, ok := m.configuredPolecatsDir(); ok {
+		return dir
+	}
+	return m.legacyPolecatsDir()
+}
+
+func (m *Manager) polecatsDirsForRead() []string {
+	dirs := make([]string, 0, 2)
+	if dir, ok := m.configuredPolecatsDir(); ok {
+		dirs = append(dirs, dir)
+	}
+	legacy := m.legacyPolecatsDir()
+	if len(dirs) == 0 || dirs[0] != legacy {
+		dirs = append(dirs, legacy)
+	}
+	return dirs
+}
+
+func (m *Manager) ensurePolecatsBaseDir() (string, error) {
+	layout, err := gtworkspace.EnsureProjectLayout(m.townRoot, m.rig.Name, m.rig.Path)
+	if err != nil {
+		return "", err
+	}
+	polecatsDir := m.legacyPolecatsDir()
+	if layout.Enabled {
+		polecatsDir = filepath.Join(layout.LinkPath, "polecats")
+	}
+	if err := os.MkdirAll(polecatsDir, 0755); err != nil {
+		return "", fmt.Errorf("creating polecats dir: %w", err)
+	}
+	return polecatsDir, nil
+}
+
 // polecatDir returns the parent directory for a polecat.
-// This is polecats/<name>/ - the polecat's home directory.
+// New polecats use the configured workspace layout when present. Existing
+// legacy polecats stay in rig/polecats/<name> for compatibility.
 func (m *Manager) polecatDir(name string) string {
-	return filepath.Join(m.rig.Path, "polecats", name)
+	if configured, ok := m.configuredPolecatsDir(); ok {
+		configuredDir := filepath.Join(configured, name)
+		if info, err := os.Stat(configuredDir); err == nil && info.IsDir() {
+			return configuredDir
+		}
+		legacyDir := filepath.Join(m.legacyPolecatsDir(), name)
+		if info, err := os.Stat(legacyDir); err == nil && info.IsDir() {
+			return legacyDir
+		}
+		return configuredDir
+	}
+	return filepath.Join(m.legacyPolecatsDir(), name)
 }
 
 // pendingPath returns the path of the allocation reservation marker for a name.
@@ -477,21 +536,23 @@ func (m *Manager) polecatDir(name string) string {
 // the polecat directory is created. Prevents concurrent processes from allocating
 // the same name during the window between pool save and directory creation.
 func (m *Manager) pendingPath(name string) string {
-	return filepath.Join(m.rig.Path, "polecats", name+".pending")
+	return filepath.Join(m.desiredPolecatsDir(), name+".pending")
 }
 
 // clonePath returns the path where the git worktree lives.
 // New structure: polecats/<name>/<rigname>/ - gives LLMs recognizable repo context.
 // Falls back to old structure: polecats/<name>/ for backward compatibility.
 func (m *Manager) clonePath(name string) string {
+	polecatDir := m.polecatDir(name)
+
 	// New structure: polecats/<name>/<rigname>/
-	newPath := filepath.Join(m.rig.Path, "polecats", name, m.rig.Name)
+	newPath := filepath.Join(polecatDir, m.rig.Name)
 	if info, err := os.Stat(newPath); err == nil && info.IsDir() {
 		return newPath
 	}
 
 	// Old structure: polecats/<name>/ (backward compat)
-	oldPath := filepath.Join(m.rig.Path, "polecats", name)
+	oldPath := polecatDir
 	if info, err := os.Stat(oldPath); err == nil && info.IsDir() {
 		// Check if this is actually a git worktree (has .git file or dir)
 		gitPath := filepath.Join(oldPath, ".git")
@@ -672,7 +733,13 @@ func (m *Manager) AllocateAndAdd(opts AddOptions) (string, *Polecat, error) {
 	}
 
 	// Create polecat directory while holding both locks
-	polecatDir := m.polecatDir(name)
+	polecatsDir, err := m.ensurePolecatsBaseDir()
+	if err != nil {
+		_ = polecatLock.Unlock()
+		_ = poolLock.Unlock()
+		return "", nil, err
+	}
+	polecatDir := filepath.Join(polecatsDir, name)
 	if err := os.MkdirAll(polecatDir, 0755); err != nil {
 		_ = polecatLock.Unlock()
 		_ = poolLock.Unlock()
@@ -859,13 +926,15 @@ func (m *Manager) AddWithOptions(name string, opts AddOptions) (_ *Polecat, retE
 		return nil, fmt.Errorf("%w: %s", ErrDiskSpaceLow, msg)
 	}
 
-	// New structure: polecats/<name>/<rigname>/ for LLM ergonomics
-	// The polecat's home dir is polecats/<name>/, worktree is polecats/<name>/<rigname>/
-	polecatDir := m.polecatDir(name)
-	clonePath := filepath.Join(polecatDir, m.rig.Name)
-
 	// Build branch name using configured template or default format
 	branchName := m.buildBranchName(name, opts.HookBead)
+
+	polecatsDir, err := m.ensurePolecatsBaseDir()
+	if err != nil {
+		return nil, err
+	}
+	polecatDir := filepath.Join(polecatsDir, name)
+	clonePath := filepath.Join(polecatDir, m.rig.Name)
 
 	// Create polecat directory (polecats/<name>/)
 	if err := os.MkdirAll(polecatDir, 0755); err != nil {
@@ -1335,7 +1404,7 @@ func (m *Manager) AllocateName() (string, error) {
 	// directory until AddWithOptions removes it after os.MkdirAll succeeds.
 	// Stale markers (process crashed before AddWithOptions) are cleaned up by
 	// cleanupOrphanPolecatState after pendingMaxAge.
-	if err := os.MkdirAll(filepath.Join(m.rig.Path, "polecats"), 0755); err != nil {
+	if _, err := m.ensurePolecatsBaseDir(); err != nil {
 		return "", fmt.Errorf("creating polecats dir for reservation marker: %w", err)
 	}
 	if err := os.WriteFile(m.pendingPath(name), []byte(fmt.Sprintf("%d", os.Getpid())), 0644); err != nil {
@@ -1736,11 +1805,12 @@ func (m *Manager) reconcilePoolInternal() {
 	// A .pending file means AllocateName has claimed the name but AddWithOptions
 	// hasn't created the directory yet. Without this, Reconcile would see no
 	// directory and treat the name as available, causing a duplicate allocation.
-	polecatsDir := filepath.Join(m.rig.Path, "polecats")
-	if entries, err := os.ReadDir(polecatsDir); err == nil {
-		for _, e := range entries {
-			if !e.IsDir() && strings.HasSuffix(e.Name(), ".pending") {
-				namesWithDirs = append(namesWithDirs, strings.TrimSuffix(e.Name(), ".pending"))
+	for _, polecatsDir := range m.polecatsDirsForRead() {
+		if entries, err := os.ReadDir(polecatsDir); err == nil {
+			for _, e := range entries {
+				if !e.IsDir() && strings.HasSuffix(e.Name(), ".pending") {
+					namesWithDirs = append(namesWithDirs, strings.TrimSuffix(e.Name(), ".pending"))
+				}
 			}
 		}
 	}
@@ -1869,49 +1939,49 @@ const pendingMaxAge = 5 * time.Minute
 // - Stale git worktree registrations
 // - Stale .pending reservation markers (gt sling crashed before AddWithOptions)
 func (m *Manager) cleanupOrphanPolecatState() {
-	polecatsDir := filepath.Join(m.rig.Path, "polecats")
+	for _, polecatsDir := range m.polecatsDirsForRead() {
+		entries, err := os.ReadDir(polecatsDir)
+		if err != nil {
+			continue // polecats dir doesn't exist, nothing to clean
+		}
 
-	entries, err := os.ReadDir(polecatsDir)
-	if err != nil {
-		return // polecats dir doesn't exist, nothing to clean
-	}
-
-	for _, entry := range entries {
-		// Clean up stale allocation reservation markers.
-		// A .pending file older than pendingMaxAge means gt sling crashed after
-		// AllocateName but before AddWithOptions created the directory. Remove it
-		// so the name can be reallocated on the next reconcile.
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".pending") {
-			info, err := entry.Info()
-			if err == nil && time.Since(info.ModTime()) > pendingMaxAge {
-				_ = os.Remove(filepath.Join(polecatsDir, entry.Name()))
+		for _, entry := range entries {
+			// Clean up stale allocation reservation markers.
+			// A .pending file older than pendingMaxAge means gt sling crashed after
+			// AllocateName but before AddWithOptions created the directory. Remove it
+			// so the name can be reallocated on the next reconcile.
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".pending") {
+				info, err := entry.Info()
+				if err == nil && time.Since(info.ModTime()) > pendingMaxAge {
+					_ = os.Remove(filepath.Join(polecatsDir, entry.Name()))
+				}
+				continue
 			}
-			continue
-		}
 
-		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
-			continue
-		}
+			if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+				continue
+			}
 
-		name := entry.Name()
-		polecatDir := filepath.Join(polecatsDir, name)
+			name := entry.Name()
+			polecatDir := filepath.Join(polecatsDir, name)
 
-		// Check if this is a valid polecat with a working worktree
-		clonePath := filepath.Join(polecatDir, m.rig.Name)
-		gitPath := filepath.Join(clonePath, ".git")
+			// Check if this is a valid polecat with a working worktree
+			clonePath := filepath.Join(polecatDir, m.rig.Name)
+			gitPath := filepath.Join(clonePath, ".git")
 
-		// Check if clone directory exists
-		if _, err := os.Stat(clonePath); os.IsNotExist(err) {
-			// Empty polecat directory without clone - remove it
-			_ = os.RemoveAll(polecatDir)
-			continue
-		}
+			// Check if clone directory exists
+			if _, err := os.Stat(clonePath); os.IsNotExist(err) {
+				// Empty polecat directory without clone - remove it
+				_ = os.RemoveAll(polecatDir)
+				continue
+			}
 
-		// Check if .git exists (file for worktree, or directory for full clone)
-		if _, err := os.Stat(gitPath); os.IsNotExist(err) {
-			// Clone exists but no .git - incomplete worktree, remove it
-			_ = os.RemoveAll(polecatDir)
-			continue
+			// Check if .git exists (file for worktree, or directory for full clone)
+			if _, err := os.Stat(gitPath); os.IsNotExist(err) {
+				// Clone exists but no .git - incomplete worktree, remove it
+				_ = os.RemoveAll(polecatDir)
+				continue
+			}
 		}
 	}
 }
@@ -1924,26 +1994,31 @@ func (m *Manager) PoolStatus() (active int, names []string) {
 // List returns all polecats in the rig.
 // Loads polecat state in parallel to avoid sequential bd subprocess overhead.
 func (m *Manager) List() ([]*Polecat, error) {
-	polecatsDir := filepath.Join(m.rig.Path, "polecats")
-
-	entries, err := os.ReadDir(polecatsDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("reading polecats dir: %w", err)
-	}
-
-	// Filter to valid directories first
+	nameSet := make(map[string]bool)
 	var names []string
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
+	for _, polecatsDir := range m.polecatsDirsForRead() {
+		entries, err := os.ReadDir(polecatsDir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, fmt.Errorf("reading polecats dir: %w", err)
 		}
-		if strings.HasPrefix(entry.Name(), ".") {
-			continue
+
+		// Filter to valid directories first
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			if strings.HasPrefix(entry.Name(), ".") {
+				continue
+			}
+			if nameSet[entry.Name()] {
+				continue
+			}
+			nameSet[entry.Name()] = true
+			names = append(names, entry.Name())
 		}
-		names = append(names, entry.Name())
 	}
 
 	// Load all polecats in parallel — each loadFromBeads call involves

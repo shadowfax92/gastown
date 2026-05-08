@@ -141,7 +141,7 @@ func TestWebTimeoutsConfig_JSONRoundTrip(t *testing.T) {
 		TmuxCmdTimeout:    "3s",
 		FetchTimeout:      "12s",
 		DefaultRunTimeout: "45s",
-		MaxRunTimeout:      "90s",
+		MaxRunTimeout:     "90s",
 	}
 
 	data, err := json.Marshal(original)
@@ -305,6 +305,9 @@ func TestTownSettings_WithoutNewFields_LoadsDefaults(t *testing.T) {
 	if ts.FeedCurator != nil {
 		t.Errorf("FeedCurator should be nil for legacy config, got %+v", ts.FeedCurator)
 	}
+	if ts.Workspace != nil {
+		t.Errorf("Workspace should be nil for legacy config, got %+v", ts.Workspace)
+	}
 
 	// Existing fields should still load correctly
 	if ts.DefaultAgent != "claude" {
@@ -337,6 +340,10 @@ func TestTownSettings_WithNewFields_RoundTrip(t *testing.T) {
 		DoneDedupeWindow:     "20s",
 		SlingAggregateWindow: "1m",
 		MinAggregateCount:    5,
+	}
+	original.Workspace = &WorkspaceConfig{
+		Root:           "~/llm",
+		ProjectSymlink: ".llm",
 	}
 
 	if err := SaveTownSettings(settingsPath, original); err != nil {
@@ -400,6 +407,17 @@ func TestTownSettings_WithNewFields_RoundTrip(t *testing.T) {
 	}
 	if loaded.FeedCurator.MinAggregateCount != 5 {
 		t.Errorf("MinAggregateCount = %d, want %d", loaded.FeedCurator.MinAggregateCount, 5)
+	}
+
+	// Verify Workspace
+	if loaded.Workspace == nil {
+		t.Fatal("Workspace is nil after round-trip")
+	}
+	if loaded.Workspace.Root != "~/llm" {
+		t.Errorf("Workspace.Root = %q, want %q", loaded.Workspace.Root, "~/llm")
+	}
+	if loaded.Workspace.ProjectSymlink != ".llm" {
+		t.Errorf("Workspace.ProjectSymlink = %q, want %q", loaded.Workspace.ProjectSymlink, ".llm")
 	}
 }
 
@@ -621,5 +639,3 @@ func TestParseDurationOrDefault_AllWebTimeoutDefaults(t *testing.T) {
 		})
 	}
 }
-
-

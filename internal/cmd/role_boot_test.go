@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/steveyegge/gastown/internal/beads"
+	"github.com/steveyegge/gastown/internal/config"
 )
 
 func TestParseRoleStringBoot(t *testing.T) {
@@ -50,6 +52,43 @@ func TestGetRoleHomeBoot(t *testing.T) {
 	want := filepath.Join(townRoot, "deacon", "dogs", "boot")
 	if got != want {
 		t.Errorf("getRoleHome(RoleBoot) = %q, want %q", got, want)
+	}
+}
+
+func TestDetectRoleFromLLMProjectSymlink(t *testing.T) {
+	townRoot := t.TempDir()
+	rigName := "gastown"
+	rigPath := filepath.Join(townRoot, rigName)
+	llmRoot := filepath.Join(townRoot, "llm")
+	worktree := filepath.Join(rigPath, ".llm", "polecats", "toast", rigName)
+	if err := os.MkdirAll(filepath.Join(llmRoot, rigName, "polecats", "toast", rigName), 0755); err != nil {
+		t.Fatalf("mkdir llm worktree: %v", err)
+	}
+	if err := os.MkdirAll(rigPath, 0755); err != nil {
+		t.Fatalf("mkdir rig: %v", err)
+	}
+	if err := os.Symlink(filepath.Join(llmRoot, rigName), filepath.Join(rigPath, ".llm")); err != nil {
+		t.Fatalf("symlink .llm: %v", err)
+	}
+
+	settings := config.NewTownSettings()
+	settings.Workspace = &config.WorkspaceConfig{Root: llmRoot}
+	if err := config.SaveTownSettings(config.TownSettingsPath(townRoot), settings); err != nil {
+		t.Fatalf("SaveTownSettings: %v", err)
+	}
+
+	info := detectRole(worktree, townRoot)
+	if info.Role != RolePolecat {
+		t.Fatalf("Role = %q, want %q", info.Role, RolePolecat)
+	}
+	if info.Rig != rigName || info.Polecat != "toast" {
+		t.Fatalf("role identity = rig %q polecat %q, want %s/toast", info.Rig, info.Polecat, rigName)
+	}
+
+	home := getRoleHome(RolePolecat, rigName, "toast", townRoot)
+	wantHome := filepath.Join(rigPath, ".llm", "polecats", "toast")
+	if home != wantHome {
+		t.Fatalf("getRoleHome = %q, want %q", home, wantHome)
 	}
 }
 

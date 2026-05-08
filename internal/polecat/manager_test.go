@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/steveyegge/gastown/internal/beads"
+	"github.com/steveyegge/gastown/internal/config"
 	"github.com/steveyegge/gastown/internal/git"
 	"github.com/steveyegge/gastown/internal/rig"
 	"github.com/steveyegge/gastown/internal/session"
@@ -279,6 +280,74 @@ func TestPolecatDir(t *testing.T) {
 	expected := "/home/user/ai/test-rig/polecats/Toast"
 	if filepath.ToSlash(dir) != expected {
 		t.Errorf("polecatDir = %q, want %q", dir, expected)
+	}
+}
+
+func TestPolecatDirUsesConfiguredLLMWorkspace(t *testing.T) {
+	townRoot := t.TempDir()
+	rigPath := filepath.Join(townRoot, "gastown")
+	llmRoot := filepath.Join(townRoot, "llm")
+	if err := os.MkdirAll(rigPath, 0755); err != nil {
+		t.Fatalf("mkdir rig: %v", err)
+	}
+
+	settings := config.NewTownSettings()
+	settings.Workspace = &config.WorkspaceConfig{Root: llmRoot}
+	if err := config.SaveTownSettings(config.TownSettingsPath(townRoot), settings); err != nil {
+		t.Fatalf("SaveTownSettings: %v", err)
+	}
+
+	r := &rig.Rig{Name: "gastown", Path: rigPath}
+	m := NewManager(r, git.NewGit(rigPath), nil)
+
+	base, err := m.ensurePolecatsBaseDir()
+	if err != nil {
+		t.Fatalf("ensurePolecatsBaseDir: %v", err)
+	}
+	if base != filepath.Join(rigPath, ".llm", "polecats") {
+		t.Fatalf("polecats base = %q, want rig .llm symlink path", base)
+	}
+	target, err := os.Readlink(filepath.Join(rigPath, ".llm"))
+	if err != nil {
+		t.Fatalf("Readlink .llm: %v", err)
+	}
+	if target != filepath.Join(llmRoot, "gastown") {
+		t.Fatalf(".llm target = %q, want %q", target, filepath.Join(llmRoot, "gastown"))
+	}
+
+	wantPolecatDir := filepath.Join(rigPath, ".llm", "polecats", "toast")
+	if got := m.polecatDir("toast"); got != wantPolecatDir {
+		t.Fatalf("polecatDir = %q, want %q", got, wantPolecatDir)
+	}
+	wantClonePath := filepath.Join(wantPolecatDir, "gastown")
+	if got := m.clonePath("toast"); got != wantClonePath {
+		t.Fatalf("clonePath = %q, want %q", got, wantClonePath)
+	}
+}
+
+func TestPolecatDirKeepsLegacyPathWhenPresentWithLLMWorkspace(t *testing.T) {
+	townRoot := t.TempDir()
+	rigPath := filepath.Join(townRoot, "gastown")
+	llmRoot := filepath.Join(townRoot, "llm")
+	legacyClone := filepath.Join(rigPath, "polecats", "toast", "gastown")
+	if err := os.MkdirAll(legacyClone, 0755); err != nil {
+		t.Fatalf("mkdir legacy clone: %v", err)
+	}
+
+	settings := config.NewTownSettings()
+	settings.Workspace = &config.WorkspaceConfig{Root: llmRoot}
+	if err := config.SaveTownSettings(config.TownSettingsPath(townRoot), settings); err != nil {
+		t.Fatalf("SaveTownSettings: %v", err)
+	}
+
+	r := &rig.Rig{Name: "gastown", Path: rigPath}
+	m := NewManager(r, git.NewGit(rigPath), nil)
+
+	if got := m.polecatDir("toast"); got != filepath.Join(rigPath, "polecats", "toast") {
+		t.Fatalf("polecatDir = %q, want legacy polecat path", got)
+	}
+	if got := m.clonePath("toast"); got != legacyClone {
+		t.Fatalf("clonePath = %q, want legacy clone path %q", got, legacyClone)
 	}
 }
 
@@ -2004,8 +2073,8 @@ func TestReuseIdlePolecat_KillsLiveSession(t *testing.T) {
 
 	// Verify it did NOT return ErrSessionRunning (the old buggy behavior)
 	if errors.Is(reuseErr, ErrSessionRunning) {
-		t.Fatalf("ReuseIdlePolecat returned ErrSessionRunning for live session — "+
-			"this is the sling-reuse-stale-session bug: idle polecats with live "+
+		t.Fatalf("ReuseIdlePolecat returned ErrSessionRunning for live session — " +
+			"this is the sling-reuse-stale-session bug: idle polecats with live " +
 			"sessions must have their session killed, not rejected")
 	}
 

@@ -213,18 +213,25 @@ func (m *Manager) loadRig(name string, entry config.RigEntry) (*Rig, error) {
 		Config:    entry.BeadsConfig,
 	}
 
-	// Scan for polecats
-	polecatsDir := filepath.Join(rigPath, "polecats")
-	if entries, err := os.ReadDir(polecatsDir); err == nil {
-		for _, e := range entries {
-			if !e.IsDir() {
-				continue
+	// Scan for polecats in both the legacy rig-local location and the optional
+	// .llm symlink used by external workspace layouts.
+	polecatNames := make(map[string]bool)
+	for _, polecatsDir := range []string{
+		filepath.Join(rigPath, ".llm", "polecats"),
+		filepath.Join(rigPath, "polecats"),
+	} {
+		if entries, err := os.ReadDir(polecatsDir); err == nil {
+			for _, e := range entries {
+				if !e.IsDir() {
+					continue
+				}
+				name := e.Name()
+				if strings.HasPrefix(name, ".") || polecatNames[name] {
+					continue
+				}
+				polecatNames[name] = true
+				rig.Polecats = append(rig.Polecats, name)
 			}
-			name := e.Name()
-			if strings.HasPrefix(name, ".") {
-				continue
-			}
-			rig.Polecats = append(rig.Polecats, name)
 		}
 	}
 

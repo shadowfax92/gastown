@@ -76,6 +76,11 @@
 
     "agent_email_domain": "gastown.local",
 
+    "workspace": {
+        "root": "~/llm",
+        "project_symlink": ".llm"
+    },
+
     "web_timeouts": {
         "cmd_timeout": "15s",
         "gh_cmd_timeout": "10s",

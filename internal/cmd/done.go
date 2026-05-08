@@ -173,14 +173,29 @@ func runDone(cmd *cobra.Command, args []string) (retErr error) {
 	cwdIsPolecatWorktree := strings.Contains(cwd, "/polecats/")
 	if cwdAvailable && !cwdIsPolecatWorktree {
 		if polecatName := os.Getenv("GT_POLECAT"); polecatName != "" && rigName != "" {
-			polecatClone := filepath.Join(townRoot, rigName, "polecats", polecatName, rigName)
-			if _, err := os.Stat(polecatClone); err == nil {
-				cwd = polecatClone
-			} else {
+			var polecatClone string
+			if mgr, _, err := getPolecatManager(rigName); err == nil {
+				polecatClone = mgr.ClonePath(polecatName)
+			}
+			if polecatClone != "" {
+				if _, err := os.Stat(polecatClone); err == nil {
+					cwd = polecatClone
+				}
+			}
+			if cwd == "" || !strings.Contains(cwd, "/polecats/") {
+				polecatClone = filepath.Join(townRoot, rigName, "polecats", polecatName, rigName)
+				if _, err := os.Stat(polecatClone); err == nil {
+					cwd = polecatClone
+				}
+			}
+			if cwd == "" || !strings.Contains(cwd, "/polecats/") {
 				polecatClone = filepath.Join(townRoot, rigName, "polecats", polecatName)
 				if _, err := os.Stat(filepath.Join(polecatClone, ".git")); err == nil {
 					cwd = polecatClone
 				}
+			}
+			if _, err := os.Stat(cwd); err == nil && strings.Contains(cwd, "/polecats/") {
+				cwdIsPolecatWorktree = true
 			}
 		} else if crewName := os.Getenv("GT_CREW"); crewName != "" && rigName != "" {
 			crewClone := filepath.Join(townRoot, rigName, "crew", crewName)

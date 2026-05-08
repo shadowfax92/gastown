@@ -30,12 +30,12 @@ type RoleInfo struct {
 	Home          string `json:"home"`
 	Rig           string `json:"rig,omitempty"`
 	Polecat       string `json:"polecat,omitempty"`
-	EnvRole       string `json:"env_role,omitempty"`    // Value of GT_ROLE if set
-	CwdRole       Role   `json:"cwd_role,omitempty"`    // Role detected from cwd
-	Mismatch      bool   `json:"mismatch,omitempty"`    // True if env != cwd detection
+	EnvRole       string `json:"env_role,omitempty"`       // Value of GT_ROLE if set
+	CwdRole       Role   `json:"cwd_role,omitempty"`       // Role detected from cwd
+	Mismatch      bool   `json:"mismatch,omitempty"`       // True if env != cwd detection
 	EnvIncomplete bool   `json:"env_incomplete,omitempty"` // True if env was set but missing rig/polecat, filled from cwd
 	TownRoot      string `json:"town_root,omitempty"`
-	WorkDir       string `json:"work_dir,omitempty"`    // Current working directory
+	WorkDir       string `json:"work_dir,omitempty"` // Current working directory
 }
 
 var roleCmd = &cobra.Command{
@@ -317,6 +317,18 @@ func detectRole(cwd, townRoot string) RoleInfo {
 		return ctx
 	}
 
+	// Check for externally placed polecats exposed through the rig project
+	// workspace symlink: <rig>/.llm/polecats/<name>/...
+	projectLink := workspace.DefaultProjectSymlink
+	if layout, err := workspace.ResolveProjectLayout(townRoot, rigName, filepath.Join(townRoot, rigName)); err == nil && layout.Enabled {
+		projectLink = layout.LinkName
+	}
+	if len(parts) >= 4 && parts[1] == projectLink && parts[2] == "polecats" {
+		ctx.Role = RolePolecat
+		ctx.Polecat = parts[3]
+		return ctx
+	}
+
 	// Check for polecat: <rig>/polecats/<name>/
 	if len(parts) >= 3 && parts[1] == "polecats" {
 		ctx.Role = RolePolecat
@@ -453,7 +465,18 @@ func getRoleHome(role Role, rig, polecat, townRoot string) string {
 		if rig == "" || polecat == "" {
 			return ""
 		}
-		return filepath.Join(townRoot, rig, "polecats", polecat)
+		legacy := filepath.Join(townRoot, rig, "polecats", polecat)
+		rigPath := filepath.Join(townRoot, rig)
+		if layout, err := workspace.ResolveProjectLayout(townRoot, rig, rigPath); err == nil && layout.Enabled {
+			configured := filepath.Join(layout.LinkPath, "polecats", polecat)
+			if info, statErr := os.Stat(configured); statErr == nil && info.IsDir() {
+				return configured
+			}
+			if _, statErr := os.Stat(legacy); os.IsNotExist(statErr) {
+				return configured
+			}
+		}
+		return legacy
 	case RoleCrew:
 		if rig == "" || polecat == "" {
 			return ""
