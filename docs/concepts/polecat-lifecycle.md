@@ -70,7 +70,7 @@ the overhead of creating fresh worktrees.
 ### What About Pending Merges?
 
 The Release Engineer owns the merge queue. Once `gt done` submits work:
-- The branch is pushed to ofeaturein
+- The branch is pushed to origin
 - Work exists in the MQ, not in the agent
 - If rebase fails, Release Engineer creates a conflict-resolution task
 - The idle agent can be reused for the conflict resolution work
@@ -154,7 +154,7 @@ When work completes and the agent goes idle, the sandbox is synced to main:
 ```bash
 # In the agent's worktree (done automatically by gt done / gt sling)
 git checkout main
-git pull ofeaturein main
+git pull origin main
 git branch -D agent/<name>/<old-ticket>@<timestamp>
 # Worktree is now clean, on main, ready for next assignment
 ```
@@ -210,7 +210,7 @@ The slot:
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  gt done (persistent model)                  │
-│  → Push branch to ofeaturein                                   │
+│  → Push branch to origin                                   │
 │  → Submit work to merge queue (MR ticket)                    │
 │  → Set agent state to "idle"                               │
 │  → Kill session                                            │

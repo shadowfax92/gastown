@@ -59,7 +59,7 @@
        M tests/feature.test.js
       ?? src/utils/helper.js
 
-      $ git -C /town/gastown/agents/Biscuit log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Biscuit log --oneline origin/main..HEAD
       a1b2c3d feat: implement feature
     context: ""
   assert:
@@ -92,7 +92,7 @@
       $ git -C /town/gastown/agents/Nutmeg status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Nutmeg log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Nutmeg log --oneline origin/main..HEAD
       (empty)
     context: ""
   assert:

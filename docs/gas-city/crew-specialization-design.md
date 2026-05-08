@@ -112,8 +112,8 @@ does_not_handle:
   - User identity/password management (→ identity team)
   - Application-level RBAC (→ owning service)
 example_tasks:
-  - "Users getting 403 on cross-ofeaturein API calls"
-  - "Need to add a new allowed ofeaturein for partner integration"
+  - "Users getting 403 on cross-origin API calls"
+  - "Need to add a new allowed origin for partner integration"
 anti_examples:
   - "Need to rotate the TLS certificate" (→ infra)
   - "Implement role-based access control" (→ app team)
@@ -137,8 +137,8 @@ Capability profiles need **both**. Capture as paired routing examples:
 
 ```yaml
 routing_examples:
-  - symptom: "403 errors on cross-ofeaturein API calls"
-    resolution: "CORS allow-ofeaturein configuration"
+  - symptom: "403 errors on cross-origin API calls"
+    resolution: "CORS allow-origin configuration"
     cost: 8000 tokens
     complexity: single-domain
 ```
@@ -326,7 +326,7 @@ does_not_handle:
   - Cryptographic primitives (→ crypto)
   - User identity management (→ identity)
 example_tasks:
-  - "Users getting 403 on cross-ofeaturein API calls"
+  - "Users getting 403 on cross-origin API calls"
   - "Security audit of the auth module"
 anti_examples:
   - "Rotate the TLS certificate" (→ infra)

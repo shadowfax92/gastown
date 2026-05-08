@@ -372,7 +372,7 @@ The schema uses standard OpenTelemetry Protocol (OTLP) with protobuf encoding, w
 
 ## Appendix: Source Reference Audit
 
-Audited against `ofeaturein/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
+Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 
 ### Metrics (`internal/telemetry/recorder.go`)
 

@@ -14,7 +14,7 @@ feature, a visible PR is the gating artifact for review.
 
 1. Push the branch explicitly (do not rely on `gt done` to push):
    ```bash
-   git push -u ofeaturein HEAD
+   git push -u origin HEAD
    ```
 2. Check whether a PR already exists for the branch:
    ```bash

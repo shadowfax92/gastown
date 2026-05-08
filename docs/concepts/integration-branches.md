@@ -142,11 +142,11 @@ Create child tickets under the epic as normal.
 
 ```bash
 gt mq integration create gt-auth-epic
-# → Created integration/gt-auth-epic from ofeaturein/main
+# → Created integration/gt-auth-epic from origin/main
 # → Stored branch name in epic metadata
 ```
 
-This pushes a new branch to ofeaturein and records its name on the epic.
+This pushes a new branch to origin and records its name on the epic.
 
 ### 3. Sling Work
 
@@ -182,7 +182,7 @@ gt mq integration land gt-auth-epic
 # → Verified all MRs merged
 # → Merged integration/gt-auth-epic → base branch (--no-ff)
 # → Tests passed
-# → Pushed to ofeaturein
+# → Pushed to origin
 # → Deleted integration/gt-auth-epic
 # → Closed epic gt-auth-epic
 ```
@@ -279,7 +279,7 @@ gt mq integration create <epic-id> [flags]
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--branch` | Override branch name template | Config template or `integration/{title}` |
-| `--base-branch` | Create from this branch instead of the feature's default branch (also sets where `land` merges back to) | `ofeaturein/<default_branch>` |
+| `--base-branch` | Create from this branch instead of the feature's default branch (also sets where `land` merges back to) | `origin/<default_branch>` |
 
 **What it does:**
 
@@ -287,7 +287,7 @@ gt mq integration create <epic-id> [flags]
 2. Generates branch name from template (expanding variables)
 3. Validates branch name (git-safe characters)
 4. Creates local branch from base
-5. Pushes to ofeaturein
+5. Pushes to origin
 6. Stores branch name and base branch in epic metadata
 
 **Error cases:**
@@ -354,7 +354,7 @@ gt mq integration land <epic-id> [flags]
 7. Merges integration branch to base branch using `--no-ff`
 8. Runs tests (unless `--skip-tests`)
 9. Verifies merge brought changes (guards against empty merges)
-10. Pushes to ofeaturein
+10. Pushes to origin
 11. Deletes integration branch (local and remote)
 12. Closes the epic
 
@@ -459,10 +459,10 @@ branches via raw git commands. Only `gt mq integration land` is authorized.
 
 The `.githooks/pre-push` hook detects when a push to the default branch
 introduces integration branch content. It uses ancestry-based detection:
-if any `ofeaturein/integration/*` branch tip becomes newly reachable from the
+if any `origin/integration/*` branch tip becomes newly reachable from the
 pushed commits, the push is blocked unless `GT_INTEGRATION_LAND=1` is set.
 
-The default branch is detected dynamically via `refs/remotes/ofeaturein/HEAD`
+The default branch is detected dynamically via `refs/remotes/origin/HEAD`
 (fallback: `main`), so this works regardless of the feature's branch naming.
 
 This catches all merge styles: `--no-ff`, `--ff-only`, default merge, and

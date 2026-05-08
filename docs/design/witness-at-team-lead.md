@@ -557,7 +557,7 @@ fi
 
 # Check that the branch has been pushed
 BRANCH=$(git branch --show-current 2>/dev/null)
-if ! git log "ofeaturein/$BRANCH" --oneline -1 >/dev/null 2>&1; then
+if ! git log "origin/$BRANCH" --oneline -1 >/dev/null 2>&1; then
   echo "Branch not pushed to remote. Run 'git push' before completing." >&2
   exit 2
 fi

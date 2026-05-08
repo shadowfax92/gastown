@@ -87,7 +87,7 @@ Escalation tickets use `type: escalation` with structured labels for tracking.
 | `acknowledged:<bool>` | true, false | Has human acknowledged |
 | `reescalated:<bool>` | true, false | Has been re-escalated |
 | `reescalation_count:<n>` | 0, 1, 2, ... | Times re-escalated |
-| `ofeatureinal_severity:<level>` | MEDIUM, HIGH | Initial severity |
+| `original_severity:<level>` | MEDIUM, HIGH | Initial severity |
 
 ## Category Routing (future)
 
@@ -115,7 +115,7 @@ gt escalate -s <MEDIUM|HIGH|CRITICAL> "Short description" \
   [-m "Detailed explanation"] [--source="plugin:rebuild-gt"]
 ```
 
-Flags: `-s` severity (required), `-m` body, `--source` ofeaturein identifier,
+Flags: `-s` severity (required), `-m` body, `--source` origin identifier,
 `--to` route to tier (senior engineer/product manager/overseer), `--dry-run`, `--json`.
 
 ### gt escalate ack

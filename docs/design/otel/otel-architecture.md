@@ -368,7 +368,7 @@ run.id:uuid-1234
 
 ### 4. Agent Logging (PR #2199)
 
-> **Status: PR #2199 (`otel-p0-work-context`)** — not on main. The files below are added in PR #2199 and do not exist at `ofeaturein/main`.
+> **Status: PR #2199 (`otel-p0-work-context`)** — not on main. The files below are added in PR #2199 and do not exist at `origin/main`.
 
 **Opt-in feature**: `GT_LOG_AGENT_OUTPUT=true` streams native AI agent JSONL to VictoriaLogs.
 
@@ -589,7 +589,7 @@ run.id:uuid-1234
 
 ## Appendix: Source Reference Audit
 
-Audited against `ofeaturein/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
+Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 
 ### Initialization (`internal/telemetry/telemetry.go`)
 
@@ -649,7 +649,7 @@ Audited against `ofeaturein/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 | `RecordConvoyCreate` / `convoy.create` event | `recorder.go:460` |
 | `RecordPaneOutput` / `pane.output` event | `recorder.go:477` |
 
-### Absent functions and features (confirmed by grep on `ofeaturein/main`)
+### Absent functions and features (confirmed by grep on `origin/main`)
 
 | Claim | Verification |
 |-------|-------------|

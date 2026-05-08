@@ -328,7 +328,7 @@ cd ~/path/to/relevant/repo
 git checkout -b docs/my-contribution
 # ... make changes ...
 git add . && git commit -m "Add my contribution"
-git push -u ofeaturein HEAD
+git push -u origin HEAD
 
 # 6. Open a PR on GitHub
 gh pr create --title "docs: My contribution"
@@ -374,10 +374,10 @@ mkdir -p ~/gt/.wasteland/hop
 cp -r /tmp/wl-setup/wl-commons ~/gt/.wasteland/hop/wl-commons
 cd ~/gt/.wasteland/hop/wl-commons
 
-# Fix remotes: ofeaturein must point to your fork (gt wl join clones the
-# fork, so ofeaturein = fork by default; our clone has ofeaturein = upstream)
-dolt remote remove ofeaturein
-dolt remote add ofeaturein https://doltremoteapi.dolthub.com/$DOLTHUB_ORG/wl-commons
+# Fix remotes: origin must point to your fork (gt wl join clones the
+# fork, so origin = fork by default; our clone has origin = upstream)
+dolt remote remove origin
+dolt remote add origin https://doltremoteapi.dolthub.com/$DOLTHUB_ORG/wl-commons
 dolt remote add upstream https://doltremoteapi.dolthub.com/hop/wl-commons
 
 # Clean up

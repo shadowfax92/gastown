@@ -18,7 +18,7 @@
       ## Branch under test: feat/add-user-roles (PR #87)
       ## Modified files: src/auth/roles.js, src/auth/roles.test.js
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | tail -5
+      $ git stash && git checkout origin/main && npm test 2>&1 | tail -5
       Tests:  142 passed, 0 failed
       Time:   12.4s
       Result: PASS
@@ -58,7 +58,7 @@
       ## Branch under test: feat/notifications (PR #92)
       ## Modified files: src/notify.js, src/notify.test.js (NEW)
 
-      $ git diff --name-status ofeaturein/main...HEAD | grep test
+      $ git diff --name-status origin/main...HEAD | grep test
       A       src/notify.test.js
 
       $ npm test 2>&1 | tail -8
@@ -92,7 +92,7 @@
       ## Branch under test: fix/cleanup-imports (PR #95)
       ## Modified files: src/utils/helpers.js, src/api/routes.js
 
-      $ git stash && git checkout ofeaturein/main && npx eslint src/ 2>&1 | tail -2
+      $ git stash && git checkout origin/main && npx eslint src/ 2>&1 | tail -2
       ✓ 0 errors, 0 warnings
 
       $ git checkout - && git stash pop && npx eslint src/ 2>&1 | tail -5
@@ -124,7 +124,7 @@
       ## Branch under test: feat/dark-mode (PR #101)
       ## Modified files: src/ui/theme.js, src/ui/theme.css
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | tail -8
+      $ git stash && git checkout origin/main && npm test 2>&1 | tail -8
       FAIL src/payments/stripe.test.js
         ● StripePayments › should process refund
           Error: Stripe API key not configured
@@ -228,7 +228,7 @@
       ## Branch under test: refactor/user-model (PR #110)
       ## Modified files: src/models/user.js, src/models/user.test.js
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | tail -3
+      $ git stash && git checkout origin/main && npm test 2>&1 | tail -3
       Tests:  142 passed, 0 failed
       Result: PASS
 
@@ -268,7 +268,7 @@
       ## Branch under test: refactor/api-types (PR #112)
       ## Modified files: src/types/api.ts
 
-      $ git stash && git checkout ofeaturein/main && npx tsc --noEmit 2>&1 | tail -2
+      $ git stash && git checkout origin/main && npx tsc --noEmit 2>&1 | tail -2
       Found 0 errors.
 
       $ git checkout - && git stash pop && npx tsc --noEmit 2>&1 | tail -10
@@ -301,13 +301,13 @@
       ## Branch created: 2026-02-12 (3 days ago)
       ## Modified files: src/notify.js, src/notify.test.js
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | grep FAIL
+      $ git stash && git checkout origin/main && npm test 2>&1 | grep FAIL
       FAIL src/auth/session.test.js
 
       $ git checkout - && git stash pop && npm test 2>&1 | grep FAIL
       FAIL src/auth/session.test.js
 
-      $ git bisect start HEAD ofeaturein/main~20
+      $ git bisect start HEAD origin/main~20
       $ git bisect bad  # main HEAD fails
       $ git bisect good  # 20 commits ago passes
       ...
@@ -341,7 +341,7 @@
       ## Branch under test: feat/user-profiles (PR #118)
       ## Modified files: src/users/profile.js, src/users/profile.test.js
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | tail -8
+      $ git stash && git checkout origin/main && npm test 2>&1 | tail -8
       FAIL src/payments/stripe.test.js
         ● should process refund — Error: API key not configured
 

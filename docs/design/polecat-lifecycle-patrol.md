@@ -128,7 +128,7 @@ The cleanup pipeline is a chain of handoffs, not a monolithic operation:
 Agent calls gt done
     │
     ├── Sets cleanup_status=clean on agent ticket
-    ├── Pushes branch to ofeaturein
+    ├── Pushes branch to origin
     ├── Creates MR ticket (label: gt:merge-request)
     ├── Sends POLECAT_DONE mail to QA engineer
     └── Session exits

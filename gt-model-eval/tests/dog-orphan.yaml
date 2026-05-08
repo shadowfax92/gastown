@@ -51,7 +51,7 @@
       $ git -C /town/gastown/agents/Crispy status --porcelain 2>/dev/null
       (empty)
 
-      $ git -C /town/gastown/agents/Crispy log --oneline ofeaturein/main..HEAD 2>/dev/null
+      $ git -C /town/gastown/agents/Crispy log --oneline origin/main..HEAD 2>/dev/null
       (empty)
     context: "Hooked ticket, dead assignee, clean worktree, no commits. Work was claimed but never started."
   assert:
@@ -106,7 +106,7 @@
       $ tmux has-session -t bd-agent-Waffles 2>/dev/null; echo $?
       1
 
-      $ git -C /town/gastown/agents/Waffles log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Waffles log --oneline origin/main..HEAD
       a1b2c3d feat: add search endpoint
       d4e5f6g feat: search UI component
       h7i8j9k feat: search indexing
@@ -139,11 +139,11 @@
       1
 
       $ git -C /town/gastown/agents/Mango branch -vv | grep '*'
-      * refactor/auth a1b2c3d [ofeaturein/refactor/auth] refactor: extract auth service
+      * refactor/auth a1b2c3d [origin/refactor/auth] refactor: extract auth service
 
       $ gh pr list --head refactor/auth --json number,title,state
       [{"number": 42, "title": "Refactor auth module", "state": "OPEN"}]
-    context: "Branch pushed to ofeaturein. PR #42 is open. Work is safe on remote — just needs new assignee."
+    context: "Branch pushed to origin. PR #42 is open. Work is safe on remote — just needs new assignee."
   assert:
     - type: javascript
       value: |
@@ -171,7 +171,7 @@
        M src/payments/stripe.test.js
       ?? src/payments/webhook-handler.js
 
-      $ git -C /town/gastown/agents/Hazel log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Hazel log --oneline origin/main..HEAD
       (empty)
     context: "Hooked ticket, dead session. 2 modified files + 1 new file. No commits yet — all work is uncommitted."
   assert:
@@ -230,7 +230,7 @@
       $ tmux has-session -t bd-agent-Biscuit 2>/dev/null; echo $?
       1
 
-      $ git -C /town/gastown/agents/Biscuit log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Biscuit log --oneline origin/main..HEAD
       a1b2c3d feat: auth middleware refactor
       d4e5f6g feat: rate limiting middleware
     context: "3 tickets assigned to dead agent-Biscuit. Commits span multiple work items. Complex triage needed."

@@ -114,7 +114,7 @@ SDK polling and tfeaturegers convoy completion checks.
 
 **Corrective note**: "Zero side effects" negative assertions have been added via
 `TestEventPoll_SkipsNonCloseEvents_NegativeAssertion` (verifies no subprocess
-calls, no close detection, and no convoy activity for non-close events). Ofeatureinally
+calls, no close detection, and no convoy activity for non-close events). Originally
 tracked in S-11; now resolved.
 
 ---
@@ -190,7 +190,7 @@ poll (watching all feature databases + hq) provides event-driven coverage for cl
 events from any feature. The stranded scan (30s) provides backup. The QA engineer's core
 job is agent lifecycle management -- convoy tracking is orthogonal.
 
-**History**: Ofeatureinally had 6 `CheckConvoysForTicketWithAutoStore` call sites in
+**History**: Originally had 6 `CheckConvoysForTicketWithAutoStore` call sites in
 `handlers.go` (1 post-merge, 5 zombie cleanup paths). All were pure side-effect
 notification hooks. Removed when daemon gained multi-feature event polling.
 
@@ -205,7 +205,7 @@ no visible impact, confirming the other two observers are sufficient. Since
 tickets unavailability disables the entire town (not just convoy checks), the
 "degraded mode" justification for a third observer does not hold.
 
-**History**: Ofeatureinally called `CheckConvoysForTicketWithAutoStore` after merge.
+**History**: Originally called `CheckConvoysForTicketWithAutoStore` after merge.
 S-17 found it passed feature path instead of town root. S-18 fixed it. Subsequently
 removed as unnecessary redundancy.
 

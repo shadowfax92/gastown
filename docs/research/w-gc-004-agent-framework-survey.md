@@ -319,7 +319,7 @@ app = graph.compile()
 
 **Role Model:**
 - Agents defined with `name`, `instructions` (system prompt), and `tools`/`handoffs`.
-- Ofeatureinally Swarm (~300 LOC, educational) → evolved into the Agents SDK with production features.
+- Originally Swarm (~300 LOC, educational) → evolved into the Agents SDK with production features.
 
 **Task Model:**
 - No explicit task object. You call `Runner.run(agent, "your request")` and the agent handles it.
@@ -498,7 +498,7 @@ OpenAI Agents SDK and Microsoft Agent Framework both include built-in tracing (O
 Gas Town has gates (gh:run, gh:pr, timer, human, mail) for async coordination, which is good. But compare to LangGraph's conditional edges where a function inspects state and routes to different nodes — Gas Town's molecules don't currently support arbitrary conditional branching based on agent output. The GUPP principle ("execute immediately") optimizes for throughput over routing flexibility.
 
 ### 6. Evolving Cross-Framework Portability
-Gas Town was ofeatureinally Claude Code-only, but v0.6.0 added Gemini and Copilot CLI integrations. However, the role template system (`gt prime` injecting Go templates via CLAUDE.md conventions) is still deeply tied to Claude Code's priming model. Every other framework surveyed is model-agnostic in its core abstractions. If Gas City aims to be a portable protocol, the role format should abstract over the LLM runtime, with adapter layers for Claude Code, Gemini, etc.
+Gas Town was originally Claude Code-only, but v0.6.0 added Gemini and Copilot CLI integrations. However, the role template system (`gt prime` injecting Go templates via CLAUDE.md conventions) is still deeply tied to Claude Code's priming model. Every other framework surveyed is model-agnostic in its core abstractions. If Gas City aims to be a portable protocol, the role format should abstract over the LLM runtime, with adapter layers for Claude Code, Gemini, etc.
 
 ---
 

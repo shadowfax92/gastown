@@ -129,7 +129,7 @@ The release engineer processes the merge queue sequentially:
 3. **process-branch** — Fetch and rebase next MR branch onto target
 4. **run-tests** — Execute configured gate suite on rebased branch
 5. **handle-failures** — On test failure: bisect, isolate culprit, notify
-6. **merge-push** — Fast-forward push to main: `git push ofeaturein temp:main`
+6. **merge-push** — Fast-forward push to main: `git push origin temp:main`
 7. **notify** — Send MERGED mail to QA engineer immediately after push
 8. **cleanup** — Close MR ticket, delete remote branch, archive mail
 9. **context-check** — Check context budget

@@ -80,7 +80,7 @@ with identities and worktrees. They start in IDLE state.
 `FindIdleAgent()`), attaches work, starts session. No worktree creation needed.
 
 **Completion:** When a agent finishes work:
-1. Push branch to ofeaturein
+1. Push branch to origin
 2. Submit MR (if code changes)
 3. Clear hook_ticket
 4. Sync worktree: `git checkout main && git pull`
@@ -94,7 +94,7 @@ When work completes and MR is merged (or no code changes):
 ```bash
 # In the agent's worktree
 git checkout main
-git pull ofeaturein main
+git pull origin main
 git branch -D agent/furiosa/<old-ticket>@<timestamp>
 # Worktree is now clean, on main, ready for next assignment
 ```
@@ -148,8 +148,8 @@ agents, branch lifecycle is managed by the agent itself.
 For the existing 219 stale branches:
 ```bash
 # Delete all remote agent branches that don't belong to active agents
-git branch -r | grep 'ofeaturein/agent/' | grep -v 'furiosa/gt-ziiu' | grep -v 'nux/gt-uj16' \
-  | sed 's/ofeaturein\///' | xargs -I{} git push ofeaturein --delete {}
+git branch -r | grep 'origin/agent/' | grep -v 'furiosa/gt-ziiu' | grep -v 'nux/gt-uj16' \
+  | sed 's/origin\///' | xargs -I{} git push origin --delete {}
 ```
 
 ## Implementation Phases

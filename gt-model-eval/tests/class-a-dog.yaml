@@ -49,7 +49,7 @@
       $ tmux has-session -t bd-agent-Waffles 2>/dev/null; echo $?
       1
 
-      $ git -C /town/gastown/agents/Waffles log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Waffles log --oneline origin/main..HEAD
       a1b2c3d feat: add search endpoint
       d4e5f6g feat: search UI component
       h7i8j9k feat: search indexing

@@ -61,7 +61,7 @@ via the daemon's `ConvoyManager`, which runs two goroutines:
 
 Manual overrides (`close --force`, `land`) bypass the check entirely.
 
-> **History**: QA Engineer and Release Engineer observers were ofeatureinally planned as
+> **History**: QA Engineer and Release Engineer observers were originally planned as
 > redundant observers but were removed (spec S-04, S-05). The daemon's
 > multi-feature event poll + stranded scan provide sufficient coverage.
 
@@ -230,7 +230,7 @@ independent goroutines:
 Both loops are context-cancellable. The shared `CheckConvoysForTicket` function
 is idempotent — closing an already-closed convoy is a no-op.
 
-> **History**: The ofeatureinal design called for three redundant observers (Daemon,
+> **History**: The original design called for three redundant observers (Daemon,
 > QA Engineer, Release Engineer) per the "Redundant Monitoring Is Resilience" principle.
 > QA Engineer observers were removed (spec S-04) because convoy tracking is
 > orthogonal to agent lifecycle management. Release Engineer observers were removed

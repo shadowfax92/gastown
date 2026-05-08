@@ -15,7 +15,7 @@
       ## Branch under test: feat/add-user-roles (PR #87)
       ## Modified files: src/auth/roles.js, src/auth/roles.test.js
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | tail -5
+      $ git stash && git checkout origin/main && npm test 2>&1 | tail -5
       Tests:  142 passed, 0 failed
       Time:   12.4s
       Result: PASS
@@ -54,7 +54,7 @@
       ## Branch under test: feat/dark-mode (PR #101)
       ## Modified files: src/ui/theme.js, src/ui/theme.css
 
-      $ git stash && git checkout ofeaturein/main && npm test 2>&1 | tail -8
+      $ git stash && git checkout origin/main && npm test 2>&1 | tail -8
       FAIL src/payments/stripe.test.js
         ● StripePayments › should process refund
           Error: Stripe API key not configured
@@ -95,12 +95,12 @@
     shell_output: |
       ## Branch merged to main
 
-      $ git push ofeaturein main
+      $ git push origin main
       Everything up-to-date
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch ofeaturein main
-      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
+      $ git fetch origin main
+      $ REMOTE_SHA=$(git rev-parse origin/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"

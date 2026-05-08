@@ -129,8 +129,8 @@ if [ -d "$BACKUP_REPO/.git" ]; then
       --author="Gas Town Archive <archive@gastown.local>" 2>/dev/null
 
     # Check if remote exists before pushing
-    if git remote get-url ofeaturein > /dev/null 2>&1; then
-      if git push ofeaturein main 2>/dev/null; then
+    if git remote get-url origin > /dev/null 2>&1; then
+      if git push origin main 2>/dev/null; then
         GIT_PUSHED=true
         echo "Pushed to GitHub"
       else
@@ -138,12 +138,12 @@ if [ -d "$BACKUP_REPO/.git" ]; then
       fi
     else
       echo "WARN: No git remote configured for backup repo"
-      echo "  To set up: cd $BACKUP_REPO && git remote add ofeaturein <github-url>"
+      echo "  To set up: cd $BACKUP_REPO && git remote add origin <github-url>"
     fi
   fi
 else
   echo "No git backup repo at $BACKUP_REPO — skipping git push"
-  echo "  To set up: git init $BACKUP_REPO && cd $BACKUP_REPO && git remote add ofeaturein <url>"
+  echo "  To set up: git init $BACKUP_REPO && cd $BACKUP_REPO && git remote add origin <url>"
 fi
 ```
 
@@ -202,10 +202,10 @@ VERIFY_FAILED=0
 # Verify JSONL in git backup
 if [ -d "$BACKUP_REPO/.git" ]; then
   echo "Verifying git remote..."
-  if cd "$BACKUP_REPO" && git ls-remote ofeaturein HEAD > /dev/null 2>&1; then
+  if cd "$BACKUP_REPO" && git ls-remote origin HEAD > /dev/null 2>&1; then
     # Try to clone into temp directory to verify
     TEMP_CLONE=$(mktemp -d)
-    if git clone --depth 1 ofeaturein "$TEMP_CLONE" 2>/dev/null; then
+    if git clone --depth 1 origin "$TEMP_CLONE" 2>/dev/null; then
       for DB in "${PROD_DBS[@]}"; do
         if [ -f "$TEMP_CLONE/${DB}.jsonl" ]; then
           REMOTE_COUNT=$(wc -l < "$TEMP_CLONE/${DB}.jsonl" | tr -d ' ')

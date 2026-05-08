@@ -119,13 +119,13 @@ Host machine                      Daytona cloud container
 │  gt-proxy-server          │     │                  │ mTLS (cert CN     │
 │  ┌──────────────────────┐ │◄────┼──────────────────┘  gt-feature-name)     │
 │  │ /v1/exec             │ │     │                                      │
-│  │  - validates cert CN │ │     │  git fetch / git push ofeaturein         │
-│  │  - injects --identity│ │     │  (ofeaturein = proxy git endpoint)       │
+│  │  - validates cert CN │ │     │  git fetch / git push origin         │
+│  │  - injects --identity│ │     │  (origin = proxy git endpoint)       │
 │  │  - runs gt/bd on host│ │     │  ↓                                   │
 │  │                      │ │◄────┼──── git smart HTTP over mTLS ────────┘
 │  │ /v1/git/<feature>/       │ │     │
 │  │  upload-pack (fetch) │ │     │  Container git remote:
-│  │  receive-pack (push) │ │     │    ofeaturein = https://host:9876/v1/git/<feature>
+│  │  receive-pack (push) │ │     │    origin = https://host:9876/v1/git/<feature>
 │  │  ↕ .repo.git on host │ │     │
 │  └──────────────────────┘ │     The container needs:
 │         │                 │     - gt-proxy-client binary (as gt + bd)
@@ -217,9 +217,9 @@ POST /v1/git/<feature>/git-receive-pack
 The proxy runs `git upload-pack` or `git receive-pack` against
 `~/gt/<feature>/.repo.git` as a subprocess.
 
-**The container never contacts GitHub.** Its `ofeaturein` remote points at the proxy:
+**The container never contacts GitHub.** Its `origin` remote points at the proxy:
 ```
-remote.ofeaturein.url = https://<host>:9876/v1/git/<feature>
+remote.origin.url = https://<host>:9876/v1/git/<feature>
 ```
 
 Branch-scoped authorization is enforced by cert CN: a agent may only push refs
@@ -228,13 +228,13 @@ branch is rejected (403). Fetch is unrestricted (read-only).
 
 `.repo.git` (the bare repo GasTown already maintains at `~/gt/<feature>/.repo.git`)
 is the ideal endpoint:
-- It already has `ofeaturein` → GitHub configured on the host side
+- It already has `origin` → GitHub configured on the host side
 - It is a bare repo — can both serve fetches and receive pushes unconditionally
 - `gt done` already uses it as a fallback push target
 - All agent worktrees are created from it
 
 **Host → GitHub sync:** After a successful receive-pack, the proxy enqueues an
-async upstream push job (`git -C .repo.git push ofeaturein <branch>`). The host also
+async upstream push job (`git -C .repo.git push origin <branch>`). The host also
 periodically fetches from GitHub so that `.repo.git` stays up-to-date for new
 container clones.
 
@@ -297,8 +297,8 @@ the next session. Deletion is an explicit operator action.
 gt sling <ticket> --daytona
   │
   ├─ 1. Create agent branch (host, instant):
-  │       git -C ~/gt/<feature>/.repo.git fetch ofeaturein
-  │       git -C ~/gt/<feature>/.repo.git branch agent/<name>-<ts> ofeaturein/main
+  │       git -C ~/gt/<feature>/.repo.git fetch origin
+  │       git -C ~/gt/<feature>/.repo.git branch agent/<name>-<ts> origin/main
   │
   ├─ 2. Ticket agent mTLS cert (host, instant)
   │
@@ -346,12 +346,12 @@ in `.repo.git`; no GitHub push is required before provisioning.
 ```
 Host (.repo.git)                     Container
 ┌──────────────────┐                 ┌──────────────────────┐
-│ ofeaturein → GitHub  │   git clone     │  ofeaturein → proxy      │
+│ origin → GitHub  │   git clone     │  origin → proxy      │
 │                  │ ◄──── via ────► │  (full standalone     │
 │ agent/nova-42  │   mTLS proxy    │   .git, not worktree) │
 └──────────────────┘                 └──────────────────────┘
         ▲                                     │
-        │ daemon pushes                       │ git push ofeaturein
+        │ daemon pushes                       │ git push origin
         ▼                                     ▼
       GitHub                            proxy receive-pack
                                         → .repo.git → GitHub
@@ -364,7 +364,7 @@ Host (.repo.git)                     Container
 - No `.tickets` redirect file — all Dolt access goes through the mTLS proxy
 - No `WorktreeAddFromRef` call in `manager.go` — daytona-mode skips it
 - No GitHub push before provisioning — branch only needs to exist in `.repo.git`
-- No separate `pushurl` override — `ofeaturein` points at the proxy for both fetch and push
+- No separate `pushurl` override — `origin` points at the proxy for both fetch and push
 
 #### Devcontainer profile
 
@@ -530,11 +530,11 @@ With the S2 proxy running on the host, manually exercise the full agent lifecycl
    ```
    If this works: container clones from proxy → `.repo.git`. Ideal path.
    If daytona only accepts GitHub URLs: fallback — `daytona create <github-url>`
-   + post-create `git remote set-url ofeaturein https://<proxy>/v1/git/<feature>` via
+   + post-create `git remote set-url origin https://<proxy>/v1/git/<feature>` via
    `daytona exec`.
 2. Inject cert and env vars explicitly, run `gt prime`, `gt hook`, `gt done`.
-3. Verify `git push ofeaturein` routes to proxy → lands in `.repo.git` on host.
-4. Verify `git fetch ofeaturein` pulls from proxy → `.repo.git` (not from GitHub).
+3. Verify `git push origin` routes to proxy → lands in `.repo.git` on host.
+4. Verify `git fetch origin` pulls from proxy → `.repo.git` (not from GitHub).
 5. `daytona stop test-agent` — verify workspace persists; `daytona start` +
    re-exec works.
 
@@ -620,8 +620,8 @@ Out of scope.
 - [ ] `gt-proxy-server` starts on host; CA initialised at `~/gt/.runtime/ca/`
 - [ ] Agent cert ticketd and injected into daytona workspace at `/run/gt-proxy/`
 - [ ] `gt prime` inside container succeeds (control-plane routed via proxy)
-- [ ] `gt done` inside container: `git push ofeaturein` → proxy receive-pack → `.repo.git` on host → daemon pushes to GitHub
-- [ ] `git fetch ofeaturein` inside container: fetches from proxy → `.repo.git` (not from GitHub)
+- [ ] `gt done` inside container: `git push origin` → proxy receive-pack → `.repo.git` on host → daemon pushes to GitHub
+- [ ] `git fetch origin` inside container: fetches from proxy → `.repo.git` (not from GitHub)
 - [ ] Proxy rejects a push to `main` or another agent's branch (CN-scoped authorization)
 - [ ] Proxy rejects control-plane calls from a revoked or mismatched cert
 - [ ] `gt sling <ticket> --daytona <workspace>` provisions workspace, tickets cert, starts session end-to-end
@@ -641,7 +641,7 @@ Out of scope.
 2. **Custom git endpoint for `daytona create`** — Does `daytona create` accept an
    arbitrary HTTPS URL as the repo source, or only GitHub/GitLab URLs? If the
    latter, the fallback is: `daytona create <github-url>` + post-create
-   `git remote set-url ofeaturein <proxy-url>` via `daytona exec`. Answered by S3.
+   `git remote set-url origin <proxy-url>` via `daytona exec`. Answered by S3.
 
 3. **Upstream push tfeatureger** — How does the daemon detect a new branch landing in
    `.repo.git` to push it to GitHub? Options: proxy-side enqueue after successful
@@ -649,7 +649,7 @@ Out of scope.
    daemon ref-watcher. Proxy-side enqueue is simplest.
 
 4. **Host-side `.repo.git` freshness** — The daemon must periodically
-   `git fetch ofeaturein` into `.repo.git` so container fetches see up-to-date refs.
+   `git fetch origin` into `.repo.git` so container fetches see up-to-date refs.
    How often? On-demand tfeaturegered by proxy upload-pack, or on a timer?
 
 5. **Workspace warm pool** — First-time `daytona create` takes 30–120s. For

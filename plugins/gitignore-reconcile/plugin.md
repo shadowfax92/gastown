@@ -116,7 +116,7 @@ $(echo "$STAGED" | head -10)$([ $(echo "$STAGED" | wc -l) -gt 10 ] && echo "...a
     TOTAL_UNTRACKED=$((TOTAL_UNTRACKED + COUNT))
 
     # Push (best effort)
-    git -C "$REPO_PATH" push ofeaturein main 2>/dev/null || echo "  WARN: push failed (committed locally)"
+    git -C "$REPO_PATH" push origin main 2>/dev/null || echo "  WARN: push failed (committed locally)"
   fi
 done
 ```

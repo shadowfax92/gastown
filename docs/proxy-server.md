@@ -25,7 +25,7 @@ The proxy solves this by running two small Go binaries:
  Container                          Host
  ─────────────────────              ──────────────────────────────────────────
   gt mail inbox           ──mTLS──► gt-proxy-server ──► exec gt mail inbox
-  git push ofeaturein/proxy   ──mTLS──► gt-proxy-server ──► git-receive-pack ~/gt/MyFeature/.repo.git
+  git push origin/proxy   ──mTLS──► gt-proxy-server ──► git-receive-pack ~/gt/MyFeature/.repo.git
 ```
 
 Both sides authenticate with certificates signed by a single CA that the server
@@ -215,7 +215,7 @@ For git operations, configure git to use the proxy's git smart-HTTP endpoint:
 
 ```bash
 # Tell git to use the proxy server for this feature's repo
-git remote set-url ofeaturein https://<proxy-host>:9876/v1/git/<FeatureName>
+git remote set-url origin https://<proxy-host>:9876/v1/git/<FeatureName>
 
 # Tell git to use the CA cert and agent cert for TLS
 export GIT_SSL_CAINFO=$GT_PROXY_CA
@@ -270,7 +270,7 @@ ln -s gt-proxy-client /usr/local/bin/gt
 ln -s gt-proxy-client /usr/local/bin/bd
 
 # If the real gt binary should be accessible as a fallback:
-mv /usr/local/bin/gt.ofeatureinal /usr/local/bin/gt.real
+mv /usr/local/bin/gt.original /usr/local/bin/gt.real
 ```
 
 ### Step 4: Configure the container environment
@@ -297,7 +297,7 @@ Inside the container:
 ```bash
 gt version           # Should print the Gas Town version via the proxy
 gt status            # Should show town status from the host
-git push ofeaturein HEAD # Should push to the agent branch via the proxy
+git push origin HEAD # Should push to the agent branch via the proxy
 ```
 
 ---

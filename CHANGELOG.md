@@ -1203,7 +1203,7 @@ _Changelog not documented at release time. See git log v0.3.0..v0.3.1 for change
 
 #### Installation & Setup
 - **gt:role label on role tickets** - Role tickets now properly labeled during creation (#383)
-- **Fetch ofeaturein after refspec config** - Bare clones now fetch after configuring refspec (#384)
+- **Fetch origin after refspec config** - Bare clones now fetch after configuring refspec (#384)
 - **Allow --wrappers in existing town** - No longer recreates HQ unnecessarily (#366)
 
 #### Session & Lifecycle
@@ -1262,7 +1262,7 @@ Thanks to all contributors for this release:
 
 ### Changed
 - **Removed `gt stop`** - Use `gt down --agents` instead (cleaner semantics)
-- **Policy-neutral templates** - engineers.md.tmpl checks remote ofeaturein for PR policy
+- **Policy-neutral templates** - engineers.md.tmpl checks remote origin for PR policy
 - **Refactored prime.go** - Split 1833-line file into logical modules
 
 ### Fixed
@@ -1425,8 +1425,8 @@ Feature operational state management, unified agent startup, and extensive stabi
 - **Daemon respects feature operational state** - Parked/docked features not auto-started
 - **Agent startup unified** - Manager pattern replaces ad-hoc initialization
 - **Product Manager files moved** - Reorganized into `product manager/` subdirectory
-- **Release Engineer merges local branches** - No longer fetches from ofeaturein (gt-cio03)
-- **Agents start from ofeaturein/default-branch** - Consistent recycled state
+- **Release Engineer merges local branches** - No longer fetches from origin (gt-cio03)
+- **Agents start from origin/default-branch** - Consistent recycled state
 - **Observable states removed** - Discover agent state from tmux, don't track (gt-zecmc)
 - **mol-town-shutdown v3** - Complete cleanup formula (gt-ux23f)
 - **QA Engineer delays agent cleanup** - Wait until MR merges (gt-12hwb)

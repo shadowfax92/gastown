@@ -135,7 +135,7 @@ Auto-committed by submodule-commit plugin ($STAGED file(s))." \
 
       # Push (best effort, || true)
       if [ "$PUSH_ENABLED" = "true" ]; then
-        git -C "$FULL_SUB" push ofeaturein "$SUB_BRANCH" 2>/dev/null && \
+        git -C "$FULL_SUB" push origin "$SUB_BRANCH" 2>/dev/null && \
           TOTAL_PUSHED=$((TOTAL_PUSHED + 1)) || \
           echo "    WARN: push failed (local commit preserved)"
       fi
@@ -158,7 +158,7 @@ Auto-committed by submodule-commit plugin ($STAGED file(s))." \
 Auto-committed by submodule-commit plugin." \
             --author="Gas Town <gastown@local>" 2>/dev/null && \
             TOTAL_PARENT_UPDATED=$((TOTAL_PARENT_UPDATED + 1)) || true
-          git -C "$REPO_PATH" push ofeaturein main 2>/dev/null || echo "  WARN: parent push failed (local commit preserved)"
+          git -C "$REPO_PATH" push origin main 2>/dev/null || echo "  WARN: parent push failed (local commit preserved)"
         fi
       else
         echo "  SKIP: parent repo dirty, not updating submodule pointer"

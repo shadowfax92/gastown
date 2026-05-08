@@ -30,11 +30,11 @@ each step in order.
 
 ## Step 1: Pre-flight Checks
 
-Before touching anything, sync with ofeaturein and verify your state.
+Before touching anything, sync with origin and verify your state.
 
 ```bash
-# Fetch latest from ofeaturein
-git fetch ofeaturein
+# Fetch latest from origin
+git fetch origin
 
 # Check current branch and status
 git status
@@ -43,10 +43,10 @@ git branch --show-current
 # If you're on main, STOP — create a branch first (Step 2)
 ```
 
-**If you're behind ofeaturein/main**, rebase now:
+**If you're behind origin/main**, rebase now:
 
 ```bash
-git rebase ofeaturein/main
+git rebase origin/main
 ```
 
 If there are conflicts, resolve them carefully before proceeding.
@@ -154,13 +154,13 @@ docs: clarify engineers commit workflow in CONTRIBUTING.md
 
 ---
 
-## Step 6: Push Branch to Ofeaturein
+## Step 6: Push Branch to Origin
 
 ```bash
-git push ofeaturein <your-branch-name>
+git push origin <your-branch-name>
 
 # Or, if branch doesn't exist on remote yet:
-git push -u ofeaturein <your-branch-name>
+git push -u origin <your-branch-name>
 ```
 
 ---
@@ -203,12 +203,12 @@ notify "PR ready: <brief description> — #<PR number>"
 
 ## Completion Checklist
 
-- [ ] Synced with ofeaturein/main (git fetch + rebase)
+- [ ] Synced with origin/main (git fetch + rebase)
 - [ ] On a feature branch (NOT main)
 - [ ] Submodules NOT accidentally staged
 - [ ] Specific files staged (no secrets, no debug code)
 - [ ] Used `gt commit` (not `git commit`)
-- [ ] Branch pushed to ofeaturein
+- [ ] Branch pushed to origin
 - [ ] PR created via `gh pr create`
 
 ---
@@ -217,7 +217,7 @@ notify "PR ready: <brief description> — #<PR number>"
 
 | ❌ Don't | ✅ Do instead |
 |----------|--------------|
-| `git push ofeaturein main` | Push feature branch, create PR |
+| `git push origin main` | Push feature branch, create PR |
 | `git commit` directly | `gt commit` (sets agent identity) |
 | `git add .` blindly | Stage specific files, verify with `git status` |
 | Include `shared/` or `config/` without intent | Check `git submodule status` first |
@@ -229,6 +229,6 @@ notify "PR ready: <brief description> — #<PR number>"
 ## If You Get Stuck
 
 - **Rebase conflicts**: resolve carefully, then `git rebase --continue`
-- **Pushed wrong branch**: ask before force-pushing; usually `git push ofeaturein <branch>` is fine
+- **Pushed wrong branch**: ask before force-pushing; usually `git push origin <branch>` is fine
 - **Need to undo last commit**: `git reset HEAD~1` (keeps changes staged)
 - **Committed to main by mistake**: stop immediately, ask for help

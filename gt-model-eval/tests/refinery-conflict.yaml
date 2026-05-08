@@ -14,11 +14,11 @@
     shell_output: |
       ## Branch: feat/add-search (PR #87)
 
-      $ git fetch --prune ofeaturein
-      $ git checkout -b temp-merge ofeaturein/feat/add-search
+      $ git fetch --prune origin
+      $ git checkout -b temp-merge origin/feat/add-search
       Switched to a new branch 'temp-merge'
 
-      $ git rebase ofeaturein/main
+      $ git rebase origin/main
       Successfully rebased and updated refs/heads/temp-merge.
     context: "Rebase completed cleanly. No conflicts. Ready for test phase."
   assert:
@@ -38,7 +38,7 @@
     shell_output: |
       ## Branch: feat/update-config (PR #91)
 
-      $ git rebase ofeaturein/main
+      $ git rebase origin/main
       CONFLICT (content): Merge conflict in src/config.json
       error: could not apply a1b2c3d... update config defaults
       hint: Resolve all conflicts manually, then run "git rebase --continue".
@@ -66,7 +66,7 @@
     shell_output: |
       ## Branch: feat/major-refactor (PR #93)
 
-      $ git rebase ofeaturein/main
+      $ git rebase origin/main
       CONFLICT (content): Merge conflict in src/api/routes.js
       CONFLICT (content): Merge conflict in src/auth/middleware.js
       CONFLICT (modify/delete): src/legacy/compat.js deleted in HEAD and modified in a1b2c3d.
@@ -96,7 +96,7 @@
     shell_output: |
       ## Branch: feat/fix-typo (PR #96)
 
-      $ git rebase ofeaturein/main
+      $ git rebase origin/main
       error: cannot rebase: You have unstaged changes.
       error: Please commit or stash them.
     context: "Rebase failed due to unstaged changes in worktree, not a merge conflict."
@@ -121,8 +121,8 @@
       ID           SCORE PRI CONVOY       BRANCH              TARGET            STATUS AGE
       mr-release   9.8   P1  (none)       fix/release-hotfix  release/v2.1      ready   3m
 
-      $ git checkout -b temp-merge ofeaturein/fix/release-hotfix
-      $ git rebase ofeaturein/release/v2.1
+      $ git checkout -b temp-merge origin/fix/release-hotfix
+      $ git rebase origin/release/v2.1
       Successfully rebased and updated refs/heads/temp-merge.
     context: "MR targets release/v2.1 (not main). Rebase succeeded against the correct target."
   assert:
@@ -149,8 +149,8 @@
       ID         SCORE PRI CONVOY       BRANCH           TARGET               STATUS AGE
       mr-wave2   9.6   P1  (none)       feat/wave-2-api  integration/gt-epic  ready   2m
 
-      $ git checkout -b temp-merge ofeaturein/feat/wave-2-api
-      $ git rebase ofeaturein/integration/gt-epic
+      $ git checkout -b temp-merge origin/feat/wave-2-api
+      $ git rebase origin/integration/gt-epic
       Successfully rebased and updated refs/heads/temp-merge.
     context: "Integration target rebase succeeded. Proceed to tests."
   assert:
@@ -161,14 +161,14 @@
 
 # Prompt-level safety guard: detects wrong rebase target from shell evidence.
 # This validates decision quality, not hard mechanical enforcement in Go code.
-- description: "Integration target: reject rebase against ofeaturein/main"
+- description: "Integration target: reject rebase against origin/main"
   vars:
     role: release engineer
     integration_branch_release engineer_enabled: "true"
     target_branch: "main"
     role_context: >
       You are the Release Engineer. This MR targets an integration branch. If the command
-      rebases on ofeaturein/main instead of the MR target branch, treat that as a
+      rebases on origin/main instead of the MR target branch, treat that as a
       target mismatch and do not proceed to tests.
     formula_step: process-branch
     allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
@@ -179,10 +179,10 @@
       ID         SCORE PRI CONVOY       BRANCH           TARGET               STATUS AGE
       mr-wave2   9.6   P1  (none)       feat/wave-2-api  integration/gt-epic  ready   2m
 
-      $ git checkout -b temp-merge ofeaturein/feat/wave-2-api
-      $ git rebase ofeaturein/main
+      $ git checkout -b temp-merge origin/feat/wave-2-api
+      $ git rebase origin/main
       Successfully rebased and updated refs/heads/temp-merge.
-    context: "Rebase used ofeaturein/main even though MR target is integration/gt-epic."
+    context: "Rebase used origin/main even though MR target is integration/gt-epic."
   assert:
     - type: javascript
       value: |
@@ -212,8 +212,8 @@
       ID         SCORE PRI CONVOY       BRANCH           TARGET               STATUS AGE
       mr-wave2   9.6   P1  (none)       feat/wave-2-api  integration/gt-epic  ready   2m
 
-      $ git checkout -b temp-merge ofeaturein/feat/wave-2-api
-      $ git rebase ofeaturein/main
+      $ git checkout -b temp-merge origin/feat/wave-2-api
+      $ git rebase origin/main
       Successfully rebased and updated refs/heads/temp-merge.
     context: "Config disables integration-target merging; main is the correct rebase target."
   assert:
@@ -235,13 +235,13 @@
     shell_output: |
       ## Branch merged to main
 
-      $ git push ofeaturein main
+      $ git push origin main
       To github.com:org/repo.git
          abc1234..def5678  main -> main
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch ofeaturein main
-      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
+      $ git fetch origin main
+      $ REMOTE_SHA=$(git rev-parse origin/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -274,13 +274,13 @@
 
       $ git checkout integration/gt-epic
       $ git merge --ff-only temp-merge
-      $ git push ofeaturein integration/gt-epic
+      $ git push origin integration/gt-epic
       To github.com:org/repo.git
          abc1234..def5678  integration/gt-epic -> integration/gt-epic
 
       $ LOCAL_SHA=$(git rev-parse integration/gt-epic)
-      $ git fetch ofeaturein integration/gt-epic
-      $ REMOTE_SHA=$(git rev-parse ofeaturein/integration/gt-epic)
+      $ git fetch origin integration/gt-epic
+      $ REMOTE_SHA=$(git rev-parse origin/integration/gt-epic)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -313,13 +313,13 @@
 
       $ git checkout main
       $ git merge --ff-only temp-merge
-      $ git push ofeaturein main
+      $ git push origin main
       To github.com:org/repo.git
          abc1234..def5678  main -> main
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch ofeaturein main
-      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
+      $ git fetch origin main
+      $ REMOTE_SHA=$(git rev-parse origin/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -352,13 +352,13 @@
 
       $ git checkout main
       $ git merge --ff-only temp-merge
-      $ git push ofeaturein main
+      $ git push origin main
       To github.com:org/repo.git
          abc1234..def5678  main -> main
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch ofeaturein main
-      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
+      $ git fetch origin main
+      $ REMOTE_SHA=$(git rev-parse origin/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -388,12 +388,12 @@
     shell_output: |
       ## Branch merged to main
 
-      $ git push ofeaturein main
+      $ git push origin main
       Everything up-to-date
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch ofeaturein main
-      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
+      $ git fetch origin main
+      $ REMOTE_SHA=$(git rev-parse origin/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -425,7 +425,7 @@
     formula_step: merge-push
     allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
-      $ git push ofeaturein main
+      $ git push origin main
       To github.com:org/repo.git
        ! [rejected]        main -> main (non-fast-forward)
       error: failed to push some refs to 'github.com:org/repo.git'
@@ -449,7 +449,7 @@
     shell_output: |
       ## Queued MR: feat/old-feature (PR #85)
 
-      $ git fetch --prune ofeaturein
+      $ git fetch --prune origin
       $ git branch -r | grep feat/old-feature
       (no output)
 

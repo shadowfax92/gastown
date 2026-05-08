@@ -171,7 +171,7 @@ bd close <id>         # Complete work
    git pull --rebase
    bd dolt push
    git push
-   git status  # MUST show "up to date with ofeaturein"
+   git status  # MUST show "up to date with origin"
    ```
 5. **Clean up** - Clear stashes, prune remote branches
 6. **Verify** - All changes committed AND pushed

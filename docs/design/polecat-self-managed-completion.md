@@ -23,7 +23,7 @@ the QA engineer** to:
 
 The QA engineer is single-threaded (one patrol cycle at a time), so at high
 throughput it becomes a bottleneck. Zombie agents accumulate in `done` state
-waiting for QA engineer processing. This is a regression from the ofeatureinal model
+waiting for QA engineer processing. This is a regression from the original model
 where agents were fully self-contained.
 
 ### The Bottleneck in Numbers
@@ -58,7 +58,7 @@ the QA engineer became a mandatory checkpoint in every completion.
 Agent runs gt done
     │
     ├── 1. Validate clean state (no uncommitted changes)
-    ├── 2. Push branch to ofeaturein
+    ├── 2. Push branch to origin
     ├── 3. Create MR ticket (type: merge-request, label: gt:merge-request)
     ├── 4. Write completion metadata to agent ticket:
     │      exit_type, mr_id, branch, mr_failed, completion_time
@@ -99,7 +99,7 @@ cycle timing and how many other agents completed simultaneously.
 Agent runs gt done
     │
     ├── 1. Validate clean state (no uncommitted changes)
-    ├── 2. Push branch to ofeaturein
+    ├── 2. Push branch to origin
     ├── 3. Create MR ticket (type: merge-request, label: gt:merge-request)
     ├── 4. Write completion metadata to agent ticket (for audit)
     ├── 5. Nudge release engineer directly: "MERGE_READY <mr-id>"     ← NEW

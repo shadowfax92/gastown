@@ -240,7 +240,7 @@ gt prime --explain
 ```
 
 Now any agent in the gastown feature running `mol-agent-work` will see the
-replacement step instead of the ofeatureinal "post to GitHub" instruction.
+replacement step instead of the original "post to GitHub" instruction.
 
 ### What If the Formula Changes?
 

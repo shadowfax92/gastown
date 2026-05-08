@@ -59,7 +59,7 @@
        M src/auth.test.js
       ?? src/new-helper.js
 
-      $ git -C /town/gastown/agents/Toast log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Toast log --oneline origin/main..HEAD
       a1b2c3d feat: add JWT validation
       d4e5f6g test: auth middleware coverage
     context: "Session dead 55 minutes. Git has uncommitted changes AND unpushed commits on branch."
@@ -284,7 +284,7 @@
 
       $ git -C /town/gastown/agents/Biscuit status --porcelain
        M src/feature.js
-      $ git -C /town/gastown/agents/Biscuit log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Biscuit log --oneline origin/main..HEAD
       f1a2b3c feat: implement new feature
       c4d5e6f test: add feature tests
     context: "Agent completed work (done state) but session died before cleanup. Branch has commits and uncommitted changes."

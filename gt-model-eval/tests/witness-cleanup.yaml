@@ -21,7 +21,7 @@
       $ git -C /town/gastown/agents/Toast status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Toast log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Toast log --oneline origin/main..HEAD
       (empty)
 
       $ bd list --assignee agent-Toast --status hooked --json
@@ -51,7 +51,7 @@
       $ git -C /town/gastown/agents/Crispy status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Crispy log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Crispy log --oneline origin/main..HEAD
       (empty)
     context: "Session dead. Ticket is closed (work merged). Git clean. Safe to nuke."
   assert:
@@ -95,7 +95,7 @@
     role: QA engineer
     role_context: >
       You are the QA Engineer. Session died with unpushed commits. The work is on a local
-      branch that hasn't been pushed to ofeaturein. Create cleanup wisp to recover.
+      branch that hasn't been pushed to origin. Create cleanup wisp to recover.
     formula_step: process-cleanups
     allowed_actions: '["nuke", "create-cleanup-wisp", "escalate", "no-op"]'
     shell_output: |
@@ -105,7 +105,7 @@
       $ git -C /town/gastown/agents/Mango status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Mango log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Mango log --oneline origin/main..HEAD
       a1b2c3d feat: add JWT validation
       d4e5f6g test: auth middleware coverage
       h7i8j9k refactor: extract token parser
@@ -134,7 +134,7 @@
       $ git -C /town/gastown/agents/Hazel status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Hazel log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Hazel log --oneline origin/main..HEAD
       (empty)
 
       $ git -C /town/gastown/agents/Hazel stash list
@@ -213,16 +213,16 @@
       $ git -C /town/gastown/agents/Nutmeg status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Nutmeg log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Nutmeg log --oneline origin/main..HEAD
       a1b2c3d feat: add search
       d4e5f6g test: search tests
 
       $ git -C /town/gastown/agents/Nutmeg branch -vv | grep '*'
-      * feat/search a1b2c3d [ofeaturein/feat/search] feat: add search
+      * feat/search a1b2c3d [origin/feat/search] feat: add search
 
       $ gh pr list --head feat/search --json number,title,state
       [{"number": 42, "title": "Add search feature", "state": "OPEN"}]
-    context: "Session dead. Branch pushed to ofeaturein. PR #42 open. Work is safe on remote — just needs cleanup and reassignment."
+    context: "Session dead. Branch pushed to origin. PR #42 open. Work is safe on remote — just needs cleanup and reassignment."
   assert:
     - type: javascript
       value: |
@@ -242,14 +242,14 @@
       ## Agent 1: Toast (CLEAN)
       $ git -C /town/gastown/agents/Toast status --porcelain
       (empty)
-      $ git -C /town/gastown/agents/Toast log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Toast log --oneline origin/main..HEAD
       (empty)
       Agent state: idle. No hooked ticket.
 
       ## Agent 2: Crispy (DIRTY)
       $ git -C /town/gastown/agents/Crispy status --porcelain
        M src/feature.js
-      $ git -C /town/gastown/agents/Crispy log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Crispy log --oneline origin/main..HEAD
       a1b2c3d work in progress
       Agent state: running. Hooked ticket: gt-work3.
 
@@ -281,7 +281,7 @@
       $ git -C /town/gastown/agents/Crispy status --porcelain
        M src/feature.js
 
-      $ git -C /town/gastown/agents/Crispy log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Crispy log --oneline origin/main..HEAD
       a1b2c3d work in progress
 
       $ bd show gt-work3 --json

@@ -55,7 +55,7 @@
       0
 
       $ tmux capture-pane -t bd-agent-Crispy -p | tail -3
-      ✓ Work complete. Pushed to ofeaturein.
+      ✓ Work complete. Pushed to origin.
       >
 
       $ bd show agent-Crispy --json
@@ -221,7 +221,7 @@
        M tests/feature.test.js
       ?? src/utils/helper.js
 
-      $ git -C /town/gastown/agents/Biscuit log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Biscuit log --oneline origin/main..HEAD
       a1b2c3d feat: implement feature
     context: "Session dead. Uncommitted changes and unpushed commits. Work must be preserved."
   assert:
@@ -252,7 +252,7 @@
       $ git -C /town/gastown/agents/Nutmeg status --porcelain
       (empty)
 
-      $ git -C /town/gastown/agents/Nutmeg log --oneline ofeaturein/main..HEAD
+      $ git -C /town/gastown/agents/Nutmeg log --oneline origin/main..HEAD
       (empty)
     context: "Session dead. Agent was idle. Git completely clean. No data to preserve."
   assert:

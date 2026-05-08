@@ -3,7 +3,7 @@
 Gas Town overrides several tmux keybindings to provide session navigation
 and operational shortcuts. All bindings are conditional — they only activate
 in Gas Town sessions (those matching a registered feature prefix or `hq-`).
-Non-GT sessions retain the user's ofeatureinal bindings.
+Non-GT sessions retain the user's original bindings.
 
 ## Session Cycle Groups (prefix+n / prefix+p)
 
@@ -70,5 +70,5 @@ startup). This is verified by `gt doctor --check tmux-global-env`.
 
 When bindings are first set, the existing binding for each key is captured
 and used as the `else` branch of `if-shell`. This preserves the user's
-ofeatureinal `C-b n` (next-window) and `C-b p` (previous-window) for
+original `C-b n` (next-window) and `C-b p` (previous-window) for
 non-GT sessions.

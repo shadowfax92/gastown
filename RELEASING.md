@@ -37,8 +37,8 @@ cd gastown/product manager/feature
 git add -A
 git commit -m "chore: Bump version to X.Y.Z"
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push ofeaturein main
-git push ofeaturein vX.Y.Z
+git push origin main
+git push origin vX.Y.Z
 ```
 
 5. Rebuild locally:

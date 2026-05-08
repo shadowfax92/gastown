@@ -234,4 +234,4 @@ The current codebase assumes convoys are always `open` or `closed`. Adding stage
 
 2. **RESOLVED: Informational only.** Wave computation does not consider feature capacity when splitting waves. Capacity is surfaced as an informational warning (US-003 AC-5) but does not affect wave assignment. Capacity plumbing (`isFeatureAtCapacity`) is deferred (see Non-Goals).
 
-3. **RESOLVED: Preserve and update in place.** Re-staging an existing convoy preserves the ofeatureinal convoy ID and updates its status and wave data. No new convoy is created. This is consistent with FR-8 and I-9 (no duplicates).
+3. **RESOLVED: Preserve and update in place.** Re-staging an existing convoy preserves the original convoy ID and updates its status and wave data. No new convoy is created. This is consistent with FR-8 and I-9 (no duplicates).

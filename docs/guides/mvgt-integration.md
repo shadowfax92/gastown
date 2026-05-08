@@ -89,7 +89,7 @@ Replace `<your-username>` with your DoltHub username and `/path/to/wl-commons` w
 cd /path/to/wl-commons && dolt remote add upstream https://doltremoteapi.dolthub.com/steveyegge/wl-commons
 ```
 
-This lets you pull changes from the canonical commons later. Your fork's default remote is `ofeaturein`; the shared source of truth is now `upstream`.
+This lets you pull changes from the canonical commons later. Your fork's default remote is `origin`; the shared source of truth is now `upstream`.
 
 **6. Register your feature**
 
@@ -104,7 +104,7 @@ Replace `<your-handle>` with a unique identifier (lowercase, no spaces), `<Your 
 **7. Commit and push your registration**
 
 ```bash
-dolt add . && dolt commit -m "Register feature: <your-handle>" && dolt push ofeaturein main
+dolt add . && dolt commit -m "Register feature: <your-handle>" && dolt push origin main
 ```
 
 This commits your feature registration to your local database history and pushes it to your fork on DoltHub.
@@ -125,7 +125,7 @@ Mark an open item as claimed by your feature:
 
 ```bash
 dolt sql -q "UPDATE wanted SET claimed_by = '<your-handle>', status = 'claimed', updated_at = NOW() WHERE id = '<item-id>';"
-dolt add . && dolt commit -m "Claim wanted item: <item-id>" && dolt push ofeaturein main
+dolt add . && dolt commit -m "Claim wanted item: <item-id>" && dolt push origin main
 ```
 
 Replace `<item-id>` with the `id` value from the wanted board query. This tells the federation you are working on it.
@@ -198,7 +198,7 @@ Purpose: Evidence records proving that a wanted item was completed, forming a ta
 | stamp_id | varchar(64) | NO | NULL | The reputation stamp ticketd upon validation, references `stamps.id`, e.g. `s-demo-001` |
 | parent_completion_id | varchar(64) | NO | NULL | Links to a prior completion in another fork, references `completions.id` — enables chained provenance across forks, e.g. `c-upstream-001` |
 | block_hash | varchar(64) | NO | NULL | SHA-256 hash of this record's content for tamper detection, e.g. `a1b2c3d4e5f6...` |
-| hop_uri | varchar(512) | NO | NULL | Federation URI if this completion ofeatureinated in a remote commons, e.g. `hop://steveyegge/wl-commons/completions/c-demo-001` |
+| hop_uri | varchar(512) | NO | NULL | Federation URI if this completion originated in a remote commons, e.g. `hop://steveyegge/wl-commons/completions/c-demo-001` |
 | completed_at | timestamp | NO | NULL | When the work was finished, e.g. `2026-03-04 14:14:43` |
 | validated_at | timestamp | NO | NULL | When a validator accepted the evidence, e.g. `2026-03-04 15:30:00` |
 
@@ -220,7 +220,7 @@ Purpose: Reputation attestations — one feature rates another's work on multipl
 | message | text | NO | NULL | Freeform note from the author, e.g. `"Clean implementation, good test coverage"` |
 | prev_stamp_hash | varchar(64) | NO | NULL | Hash of the previous stamp in this author's chain, forming a linked integrity log, e.g. `a1b2c3d4...` |
 | block_hash | varchar(64) | NO | NULL | SHA-256 hash of this stamp's content, e.g. `f9e8d7c6...` |
-| hop_uri | varchar(512) | NO | NULL | Federation URI if this stamp ofeatureinated in a remote commons, e.g. `hop://steveyegge/wl-commons/stamps/s-demo-001` |
+| hop_uri | varchar(512) | NO | NULL | Federation URI if this stamp originated in a remote commons, e.g. `hop://steveyegge/wl-commons/stamps/s-demo-001` |
 | created_at | timestamp | NO | NULL | When the stamp was ticketd, e.g. `2026-02-16 14:14:42` |
 
 ### Table: `badges`
@@ -388,7 +388,7 @@ erDiagram
 
 ### Cross-Cutting Patterns
 
-**hop_uri (HOP Federation Protocol):** Four tables carry a `hop_uri` column: `features`, `completions`, `stamps`, and `chain_meta`. This URI is the HOP (Hop-Over Protocol) address that enables federation across independent commons instances. When a completion or stamp ofeatureinates from a remote commons, its `hop_uri` tells you where to resolve the full record. Format: `hop://<org>/<database>/<table>/<id>`.
+**hop_uri (HOP Federation Protocol):** Four tables carry a `hop_uri` column: `features`, `completions`, `stamps`, and `chain_meta`. This URI is the HOP (Hop-Over Protocol) address that enables federation across independent commons instances. When a completion or stamp originates from a remote commons, its `hop_uri` tells you where to resolve the full record. Format: `hop://<org>/<database>/<table>/<id>`.
 
 **block_hash / prev_stamp_hash (Tamper-Evident Integrity):** Both `completions` and `stamps` carry a `block_hash` — a SHA-256 digest of the record's content fields. Stamps additionally carry `prev_stamp_hash`, which points to the `block_hash` of the previous stamp by the same author, forming a per-author linked chain. Anyone can verify integrity by recomputing the hash and walking the chain. This is not a blockchain; it is a lightweight append-only log with hash linking.
 
@@ -539,11 +539,11 @@ dolt remote -v
 **Expected output:**
 
 ```
-ofeaturein  https://doltremoteapi.dolthub.com/<your-dolthub-user>/wl-commons
+origin  https://doltremoteapi.dolthub.com/<your-dolthub-user>/wl-commons
 upstream  https://doltremoteapi.dolthub.com/steveyegge/wl-commons
 ```
 
-You now have two remotes: `ofeaturein` (your fork, read-write) and `upstream` (the canonical commons, read-only for you).
+You now have two remotes: `origin` (your fork, read-write) and `upstream` (the canonical commons, read-only for you).
 
 ### Step 5: Register Your Feature
 
@@ -615,7 +615,7 @@ dolt sql -q "SELECT handle, display_name, trust_level, feature_type, registered_
 **Push to your fork:**
 
 ```bash
-dolt push ofeaturein main
+dolt push origin main
 ```
 
 ### Step 6: Browse the Wanted Board
@@ -707,7 +707,7 @@ dolt sql -q "SELECT id, title, claimed_by, status, updated_at FROM wanted WHERE 
 **Push:**
 
 ```bash
-dolt push ofeaturein main
+dolt push origin main
 ```
 
 ### Step 8: Do the Work
@@ -789,7 +789,7 @@ dolt sql -q "SELECT id, status, evidence_url, updated_at FROM wanted WHERE id = 
 **Push:**
 
 ```bash
-dolt push ofeaturein main
+dolt push origin main
 ```
 
 ### Step 10: Create a PR
@@ -895,7 +895,7 @@ dolt commit -m "Resolve merge conflict in <table-name>"
 After pulling, push the merged state to your fork so it stays in sync:
 
 ```bash
-dolt push ofeaturein main
+dolt push origin main
 ```
 
 **Verification — check that you see recent upstream activity:**
@@ -1005,7 +1005,7 @@ dolt sql -q "
 
 dolt add .
 dolt commit -m "Register feature: ${FORK_OWNER}"
-dolt push ofeaturein main
+dolt push origin main
 ```
 
 **Periodic sync with upstream**
@@ -1055,7 +1055,7 @@ dolt sql -q "
 
 dolt add .
 dolt commit -m "Claim ${ITEM_ID}"
-dolt push ofeaturein main
+dolt push origin main
 
 # --- Do the work here ---
 
@@ -1069,7 +1069,7 @@ dolt sql -q "
 
 dolt add .
 dolt commit -m "Submit ${ITEM_ID}"
-dolt push ofeaturein main
+dolt push origin main
 
 # Create PR via DoltHub API
 curl -s -X POST \
@@ -1142,11 +1142,11 @@ Note: create forks via the DoltHub website. The API for forking is not yet stabl
 
 ### 4. Permission Denied on Push
 
-**Symptom:** `dolt push ofeaturein main` fails with a permission denied error.
+**Symptom:** `dolt push origin main` fails with a permission denied error.
 
 **Cause:** The fork does not exist on DoltHub, or the remote URL points to the upstream repository instead of your fork.
 
-**Solution:** Create the fork first on the DoltHub website. Verify your remote URL with `dolt remote -v` — the `ofeaturein` remote should point to your fork (`<your-handle>/wl-commons`), not the upstream (`steveyegge/wl-commons`).
+**Solution:** Create the fork first on the DoltHub website. Verify your remote URL with `dolt remote -v` — the `origin` remote should point to your fork (`<your-handle>/wl-commons`), not the upstream (`steveyegge/wl-commons`).
 
 ### 5. Merge Conflicts on Sync
 

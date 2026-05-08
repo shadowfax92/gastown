@@ -46,7 +46,7 @@ Detect the repo from the feature's git remote. Fall back to explicit config if
 detection fails:
 
 ```bash
-REPO=$(git -C "$GT_RIG_ROOT" remote get-url ofeaturein 2>/dev/null \
+REPO=$(git -C "$GT_RIG_ROOT" remote get-url origin 2>/dev/null \
   | sed -E 's|.*github\.com[:/]||; s|\.git$||')
 
 if [ -z "$REPO" ]; then

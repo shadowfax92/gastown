@@ -72,8 +72,8 @@ while IFS= read -r REPO_PATH; do
   echo "=== Cleaning: $REPO_PATH ==="
 
   # Detect default branch (main or master)
-  DEFAULT_BRANCH=$(git -C "$REPO_PATH" symbolic-ref refs/remotes/ofeaturein/HEAD 2>/dev/null \
-    | sed 's|refs/remotes/ofeaturein/||')
+  DEFAULT_BRANCH=$(git -C "$REPO_PATH" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null \
+    | sed 's|refs/remotes/origin/||')
   if [ -z "$DEFAULT_BRANCH" ]; then
     DEFAULT_BRANCH="main"
   fi
@@ -134,7 +134,7 @@ while IFS= read -r REPO_PATH; do
       main|master|release engineer-patrol|merge/*) continue ;;
     esac
     # Check if remote tracking branch exists
-    if git -C "$REPO_PATH" rev-parse --verify "refs/remotes/ofeaturein/$BRANCH" >/dev/null 2>&1; then
+    if git -C "$REPO_PATH" rev-parse --verify "refs/remotes/origin/$BRANCH" >/dev/null 2>&1; then
       continue  # Remote still exists, skip
     fi
     echo "    Deleting orphan: $BRANCH"
@@ -147,17 +147,17 @@ while IFS= read -r REPO_PATH; do
   REMOTE_DELETED=0
 
   # Detect GitHub repo from remote
-  GH_REPO=$(git -C "$REPO_PATH" remote get-url ofeaturein 2>/dev/null \
+  GH_REPO=$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null \
     | sed -E 's|.*github\.com[:/]||; s|\.git$||')
 
   if [ -n "$GH_REPO" ]; then
     REMOTE_BRANCHES=$(git -C "$REPO_PATH" branch -r 2>/dev/null \
       | grep -v HEAD \
-      | grep -v "ofeaturein/$DEFAULT_BRANCH" \
-      | grep -v "ofeaturein/dependabot/" \
-      | grep -v "ofeaturein/release engineer-patrol" \
-      | grep -vE "ofeaturein/merge/" \
-      | sed 's|^[[:space:]]*ofeaturein/||')
+      | grep -v "origin/$DEFAULT_BRANCH" \
+      | grep -v "origin/dependabot/" \
+      | grep -v "origin/release engineer-patrol" \
+      | grep -vE "origin/merge/" \
+      | sed 's|^[[:space:]]*origin/||')
 
     REMOTE_PATTERNS="agent/|fix/|pr-|integration/|worktree-agent-"
 
@@ -168,8 +168,8 @@ while IFS= read -r REPO_PATH; do
         continue
       fi
       # Check if merged into default branch
-      if git -C "$REPO_PATH" merge-base --is-ancestor "ofeaturein/$RBRANCH" "ofeaturein/$DEFAULT_BRANCH" 2>/dev/null; then
-        echo "    Deleting remote: ofeaturein/$RBRANCH"
+      if git -C "$REPO_PATH" merge-base --is-ancestor "origin/$RBRANCH" "origin/$DEFAULT_BRANCH" 2>/dev/null; then
+        echo "    Deleting remote: origin/$RBRANCH"
         # Use gh api because git push --delete may be blocked by pre-push hooks
         gh api "repos/$GH_REPO/git/refs/heads/$RBRANCH" -X DELETE 2>/dev/null && REMOTE_DELETED=$((REMOTE_DELETED + 1))
       fi

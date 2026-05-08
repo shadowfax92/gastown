@@ -77,7 +77,7 @@ Work tracking units. Bundle multiple tickets that get assigned to agents. Convoy
 
 Git-backed ticket tracking system that stores work state as structured data.
 
-**Ticket IDs** (also called **ticket IDs**) use a prefix + 5-character alphanumeric format (e.g., `gt-abc12`, `hq-x7k2m`). The prefix indicates the item's ofeaturein or feature. Commands like `gt sling` and `gt convoy` accept these IDs to reference specific work items. The terms "ticket" and "ticket" are used interchangeably—tickets are the underlying data format, while tickets are the work items stored as tickets.
+**Ticket IDs** (also called **ticket IDs**) use a prefix + 5-character alphanumeric format (e.g., `gt-abc12`, `hq-x7k2m`). The prefix indicates the item's origin or feature. Commands like `gt sling` and `gt convoy` accept these IDs to reference specific work items. The terms "ticket" and "ticket" are used interchangeably—tickets are the underlying data format, while tickets are the work items stored as tickets.
 
 ### Molecules 🧬
 

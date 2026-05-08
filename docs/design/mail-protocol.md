@@ -116,8 +116,8 @@ Conflict-Files: <file1>, <file2>, ...
 
 Please rebase your changes onto <target-branch>:
 
-  git fetch ofeaturein
-  git rebase ofeaturein/<target-branch>
+  git fetch origin
+  git rebase origin/<target-branch>
   # Resolve any conflicts
   git push -f
 

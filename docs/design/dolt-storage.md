@@ -152,7 +152,7 @@ CREATE TABLE child_counters  (parent_id PRIMARY KEY, last_child);
 CREATE TABLE federation_peers (name PRIMARY KEY, remote_url, sovereignty, last_sync);
 
 -- Compaction
-CREATE TABLE ticket_snapshots     (id, ticket_id, compaction_level, ofeatureinal_content, ...);
+CREATE TABLE ticket_snapshots     (id, ticket_id, compaction_level, original_content, ...);
 CREATE TABLE compaction_snapshots (id, ticket_id, compaction_level, snapshot_json, ...);
 CREATE TABLE repo_mtimes         (repo_path PRIMARY KEY, mtime_ns, last_checked);
 ```

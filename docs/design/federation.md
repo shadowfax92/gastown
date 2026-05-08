@@ -114,7 +114,7 @@ Town-level Dolt databases have remotes configured pointing to DoltHub:
 ```bash
 # Check configured remotes for town database
 cd ~/gt/.dolt-data/town && dolt remote -v
-# ofeaturein https://doltremoteapi.dolthub.com/steveyegge/gastown-town {}
+# origin https://doltremoteapi.dolthub.com/steveyegge/gastown-town {}
 # local  http://localhost:8000/town {}
 ```
 
@@ -122,10 +122,10 @@ cd ~/gt/.dolt-data/town && dolt remote -v
 
 | Database | Remote Name | URL | Purpose |
 |----------|-------------|-----|---------|
-| town | ofeaturein | `steveyegge/gastown-town` | DoltHub public federation |
+| town | origin | `steveyegge/gastown-town` | DoltHub public federation |
 | town | local | `http://localhost:8000/town` | Local development/testing |
-| gastown | ofeaturein | `steveyegge/gastown-feature` | DoltHub public federation |
-| tickets | ofeaturein | `steveyegge/gastown-tickets` | DoltHub public federation |
+| gastown | origin | `steveyegge/gastown-feature` | DoltHub public federation |
+| tickets | origin | `steveyegge/gastown-tickets` | DoltHub public federation |
 
 ### Federation Endpoint Options
 
@@ -139,7 +139,7 @@ dolt login
 
 # Push to remote
 cd ~/gt/.dolt-data/town
-dolt push ofeaturein main
+dolt push origin main
 ```
 
 **2. Local Remotesapi (Development/Testing)**
@@ -183,7 +183,7 @@ To push/pull from configured remotes:
 3. **Initial Push:**
    ```bash
    cd ~/gt/.dolt-data/town
-   dolt push -u ofeaturein main
+   dolt push -u origin main
    ```
 
 4. **Enable Write for Local Remotesapi:**

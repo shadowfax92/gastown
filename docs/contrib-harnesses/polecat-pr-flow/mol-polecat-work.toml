@@ -19,7 +19,7 @@ for it. In this feature, a PR is the review artifact — `gt done` alone is not
 sufficient.
 
 ```bash
-git push -u ofeaturein HEAD
+git push -u origin HEAD
 
 BRANCH=$(git branch --show-current)
 if ! gh pr view "$BRANCH" >/dev/null 2>&1; then
