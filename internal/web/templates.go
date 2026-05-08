@@ -34,6 +34,9 @@ type ConvoyData struct {
 	CSRFToken   string // Token for CSRF protection on POST requests
 }
 
+func (d ConvoyData) Features() []RigRow  { return d.Rigs }
+func (d ConvoyData) Tickets() []IssueRow { return d.Issues }
+
 // RigRow represents a registered rig in the dashboard.
 type RigRow struct {
 	Name         string
@@ -156,6 +159,9 @@ type DashboardSummary struct {
 	HasAlerts bool
 }
 
+func (s DashboardSummary) TicketCount() int         { return s.IssueCount }
+func (s DashboardSummary) HighPriorityTickets() int { return s.HighPriorityIssues }
+
 // MailRow represents a mail message in the dashboard.
 type MailRow struct {
 	ID        string // Message ID (e.g., "hq-msg-abc123")
@@ -183,6 +189,8 @@ type WorkerRow struct {
 	WorkStatus   string        // working, stale, stuck, idle
 	AgentType    string        // "polecat" (ephemeral sessions) or "refinery" (permanent)
 }
+
+func (w WorkerRow) PolecatType() string { return w.AgentType }
 
 // MergeQueueRow represents a PR in the merge queue.
 type MergeQueueRow struct {
@@ -212,6 +220,8 @@ type ConvoyRow struct {
 	TrackedIssues []TrackedIssue
 }
 
+func (r ConvoyRow) ReadyTickets() int { return r.ReadyBeads }
+
 // TrackedIssue represents an issue tracked by a convoy.
 type TrackedIssue struct {
 	ID       string
@@ -232,7 +242,7 @@ func LoadTemplates() (*template.Template, error) {
 		"dogStateClass":      dogStateClass,
 		"queueStatusClass":   queueStatusClass,
 		"polecatStatusClass": polecatStatusClass,
-		"activityTypeClass": activityTypeClass,
+		"activityTypeClass":  activityTypeClass,
 		"contains": func(s, substr string) bool {
 			return strings.Contains(s, substr)
 		},
