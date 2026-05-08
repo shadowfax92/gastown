@@ -2,7 +2,7 @@ description = """
 Find and reassign orphaned work.
 
 Dogs work through molecules (poured from this formula) to scan for orphaned state:
-- Issues marked in_progress with no active polecat
+- Tickets marked in_progress with no active agent
 - Molecules attached but worker gone
 - Merge queue entries with dead owners
 - Wisps from terminated sessions
@@ -15,7 +15,7 @@ This is a cleanup and recovery formula. Found orphans are either:
 ## Dog Contract
 
 This is infrastructure work. You:
-1. Receive scan scope via hook_bead (rig or town-wide)
+1. Receive scan scope via hook_ticket (feature or town-wide)
 2. Scan for orphaned state
 3. Classify and triage orphans
 4. Take recovery action
@@ -26,17 +26,17 @@ This is infrastructure work. You:
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| scope | hook_bead | Scan scope: 'town' or specific rig name |
+| scope | hook_ticket | Scan scope: 'town' or specific feature name |
 
 ## Why Dogs?
 
-Orphan scanning requires multi-rig access and may need to interact with
-multiple Witnesses. Dogs have the cross-rig worktrees needed for this."""
+Orphan scanning requires multi-feature access and may need to interact with
+multiple QA Engineeres. Dogs have the cross-feature worktrees needed for this."""
 formula = "mol-orphan-scan"
 version = 2
 
 [squash]
-trigger = "on_complete"
+tfeatureger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -48,67 +48,67 @@ Establish what to scan for orphans.
 
 **1. Check assignment:**
 ```bash
-gt hook               # Shows scope in hook_bead
+gt hook               # Shows scope in hook_ticket
 ```
 
 **2. Resolve scope:**
-- 'town': Scan all rigs
-- '<rig>': Scan specific rig only
+- 'town': Scan all features
+- '<feature>': Scan specific feature only
 
 ```bash
 # If town-wide
-gt rigs                     # Get list of all rigs
+gt features                     # Get list of all features
 
-# If specific rig
-# Just use that rig
+# If specific feature
+# Just use that feature
 ```
 
-**Exit criteria:** Scope determined, rig list established."""
+**Exit criteria:** Scope determined, feature list established."""
 
 [[steps]]
-id = "scan-orphaned-issues"
-title = "Scan for orphaned issues"
+id = "scan-orphaned-tickets"
+title = "Scan for orphaned tickets"
 needs = ["determine-scope"]
 description = """
-Find issues marked in_progress with no active worker.
+Find tickets marked in_progress with no active worker.
 
-**1. For each rig in scope, find in_progress issues:**
+**1. For each feature in scope, find in_progress tickets:**
 ```bash
 bd list --status=in_progress
 ```
 
-**2. For each in_progress issue, check assignee:**
+**2. For each in_progress ticket, check assignee:**
 ```bash
-bd show <issue-id>
+bd show <ticket-id>
 # Get assignee field
 ```
 
 **3. Check if assignee session exists:**
 
-Parse the assignee field to extract rig and polecat name:
-- Assignee format: `<rig>/polecats/<name>` (e.g., `nrpk/polecats/rust`)
-- Extract: rig and name from the path
+Parse the assignee field to extract feature and agent name:
+- Assignee format: `<feature>/agents/<name>` (e.g., `nrpk/agents/rust`)
+- Extract: feature and name from the path
 
 ```bash
 # Check session liveness using gt session status (handles prefix derivation)
-gt session status <rig>/<name> --json | jq -r '.running' | grep -q true && echo ALIVE || echo DEAD
+gt session status <feature>/<name> --json | jq -r '.running' | grep -q true && echo ALIVE || echo DEAD
 ```
 
-If the assignee is NOT a polecat (e.g., witness, refinery), use:
+If the assignee is NOT a agent (e.g., QA engineer, release engineer), use:
 ```bash
-gt session status <rig>/<role> --json | jq -r '.running' | grep -q true && echo ALIVE || echo DEAD
+gt session status <feature>/<role> --json | jq -r '.running' | grep -q true && echo ALIVE || echo DEAD
 ```
 
 **4. Identify orphans:**
-- Issue in_progress + assignee session dead = orphan
-- Issue in_progress + no assignee = orphan
+- Ticket in_progress + assignee session dead = orphan
+- Ticket in_progress + no assignee = orphan
 
 Record each orphan with:
-- Issue ID
+- Ticket ID
 - Last assignee (if any)
 - How long orphaned (last update timestamp)
 
-**Exit criteria:** Orphaned issues identified."""
+**Exit criteria:** Orphaned tickets identified."""
 
 [[steps]]
 id = "scan-orphaned-molecules"
@@ -130,12 +130,12 @@ bd mol show <mol-id>
 
 **3. Check if owner session exists:**
 
-Parse the owner/agent field to extract rig and name:
-- Owner format: `<rig>/polecats/<name>` or `<rig>/<role>`
+Parse the owner/agent field to extract feature and name:
+- Owner format: `<feature>/agents/<name>` or `<feature>/<role>`
 
 ```bash
 # Check session liveness using gt session status (handles prefix derivation)
-gt session status <rig>/<name> --json | jq -r '.running' | grep -q true && echo ALIVE || echo DEAD
+gt session status <feature>/<name> --json | jq -r '.running' | grep -q true && echo ALIVE || echo DEAD
 ```
 
 **4. Identify orphans:**
@@ -155,7 +155,7 @@ Find wisps from terminated sessions.
 
 **1. List wisps in ephemeral storage:**
 ```bash
-ls .beads-wisp/             # Or equivalent location
+ls .tickets-wisp/             # Or equivalent location
 ```
 
 **2. For each wisp, check spawner session:**
@@ -173,7 +173,7 @@ Orphaned wisps may have audit-worthy content that wasn't squashed.
 [[steps]]
 id = "triage-orphans"
 title = "Classify and triage orphans"
-needs = ["scan-orphaned-issues", "scan-orphaned-molecules", "scan-orphaned-wisps"]
+needs = ["scan-orphaned-tickets", "scan-orphaned-molecules", "scan-orphaned-wisps"]
 description = """
 Classify orphans by severity and determine action.
 
@@ -181,17 +181,17 @@ Classify orphans by severity and determine action.
 
 | Type | Severity | Typical Action |
 |------|----------|----------------|
-| Issue in_progress, no work done | Low | Reset to open |
-| Issue in_progress, work in progress | Medium | Check branch, reassign |
+| Ticket in_progress, no work done | Low | Reset to open |
+| Ticket in_progress, work in progress | Medium | Check branch, reassign |
 | Molecule mid-execution | Medium | Resume or restart |
 | Wisp with content | Low | Squash or burn |
 | Wisp empty | None | Delete |
 
 **2. Check for data loss:**
-For issues/molecules with possible work:
+For tickets/molecules with possible work:
 ```bash
 # Check for branch with work
-git branch -a | grep <polecat-or-issue>
+git branch -a | grep <agent-or-ticket>
 git log --oneline <branch>
 ```
 
@@ -213,30 +213,30 @@ Take action on each orphan based on triage.
 
 **1. RESET orphans:**
 ```bash
-bd update <issue> --status=open --assignee=""
+bd update <ticket> --status=open --assignee=""
 # Clears in_progress, ready for dispatch
 ```
 
 **2. REASSIGN orphans:**
 ```bash
-# Notify Witness to handle assignment
-gt mail send <rig>/witness -s "Orphan needs assignment: <issue>" \
-  -m "Issue <id> was orphaned. Has partial work. Needs reassignment."
+# Notify QA Engineer to handle assignment
+gt mail send <feature>/QA engineer -s "Orphan needs assignment: <ticket>" \
+  -m "Ticket <id> was orphaned. Has partial work. Needs reassignment."
 ```
 
 **3. RECOVER orphans:**
 ```bash
-# For issues with work on branch:
+# For tickets with work on branch:
 # - Preserve the branch
 # - Create recovery note
-bd update <issue> --status=open \
+bd update <ticket> --status=open \
   --note="Recovery: work exists on branch <branch>"
 ```
 
 **4. ESCALATE orphans:**
 ```bash
-gt mail send mayor/ -s "Orphan requires escalation: <issue>" \
-  -m "Issue <id> orphaned with possible data loss.
+gt mail send product manager/ -s "Orphan requires escalation: <ticket>" \
+  -m "Ticket <id> orphaned with possible data loss.
 Details: ...
 Recommended action: ..."
 ```
@@ -244,7 +244,7 @@ Recommended action: ..."
 **5. BURN orphans:**
 ```bash
 # For empty wisps, etc.
-rm .beads-wisp/<wisp-file>
+rm .tickets-wisp/<wisp-file>
 ```
 
 **Exit criteria:** All orphans handled."""
@@ -264,7 +264,7 @@ Create summary report of orphan scan and actions.
 **Orphans found**: {{total_count}}
 
 ### By Type
-- Issues: {{issue_count}}
+- Tickets: {{ticket_count}}
 - Molecules: {{mol_count}}
 - Wisps: {{wisp_count}}
 
@@ -281,16 +281,16 @@ Create summary report of orphan scan and actions.
 {{/each}}
 ```
 
-**2. Send to Deacon (for logs):**
+**2. Send to Senior Engineer (for logs):**
 ```bash
-gt mail send deacon/ -s "Orphan scan complete: {{total_count}} found" \
+gt mail send senior engineer/ -s "Orphan scan complete: {{total_count}} found" \
   -m "{{report}}"
 ```
 
-**3. Send to Mayor (if escalations):**
+**3. Send to Product Manager (if escalations):**
 ```bash
 # Only if there were escalations
-gt mail send mayor/ -s "Orphan scan: {{escalate_count}} escalations" \
+gt mail send product manager/ -s "Orphan scan: {{escalate_count}} escalations" \
   -m "{{escalations_section}}"
 ```
 
@@ -303,9 +303,9 @@ needs = ["report-findings"]
 description = """
 Signal work complete and return to available pool.
 
-**1. Signal completion to Deacon:**
+**1. Signal completion to Senior Engineer:**
 ```bash
-gt mail send deacon/ -s "DOG_DONE $(hostname)" -m "Task: orphan-scan
+gt mail send senior engineer/ -s "DOG_DONE $(hostname)" -m "Task: orphan-scan
 Scope: {{scope}}
 Orphans found: {{total_count}}
 Actions taken: {{action_summary}}
@@ -317,11 +317,11 @@ Ready for next assignment."
 **2. Return to kennel:**
 Dog returns to available state in the pool.
 
-**Exit criteria:** Deacon notified, dog ready for next work."""
+**Exit criteria:** Senior Engineer notified, dog ready for next work."""
 
 [vars]
 [vars.scope]
-description = "Scan scope: 'town' or specific rig name"
+description = "Scan scope: 'town' or specific feature name"
 required = true
 default = "town"
 
@@ -342,15 +342,15 @@ description = "Number of orphans escalated (computed during execution)"
 default = ""
 
 [vars.escalations_section]
-description = "Formatted escalations section for Mayor report (computed during execution)"
+description = "Formatted escalations section for Product Manager report (computed during execution)"
 default = ""
 
 [vars.id]
 description = "Orphan identifier (computed during execution)"
 default = ""
 
-[vars.issue_count]
-description = "Number of orphaned issues found (computed during execution)"
+[vars.ticket_count]
+description = "Number of orphaned tickets found (computed during execution)"
 default = ""
 
 [vars.mol_count]
@@ -386,7 +386,7 @@ description = "Total number of orphans found (computed during execution)"
 default = ""
 
 [vars.type]
-description = "Type of orphan (issue, molecule, wisp) (computed during execution)"
+description = "Type of orphan (ticket, molecule, wisp) (computed during execution)"
 default = ""
 
 [vars.wisp_count]

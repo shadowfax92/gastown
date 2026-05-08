@@ -14,7 +14,7 @@ This enables both local control and global coordination.
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. WISP LAYER (transient, town-local)                       │
-│    Location: <rig>/.beads-wisp/config/                      │
+│    Location: <feature>/.tickets-wisp/config/                      │
 │    Synced: Never                                            │
 │    Use: Temporary local overrides                           │
 └─────────────────────────────┬───────────────────────────────┘
@@ -22,7 +22,7 @@ This enables both local control and global coordination.
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 2. RIG BEAD LAYER (persistent, synced globally)             │
-│    Location: <rig>/.beads/ (rig identity bead labels)       │
+│    Location: <feature>/.tickets/ (feature identity ticket labels)       │
 │    Synced: Via git (all clones see it)                      │
 │    Use: Project-wide operational state                      │
 └─────────────────────────────┬───────────────────────────────┘
@@ -30,7 +30,7 @@ This enables both local control and global coordination.
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 3. TOWN DEFAULTS                                            │
-│    Location: ~/gt/config.json or ~/gt/.beads/               │
+│    Location: ~/gt/config.json or ~/gt/.tickets/               │
 │    Synced: N/A (per-town)                                   │
 │    Use: Town-wide policies                                  │
 └─────────────────────────────┬───────────────────────────────┘
@@ -54,7 +54,7 @@ func GetConfig(key string) interface{} {
         if val == Blocked { return nil }
         return val
     }
-    if val := rigBead.GetLabel(key); val != nil {
+    if val := featureTicket.GetLabel(key); val != nil {
         return val
     }
     if val := townDefaults.Get(key); val != nil {
@@ -66,14 +66,14 @@ func GetConfig(key string) interface{} {
 
 ### Stacking Semantics (Integers)
 
-For integer properties, values from wisp and bead layers **add** to the base:
+For integer properties, values from wisp and ticket layers **add** to the base:
 
 ```go
 func GetIntConfig(key string) int {
     base := getBaseDefault(key)    // Town or system default
-    beadAdj := rigBead.GetInt(key) // 0 if missing
+    ticketAdj := featureTicket.GetInt(key) // 0 if missing
     wispAdj := wisp.GetInt(key)    // 0 if missing
-    return base + beadAdj + wispAdj
+    return base + ticketAdj + wispAdj
 }
 ```
 
@@ -84,19 +84,19 @@ This enables temporary adjustments without changing the base value.
 You can explicitly block a property from being inherited:
 
 ```bash
-gt rig config set gastown auto_restart --block
+gt feature config set gastown auto_restart --block
 ```
 
-This creates a "blocked" marker in the wisp layer. Even if the rig bead
+This creates a "blocked" marker in the wisp layer. Even if the feature ticket
 or defaults say `auto_restart: true`, the lookup returns nil.
 
-## Rig Identity Beads
+## Feature Identity Tickets
 
-Each rig has an identity bead for operational state:
+Each feature has an identity ticket for operational state:
 
 ```yaml
-id: gt-rig-gastown
-type: rig
+id: gt-feature-gastown
+type: feature
 name: gastown
 repo: git@github.com:steveyegge/gastown.git
 prefix: gt
@@ -106,18 +106,18 @@ labels:
   - priority:normal
 ```
 
-These beads sync via git, so all clones of the rig see the same state.
+These tickets sync via git, so all clones of the feature see the same state.
 
-## Two-Level Rig Control
+## Two-Level Feature Control
 
 ### Level 1: Park (Local, Ephemeral)
 
 ```bash
-gt rig park gastown      # Stop services, daemon won't restart
-gt rig unpark gastown    # Allow services to run
+gt feature park gastown      # Stop services, daemon won't restart
+gt feature unpark gastown    # Allow services to run
 ```
 
-- Stored in wisp layer (`.beads-wisp/config/`)
+- Stored in wisp layer (`.tickets-wisp/config/`)
 - Only affects this town
 - Disappears on cleanup
 - Use: Local maintenance, debugging
@@ -125,11 +125,11 @@ gt rig unpark gastown    # Allow services to run
 ### Level 2: Dock (Global, Persistent)
 
 ```bash
-gt rig dock gastown      # Set status:docked label on rig bead
-gt rig undock gastown    # Remove label
+gt feature dock gastown      # Set status:docked label on feature ticket
+gt feature undock gastown    # Remove label
 ```
 
-- Stored on rig identity bead
+- Stored on feature identity ticket
 - Syncs to all clones via git
 - Permanent until explicitly changed
 - Use: Project-wide maintenance, coordinated downtime
@@ -139,8 +139,8 @@ gt rig undock gastown    # Remove label
 The daemon checks both levels before auto-restarting:
 
 ```go
-func shouldAutoRestart(rig *Rig) bool {
-    status := rig.GetConfig("status")
+func shouldAutoRestart(feature *Feature) bool {
+    status := feature.GetConfig("status")
     if status == "parked" || status == "docked" {
         return false
     }
@@ -154,7 +154,7 @@ func shouldAutoRestart(rig *Rig) bool {
 |-----|------|----------|-------------|
 | `status` | string | Override | operational/parked/docked |
 | `auto_restart` | bool | Override | Daemon auto-restart behavior |
-| `max_polecats` | int | Override | Maximum concurrent polecats |
+| `max_agents` | int | Override | Maximum concurrent agents |
 | `priority_adjustment` | int | **Stack** | Scheduling priority modifier |
 | `maintenance_window` | string | Override | When maintenance allowed |
 | `dnd` | bool | Override | Do not disturb mode |
@@ -164,36 +164,36 @@ func shouldAutoRestart(rig *Rig) bool {
 ### View Configuration
 
 ```bash
-gt rig config show gastown           # Show effective config (all layers)
-gt rig config show gastown --layer   # Show which layer each value comes from
+gt feature config show gastown           # Show effective config (all layers)
+gt feature config show gastown --layer   # Show which layer each value comes from
 ```
 
 ### Set Configuration
 
 ```bash
 # Set in wisp layer (local, ephemeral)
-gt rig config set gastown key value
+gt feature config set gastown key value
 
-# Set in bead layer (global, permanent)
-gt rig config set gastown key value --global
+# Set in ticket layer (global, permanent)
+gt feature config set gastown key value --global
 
 # Block inheritance
-gt rig config set gastown key --block
+gt feature config set gastown key --block
 
 # Clear from wisp layer
-gt rig config unset gastown key
+gt feature config unset gastown key
 ```
 
-### Rig Lifecycle
+### Feature Lifecycle
 
 ```bash
-gt rig park gastown          # Local: stop + prevent restart
-gt rig unpark gastown        # Local: allow restart
+gt feature park gastown          # Local: stop + prevent restart
+gt feature unpark gastown        # Local: allow restart
 
-gt rig dock gastown          # Global: mark as offline
-gt rig undock gastown        # Global: mark as operational
+gt feature dock gastown          # Global: mark as offline
+gt feature undock gastown        # Global: mark as operational
 
-gt rig status gastown        # Show current state
+gt feature status gastown        # Show current state
 ```
 
 ## Examples
@@ -202,48 +202,48 @@ gt rig status gastown        # Show current state
 
 ```bash
 # Base priority: 0 (from defaults)
-# Give this rig temporary priority boost for urgent work
+# Give this feature temporary priority boost for urgent work
 
-gt rig config set gastown priority_adjustment 10
+gt feature config set gastown priority_adjustment 10
 
 # Effective priority: 0 + 10 = 10
 # When done, clear it:
 
-gt rig config unset gastown priority_adjustment
+gt feature config unset gastown priority_adjustment
 ```
 
 ### Local Maintenance
 
 ```bash
 # I'm upgrading the local clone, don't restart services
-gt rig park gastown
+gt feature park gastown
 
 # ... do maintenance ...
 
-gt rig unpark gastown
+gt feature unpark gastown
 ```
 
 ### Project-Wide Maintenance
 
 ```bash
 # Major refactor in progress, all clones should pause
-gt rig dock gastown
+gt feature dock gastown
 
-# Syncs via git - other towns see the rig as docked
+# Syncs via git - other towns see the feature as docked
 bd sync
 
 # When done:
-gt rig undock gastown
+gt feature undock gastown
 bd sync
 ```
 
 ### Block Auto-Restart Locally
 
 ```bash
-# Rig bead says auto_restart: true
+# Feature ticket says auto_restart: true
 # But I'm debugging and don't want that here
 
-gt rig config set gastown auto_restart --block
+gt feature config set gastown auto_restart --block
 
 # Now auto_restart returns nil for this town only
 ```
@@ -252,11 +252,11 @@ gt rig config set gastown auto_restart --block
 
 ### Wisp Storage
 
-Wisp config stored in `.beads-wisp/config/<rig>.json`:
+Wisp config stored in `.tickets-wisp/config/<feature>.json`:
 
 ```json
 {
-  "rig": "gastown",
+  "feature": "gastown",
   "values": {
     "status": "parked",
     "priority_adjustment": 10
@@ -265,13 +265,13 @@ Wisp config stored in `.beads-wisp/config/<rig>.json`:
 }
 ```
 
-### Rig Bead Labels
+### Feature Ticket Labels
 
-Rig operational state stored as labels on the rig identity bead:
+Feature operational state stored as labels on the feature identity ticket:
 
 ```bash
-bd label add gt-rig-gastown status:docked
-bd label remove gt-rig-gastown status:docked
+bd label add gt-feature-gastown status:docked
+bd label remove gt-feature-gastown status:docked
 ```
 
 ### Daemon Integration
@@ -279,23 +279,23 @@ bd label remove gt-rig-gastown status:docked
 The daemon's lifecycle manager checks config before starting services:
 
 ```go
-func (d *Daemon) maybeStartRigServices(rig string) {
-    r := d.getRig(rig)
+func (d *Daemon) maybeStartFeatureServices(feature string) {
+    r := d.getFeature(feature)
 
     status := r.GetConfig("status")
     if status == "parked" || status == "docked" {
-        log.Info("Rig %s is offline, skipping auto-start", rig)
+        log.Info("Feature %s is offline, skipping auto-start", feature)
         return
     }
 
-    d.ensureWitness(rig)
-    d.ensureRefinery(rig)
+    d.ensureQA Engineer(feature)
+    d.ensureRelease Engineer(feature)
 }
 ```
 
 ## Operational State Events
 
-Operational state changes are tracked as event beads, providing an immutable audit
+Operational state changes are tracked as event tickets, providing an immutable audit
 trail. Labels cache the current state for fast queries.
 
 ### Event Types
@@ -314,11 +314,11 @@ trail. Labels cache the current state for fast queries.
 ```bash
 # Create operational event
 bd create --type=event --event-type=patrol.muted \
-  --actor=human:overseer --target=agent:deacon \
+  --actor=human:overseer --target=agent:senior engineer \
   --payload='{"reason":"fixing convoy deadlock","until":"gt-abc1"}'
 
 # Query recent events for an agent
-bd list --type=event --target=agent:deacon --limit=10
+bd list --type=event --target=agent:senior engineer --limit=10
 
 # Query current state via labels
 bd list --type=role --label=patrol:muted
@@ -332,12 +332,12 @@ Events capture the full history. Labels cache the current state:
 - `mode:degraded` / `mode:normal`
 - `status:idle` / `status:working`
 
-State change flow: create event bead (immutable), then update role bead labels (cache).
+State change flow: create event ticket (immutable), then update role ticket labels (cache).
 
 ```bash
 # Mute patrol
 bd create --type=event --event-type=patrol.muted ...
-bd update role-deacon --add-label=patrol:muted --remove-label=patrol:active
+bd update role-senior engineer --add-label=patrol:muted --remove-label=patrol:active
 ```
 
 ### Configuration vs State
@@ -347,8 +347,8 @@ bd update role-deacon --add-label=patrol:muted --remove-label=patrol:active
 | **Static config** | TOML files | Daemon tick interval |
 | **Role directives** | Markdown files | Operator behavioral policy per role |
 | **Formula overlays** | TOML files | Per-step formula modifications |
-| **Operational state** | Beads (events + labels) | Patrol muted |
-| **Runtime flags** | Marker files | `.deacon-disabled` |
+| **Operational state** | Tickets (events + labels) | Patrol muted |
+| **Runtime flags** | Marker files | `.senior engineer-disabled` |
 
 *Events are the source of truth. Labels are the cache.*
 
@@ -357,7 +357,7 @@ For Boot triage and degraded mode details, see [Watchdog Chain](watchdog-chain.m
 ## Role Directives and Formula Overlays
 
 Directives and overlays extend the property layer model to agent behavior.
-They follow the same rig > town > system precedence as other config.
+They follow the same feature > town > system precedence as other config.
 
 ### Directives (Behavioral Policy)
 
@@ -370,10 +370,10 @@ SYSTEM LAYER:   Embedded role template (compiled in)
 TOWN LAYER:     ~/gt/directives/<role>.md
                         │ concatenated with
                         ▼
-RIG LAYER:      ~/gt/<rig>/directives/<role>.md
+RIG LAYER:      ~/gt/<feature>/directives/<role>.md
 ```
 
-Both town and rig directives concatenate. Rig content appears last and wins
+Both town and feature directives concatenate. Feature content appears last and wins
 conflicts (same as CSS specificity — later rules override earlier ones).
 
 ### Overlays (Formula Modifications)
@@ -385,23 +385,23 @@ SYSTEM LAYER:   Embedded formula (compiled in)
                         │ if overlay exists
                         ▼
 TOWN LAYER:     ~/gt/formula-overlays/<formula>.toml
-                        │ rig replaces town entirely
+                        │ feature replaces town entirely
                         ▼
-RIG LAYER:      ~/gt/<rig>/formula-overlays/<formula>.toml
+RIG LAYER:      ~/gt/<feature>/formula-overlays/<formula>.toml
 ```
 
-Unlike directives, overlays use **full replacement** at the rig level — if a
-rig overlay exists, the town overlay is ignored entirely. This prevents
+Unlike directives, overlays use **full replacement** at the feature level — if a
+feature overlay exists, the town overlay is ignored entirely. This prevents
 conflicting step modifications from merging unpredictably.
 
 ### Precedence Summary
 
-| Config Type | Town + Rig Interaction | Rationale |
+| Config Type | Town + Feature Interaction | Rationale |
 |-------------|----------------------|-----------|
-| Rig properties | First non-nil wins (override) | Standard config lookup |
+| Feature properties | First non-nil wins (override) | Standard config lookup |
 | Integer properties | Values stack (additive) | Allows adjustments |
-| Role directives | Concatenate (rig last) | Additive policy; rig gets last word |
-| Formula overlays | Rig replaces town | Step mods can conflict; full replacement is safer |
+| Role directives | Concatenate (feature last) | Additive policy; feature gets last word |
+| Formula overlays | Feature replaces town | Step mods can conflict; full replacement is safer |
 
 See [directives-and-overlays.md](directives-and-overlays.md) for the full
 reference with TOML format, examples, and `gt doctor` integration.
@@ -410,5 +410,5 @@ reference with TOML format, examples, and `gt doctor` integration.
 
 - `~/gt/docs/hop/PROPERTY-LAYERS.md` - Strategic architecture
 - `wisp-architecture.md` - Wisp system design
-- `agent-as-bead.md` - Agent identity beads (similar pattern)
+- `agent-as-ticket.md` - Agent identity tickets (similar pattern)
 - [directives-and-overlays.md](directives-and-overlays.md) - Full reference

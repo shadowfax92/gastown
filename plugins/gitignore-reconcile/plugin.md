@@ -19,34 +19,34 @@ severity = "low"
 
 # Gitignore Reconcile
 
-Scans all rig repos for files that are tracked in git but now match an active
+Scans all feature repos for files that are tracked in git but now match an active
 `.gitignore` rule. On clean `main` branches, runs `git rm --cached` to untrack
-them and commits. On dirty branches or active polecat worktrees, creates a
-chore bead instead to avoid interference.
+them and commits. On dirty branches or active agent worktrees, creates a
+chore ticket instead to avoid interference.
 
 Root cause: `.gitignore` rules only block NEW files. Files committed before the
 rule was added continue to be tracked until manually untracked.
 
-## Step 1: Enumerate rig repos
+## Step 1: Enumerate feature repos
 
 ```bash
-RIG_JSON=$(gt rig list --json 2>/dev/null)
+RIG_JSON=$(gt feature list --json 2>/dev/null)
 if [ $? -ne 0 ] || [ -z "$RIG_JSON" ]; then
-  echo "SKIP: could not get rig list"
+  echo "SKIP: could not get feature list"
   exit 0
 fi
 
 RIG_PATHS=$(echo "$RIG_JSON" | jq -r '.[] | select(.repo_path != null and .repo_path != "") | .repo_path // empty' 2>/dev/null)
 if [ -z "$RIG_PATHS" ]; then
-  echo "SKIP: no rigs with repo paths"
+  echo "SKIP: no features with repo paths"
   exit 0
 fi
 
 RIG_COUNT=$(echo "$RIG_PATHS" | wc -l | tr -d ' ')
-echo "Checking $RIG_COUNT rig repo(s) for tracked+ignored files"
+echo "Checking $RIG_COUNT feature repo(s) for tracked+ignored files"
 ```
 
-## Step 2: For each rig repo, find and untrack gitignored files
+## Step 2: For each feature repo, find and untrack gitignored files
 
 ```bash
 TOTAL_UNTRACKED=0
@@ -76,15 +76,15 @@ while IFS= read -r REPO_PATH; do
   # Check branch state
   CURRENT_BRANCH=$(git -C "$REPO_PATH" branch --show-current 2>/dev/null)
   IS_DIRTY=$(git -C "$REPO_PATH" status --porcelain 2>/dev/null | grep -v "^??" | head -1)
-  HAS_POLECATS=$(git -C "$REPO_PATH" branch 2>/dev/null | grep -E "^\+?\s+polecat/" | head -1)
+  HAS_POLECATS=$(git -C "$REPO_PATH" branch 2>/dev/null | grep -E "^\+?\s+agent/" | head -1)
 
   if [ -n "$IS_DIRTY" ] || [ -n "$HAS_POLECATS" ] || [ "$CURRENT_BRANCH" != "main" ]; then
-    # Create a chore bead instead of interfering
+    # Create a chore ticket instead of interfering
     REASON=""
     [ -n "$IS_DIRTY" ] && REASON="dirty working tree"
-    [ -n "$HAS_POLECATS" ] && REASON="${REASON:+$REASON, }active polecat worktrees"
+    [ -n "$HAS_POLECATS" ] && REASON="${REASON:+$REASON, }active agent worktrees"
     [ "$CURRENT_BRANCH" != "main" ] && REASON="${REASON:+$REASON, }not on main ($CURRENT_BRANCH)"
-    echo "  SKIP: $REASON — creating chore bead"
+    echo "  SKIP: $REASON — creating chore ticket"
     REPO_NAME=$(basename "$REPO_PATH")
     bd create "gitignore-reconcile: $REPO_NAME has $FILE_COUNT tracked+ignored file(s)" \
       -t chore \
@@ -95,7 +95,7 @@ while IFS= read -r REPO_PATH; do
     continue
   fi
 
-  # Safe to untrack: clean main branch, no active polecats
+  # Safe to untrack: clean main branch, no active agents
   echo "$IGNORED_TRACKED" | while IFS= read -r FILE; do
     [ -z "$FILE" ] && continue
     echo "  Untracking: $FILE"
@@ -116,7 +116,7 @@ $(echo "$STAGED" | head -10)$([ $(echo "$STAGED" | wc -l) -gt 10 ] && echo "...a
     TOTAL_UNTRACKED=$((TOTAL_UNTRACKED + COUNT))
 
     # Push (best effort)
-    git -C "$REPO_PATH" push origin main 2>/dev/null || echo "  WARN: push failed (committed locally)"
+    git -C "$REPO_PATH" push ofeaturein main 2>/dev/null || echo "  WARN: push failed (committed locally)"
   fi
 done
 ```
@@ -124,7 +124,7 @@ done
 ## Record Result
 
 ```bash
-SUMMARY="gitignore-reconcile: $TOTAL_UNTRACKED file(s) untracked, $TOTAL_BEADS chore bead(s) created"
+SUMMARY="gitignore-reconcile: $TOTAL_UNTRACKED file(s) untracked, $TOTAL_BEADS chore ticket(s) created"
 echo ""
 echo "=== Gitignore Reconcile Summary ==="
 echo "$SUMMARY"

@@ -186,7 +186,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            margin-right: 6px;
+            margin-featureht: 6px;
         }
 
         .activity-green .activity-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
@@ -332,14 +332,14 @@
             letter-spacing: 0.05em;
         }
 
-        .convoy-issues-header {
+        .convoy-tickets-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 8px;
         }
 
-        .convoy-add-issue-btn {
+        .convoy-add-ticket-btn {
             background: var(--green);
             border: none;
             border-radius: 4px;
@@ -351,18 +351,18 @@
             transition: all 0.15s ease;
         }
 
-        .convoy-add-issue-btn:hover {
+        .convoy-add-ticket-btn:hover {
             background: var(--cyan);
         }
 
-        .convoy-add-issue-form {
+        .convoy-add-ticket-form {
             display: flex;
             gap: 8px;
             align-items: center;
             margin-bottom: 12px;
         }
 
-        .convoy-add-issue-input {
+        .convoy-add-ticket-input {
             flex: 1;
             background: var(--bg-dark);
             border: 1px solid var(--border);
@@ -373,23 +373,23 @@
             font-family: inherit;
         }
 
-        .convoy-add-issue-input:focus {
+        .convoy-add-ticket-input:focus {
             outline: none;
             border-color: var(--blue);
         }
 
-        .convoy-add-issue-submit {
+        .convoy-add-ticket-submit {
             padding: 6px 12px;
             font-size: 0.8rem;
         }
 
-        .convoy-add-issue-cancel {
+        .convoy-add-ticket-cancel {
             padding: 6px 12px;
             font-size: 0.8rem;
         }
 
-        /* Convoy issue status icons in sub-table */
-        #convoy-issues-table .convoy-issue-status {
+        /* Convoy ticket status icons in sub-table */
+        #convoy-tickets-table .convoy-ticket-status {
             text-align: center;
         }
 
@@ -403,7 +403,7 @@
             font-size: 0.75rem;
             font-weight: 600;
             padding: 4px 10px;
-            margin-right: 8px;
+            margin-featureht: 8px;
             transition: all 0.15s ease;
         }
 
@@ -429,7 +429,7 @@
             font-size: 0.7rem;
             color: var(--text-muted);
             transition: transform 0.15s ease;
-            margin-right: 4px;
+            margin-featureht: 4px;
         }
 
         .convoy-expanded {
@@ -450,32 +450,32 @@
             border-bottom: 1px solid var(--border);
         }
 
-        /* Expandable issues container */
-        .tracked-issues {
+        /* Expandable tickets container */
+        .tracked-tickets {
             background: var(--bg-dark);
             border-top: 1px solid var(--border);
         }
 
-        .tracked-issues-loading,
-        .tracked-issues-error,
-        .tracked-issues-empty {
+        .tracked-tickets-loading,
+        .tracked-tickets-error,
+        .tracked-tickets-empty {
             padding: 12px 16px;
             text-align: center;
             color: var(--text-muted);
             font-size: 0.8rem;
         }
 
-        .tracked-issues-error {
+        .tracked-tickets-error {
             color: var(--red);
         }
 
-        /* Tracked issues sub-table */
-        .tracked-issues-table {
+        /* Tracked tickets sub-table */
+        .tracked-tickets-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .tracked-issues-table th {
+        .tracked-tickets-table th {
             font-size: 0.6rem;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -485,21 +485,21 @@
             background: rgba(0, 0, 0, 0.2);
         }
 
-        .tracked-issues-table td {
+        .tracked-tickets-table td {
             padding: 5px 10px;
             font-size: 0.8rem;
             border-bottom: 1px solid rgba(45, 54, 63, 0.5);
         }
 
-        .tracked-issue-row:hover {
+        .tracked-ticket-row:hover {
             background: rgba(89, 194, 255, 0.06);
         }
 
-        .tracked-issue-row.tracked-issue-closed {
+        .tracked-ticket-row.tracked-ticket-closed {
             opacity: 0.7;
         }
 
-        .tracked-issue-title {
+        .tracked-ticket-title {
             color: var(--text-secondary);
             max-width: 200px;
             overflow: hidden;
@@ -507,12 +507,12 @@
             white-space: nowrap;
         }
 
-        .tracked-issue-assignee {
+        .tracked-ticket-assignee {
             color: var(--purple);
             font-size: 0.75rem;
         }
 
-        .tracked-issue-progress {
+        .tracked-ticket-progress {
             font-size: 0.75rem;
         }
 
@@ -528,8 +528,8 @@
             color: var(--text-muted);
         }
 
-        /* Tracked issues progress summary */
-        .tracked-issues-summary {
+        /* Tracked tickets progress summary */
+        .tracked-tickets-summary {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -537,7 +537,7 @@
             border-top: 1px solid var(--border);
         }
 
-        .tracked-issues-progress-bar {
+        .tracked-tickets-progress-bar {
             flex: 1;
             max-width: 120px;
             height: 4px;
@@ -546,19 +546,19 @@
             overflow: hidden;
         }
 
-        .tracked-issues-progress-fill {
+        .tracked-tickets-progress-fill {
             height: 100%;
             background: var(--green);
             border-radius: 2px;
             transition: width 0.3s ease;
         }
 
-        .tracked-issues-progress-text {
+        .tracked-tickets-progress-text {
             font-size: 0.7rem;
             color: var(--text-muted);
         }
 
-        .tracked-issue {
+        .tracked-ticket {
             display: flex;
             align-items: center;
             padding: 6px 12px 6px 32px;
@@ -566,27 +566,27 @@
             font-size: 0.8rem;
         }
 
-        .tracked-issue:last-child {
+        .tracked-ticket:last-child {
             border-bottom: none;
         }
 
-        .issue-status-icon {
+        .ticket-status-icon {
             width: 16px;
-            margin-right: 8px;
+            margin-featureht: 8px;
             text-align: center;
         }
 
-        .issue-status-icon.open { color: var(--text-muted); }
-        .issue-status-icon.in_progress { color: var(--yellow); }
-        .issue-status-icon.closed { color: var(--green); }
+        .ticket-status-icon.open { color: var(--text-muted); }
+        .ticket-status-icon.in_progress { color: var(--yellow); }
+        .ticket-status-icon.closed { color: var(--green); }
 
-        .issue-id {
+        .ticket-id {
             color: var(--text-secondary);
-            margin-right: 8px;
+            margin-featureht: 8px;
             font-size: 0.75rem;
         }
 
-        .issue-title {
+        .ticket-title {
             flex: 1;
             color: var(--text-primary);
             overflow: hidden;
@@ -594,23 +594,23 @@
             white-space: nowrap;
         }
 
-        .issue-assignee {
+        .ticket-assignee {
             color: var(--purple);
             font-size: 0.75rem;
             margin-left: 8px;
         }
 
-        /* Polecat styles */
-        .polecat-name {
+        /* Agent styles */
+        .agent-name {
             font-weight: 600;
             color: var(--cyan);
         }
 
-        .polecat-rig {
+        .agent-feature {
             color: var(--text-muted);
         }
 
-        .polecat-work {
+        .agent-work {
             color: var(--text-secondary);
             font-size: 0.8rem;
         }
@@ -624,42 +624,42 @@
             white-space: nowrap;
         }
 
-        /* Polecat issue styles */
-        .polecat-issue {
+        /* Agent ticket styles */
+        .agent-ticket {
             font-size: 0.8rem;
             max-width: 180px;
         }
 
-        .polecat-issue .issue-id {
+        .agent-ticket .ticket-id {
             color: var(--blue);
             font-weight: 600;
-            margin-right: 4px;
+            margin-featureht: 4px;
         }
 
-        .polecat-issue .issue-title {
+        .agent-ticket .ticket-title {
             color: var(--text-secondary);
         }
 
-        .polecat-issue .no-issue {
+        .agent-ticket .no-ticket {
             color: var(--text-muted);
         }
 
-        /* Polecat status row highlights */
-        tr.polecat-working { }
-        tr.polecat-stale { background: rgba(255, 180, 84, 0.05); }
+        /* Agent status row highlights */
+        tr.agent-working { }
+        tr.agent-stale { background: rgba(255, 180, 84, 0.05); }
 
-        /* Crew styles */
-        .crew-name {
+        /* Engineers styles */
+        .engineers-name {
             font-weight: 600;
             color: var(--green);
         }
 
-        .crew-rig {
+        .engineers-feature {
             color: var(--text-muted);
             font-size: 0.85rem;
         }
 
-        .crew-hook {
+        .engineers-hook {
             color: var(--blue);
             font-size: 0.8rem;
             max-width: 150px;
@@ -668,32 +668,32 @@
             white-space: nowrap;
         }
 
-        .crew-state-spinning {
+        .engineers-state-spinning {
             color: var(--green);
         }
 
-        .crew-state-finished {
+        .engineers-state-finished {
             color: var(--cyan);
         }
 
-        .crew-state-questions {
+        .engineers-state-questions {
             color: var(--orange);
         }
 
-        .crew-state-ready {
+        .engineers-state-ready {
             color: var(--text-muted);
         }
 
-        tr.crew-finished { background: rgba(137, 221, 255, 0.08); }
-        tr.crew-questions { background: rgba(255, 180, 84, 0.15); }
-        tr.crew-spinning { background: rgba(194, 217, 76, 0.08); }
+        tr.engineers-finished { background: rgba(137, 221, 255, 0.08); }
+        tr.engineers-questions { background: rgba(255, 180, 84, 0.15); }
+        tr.engineers-spinning { background: rgba(194, 217, 76, 0.08); }
 
-        .crew-activity {
+        .engineers-activity {
             color: var(--text-muted);
             font-size: 0.8rem;
         }
 
-        /* Crew attention badge */
+        /* Engineers attention badge */
         .count.needs-attention {
             background: var(--orange);
             color: #000;
@@ -733,7 +733,7 @@
         #toast-container {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            featureht: 20px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -773,8 +773,8 @@
             background: rgba(240, 113, 120, 0.1);
         }
 
-        /* New Issue Button */
-        .new-issue-btn {
+        /* New Ticket Button */
+        .new-ticket-btn {
             background: var(--green);
             border: none;
             border-radius: 4px;
@@ -783,11 +783,11 @@
             font-size: 0.75rem;
             font-weight: 600;
             padding: 4px 10px;
-            margin-right: 8px;
+            margin-featureht: 8px;
             transition: all 0.15s ease;
         }
 
-        .new-issue-btn:hover {
+        .new-ticket-btn:hover {
             background: var(--cyan);
             color: #000;
             transform: scale(1.05);
@@ -798,7 +798,7 @@
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
+            featureht: 0;
             bottom: 0;
             z-index: 10000;
             display: flex;
@@ -810,7 +810,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
+            featureht: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
         }
@@ -855,7 +855,7 @@
             color: var(--red);
         }
 
-        #issue-form {
+        #ticket-form {
             padding: 20px;
         }
 
@@ -970,13 +970,13 @@
             font-weight: 600;
         }
 
-        /* Issue status badges */
-        .issue-status .badge-green {
+        /* Ticket status badges */
+        .ticket-status .badge-green {
             background: rgba(194, 217, 76, 0.2);
             color: var(--green);
         }
 
-        .issue-status .badge-blue {
+        .ticket-status .badge-blue {
             background: rgba(130, 170, 255, 0.2);
             color: var(--blue);
         }
@@ -1020,8 +1020,8 @@
 
         tr.ready-p1 { background: rgba(240, 113, 120, 0.08); }
         tr.ready-p2 { background: rgba(255, 180, 84, 0.08); }
-        tr.polecat-stuck { background: rgba(240, 113, 120, 0.08); }
-        tr.polecat-idle { opacity: 0.7; }
+        tr.agent-stuck { background: rgba(240, 113, 120, 0.08); }
+        tr.agent-idle { opacity: 0.7; }
 
         /* Mail styles */
         .mail-unread {
@@ -1110,11 +1110,11 @@
         .dog-working { color: var(--yellow); }
 
         /* Session role styles */
-        .role-deacon { color: var(--purple); }
-        .role-witness { color: var(--cyan); }
-        .role-refinery { color: var(--orange); }
-        .role-polecat { color: var(--green); }
-        .role-crew { color: var(--blue); }
+        .role-senior engineer { color: var(--purple); }
+        .role-QA engineer { color: var(--cyan); }
+        .role-release engineer { color: var(--orange); }
+        .role-agent { color: var(--green); }
+        .role-engineers { color: var(--blue); }
 
         /* Health status */
         .health-good { color: var(--green); }
@@ -1151,13 +1151,13 @@
         .health-value.warning { color: var(--yellow); }
         .health-value.bad { color: var(--red); }
 
-        /* Rig styles */
-        .rig-name {
+        /* Feature styles */
+        .feature-name {
             font-weight: 600;
             color: var(--blue);
         }
 
-        .rig-url {
+        .feature-url {
             color: var(--text-muted);
             font-size: 0.75rem;
             max-width: 150px;
@@ -1240,7 +1240,7 @@
             font-size: 0.75rem;
             font-weight: 600;
             padding: 4px 10px;
-            margin-right: 4px;
+            margin-featureht: 4px;
             transition: all 0.15s ease;
         }
 
@@ -1257,7 +1257,7 @@
             cursor: pointer;
             font-size: 0.7rem;
             padding: 3px 8px;
-            margin-right: 4px;
+            margin-featureht: 4px;
             transition: all 0.15s ease;
         }
 
@@ -1333,13 +1333,13 @@
             color: var(--text-primary);
         }
 
-        /* Issue styles */
-        .issue-id {
+        /* Ticket styles */
+        .ticket-id {
             font-weight: 600;
             color: var(--blue);
         }
 
-        .issue-title {
+        .ticket-title {
             color: var(--text-secondary);
             max-width: 200px;
             overflow: hidden;
@@ -1347,7 +1347,7 @@
             white-space: nowrap;
         }
 
-        .issue-type {
+        .ticket-type {
             font-size: 0.75rem;
             color: var(--text-muted);
             text-transform: lowercase;
@@ -1361,37 +1361,37 @@
             background: rgba(255, 180, 84, 0.05);
         }
 
-        /* Clickable issue rows */
-        .issue-row {
+        /* Clickable ticket rows */
+        .ticket-row {
             cursor: pointer;
             transition: background 0.15s ease;
         }
 
-        .issue-row:hover {
+        .ticket-row:hover {
             background: rgba(138, 180, 248, 0.12);
         }
 
-        /* Issue detail view */
-        #issue-detail {
+        /* Ticket detail view */
+        #ticket-detail {
             padding: 8px;
         }
 
-        .issue-detail-content {
+        .ticket-detail-content {
             margin-top: 12px;
         }
 
-        .issue-detail-title {
+        .ticket-detail-title {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 8px;
         }
 
-        .issue-detail-title .issue-id {
+        .ticket-detail-title .ticket-id {
             font-size: 0.9rem;
         }
 
-        .issue-status {
+        .ticket-status {
             font-size: 0.75rem;
             padding: 2px 8px;
             border-radius: 4px;
@@ -1399,33 +1399,33 @@
             color: var(--text-muted);
         }
 
-        .issue-status.open {
+        .ticket-status.open {
             background: rgba(138, 180, 248, 0.2);
             color: var(--blue);
         }
 
-        .issue-status.in_progress {
+        .ticket-status.in_progress {
             background: rgba(255, 209, 102, 0.2);
             color: var(--yellow);
         }
 
-        .issue-status.closed {
+        .ticket-status.closed {
             background: rgba(166, 218, 149, 0.2);
             color: var(--green);
         }
 
-        .issue-age {
+        .ticket-age {
             white-space: nowrap;
         }
 
-        #issue-detail h3 {
+        #ticket-detail h3 {
             margin: 0 0 12px 0;
             font-size: 1.1rem;
             color: var(--text-primary);
             font-weight: 600;
         }
 
-        .issue-detail-meta {
+        .ticket-detail-meta {
             display: flex;
             gap: 16px;
             font-size: 0.8rem;
@@ -1433,11 +1433,11 @@
             margin-bottom: 16px;
         }
 
-        .issue-detail-section {
+        .ticket-detail-section {
             margin-top: 16px;
         }
 
-        .issue-detail-section h4 {
+        .ticket-detail-section h4 {
             margin: 0 0 8px 0;
             font-size: 0.85rem;
             color: var(--text-secondary);
@@ -1446,7 +1446,7 @@
             letter-spacing: 0.05em;
         }
 
-        #issue-detail-description {
+        #ticket-detail-description {
             margin: 0;
             padding: 12px;
             background: rgba(0, 0, 0, 0.2);
@@ -1460,12 +1460,12 @@
             overflow-y: auto;
         }
 
-        /* Issue action buttons */
-        .issue-detail-actions {
+        /* Ticket action buttons */
+        .ticket-detail-actions {
             margin: 12px 0;
         }
 
-        .issue-actions-bar {
+        .ticket-actions-bar {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -1475,7 +1475,7 @@
             flex-wrap: wrap;
         }
 
-        .issue-action-btn {
+        .ticket-action-btn {
             border: 1px solid var(--border);
             border-radius: 4px;
             cursor: pointer;
@@ -1485,41 +1485,41 @@
             transition: all 0.15s ease;
         }
 
-        .issue-action-btn.close {
+        .ticket-action-btn.close {
             background: var(--green);
             color: var(--bg-dark);
             border-color: var(--green);
         }
 
-        .issue-action-btn.close:hover {
+        .ticket-action-btn.close:hover {
             opacity: 0.85;
         }
 
-        .issue-action-btn.reopen {
+        .ticket-action-btn.reopen {
             background: transparent;
             color: var(--blue);
             border-color: var(--blue);
         }
 
-        .issue-action-btn.reopen:hover {
+        .ticket-action-btn.reopen:hover {
             background: var(--blue);
             color: var(--bg-dark);
         }
 
-        .issue-action-group {
+        .ticket-action-group {
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .issue-action-label {
+        .ticket-action-label {
             font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .issue-action-select {
+        .ticket-action-select {
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: var(--text-primary);
@@ -1531,20 +1531,20 @@
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c7680' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 8px center;
+            background-position: featureht 8px center;
         }
 
-        .issue-action-select:focus {
+        .ticket-action-select:focus {
             outline: none;
             border-color: var(--blue);
         }
 
-        .issue-action-select option {
+        .ticket-action-select option {
             background: var(--bg-card);
             color: var(--text-primary);
         }
 
-        .issue-dep-item {
+        .ticket-dep-item {
             display: inline-block;
             padding: 2px 8px;
             margin: 2px;
@@ -1555,7 +1555,7 @@
             cursor: pointer;
         }
 
-        .issue-dep-item:hover {
+        .ticket-dep-item:hover {
             background: rgba(138, 180, 248, 0.2);
         }
 
@@ -1928,7 +1928,7 @@
             border-color: rgba(136, 192, 208, 0.2);
         }
 
-        .tl-badge-rig {
+        .tl-badge-feature {
             color: var(--purple);
             border-color: rgba(180, 142, 173, 0.2);
         }
@@ -2034,8 +2034,8 @@
             background: var(--text-muted);
         }
 
-        /* Mayor status banner */
-        .mayor-banner {
+        /* Product Manager status banner */
+        .product manager-banner {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -2046,59 +2046,59 @@
             border: 1px solid var(--border);
         }
 
-        .mayor-banner.attached {
+        .product manager-banner.attached {
             border-color: var(--green);
             background: rgba(166, 209, 137, 0.08);
         }
 
-        .mayor-banner.detached {
+        .product manager-banner.detached {
             border-color: var(--text-muted);
             opacity: 0.7;
         }
 
-        .mayor-info {
+        .product manager-info {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .mayor-icon {
+        .product manager-icon {
             font-size: 1.5rem;
         }
 
-        .mayor-title {
+        .product manager-title {
             font-weight: 600;
             color: var(--text-primary);
         }
 
-        .mayor-status {
+        .product manager-status {
             display: flex;
             align-items: center;
             gap: 16px;
         }
 
-        .mayor-stat {
+        .product manager-stat {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
         }
 
-        .mayor-stat-label {
+        .product manager-stat-label {
             font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
         }
 
-        .mayor-stat-value {
+        .product manager-stat-value {
             font-size: 0.85rem;
             font-weight: 500;
         }
 
-        .mayor-stat-value.active {
+        .product manager-stat-value.active {
             color: var(--green);
         }
 
-        .mayor-stat-value.idle {
+        .product manager-stat-value.idle {
             color: var(--yellow);
         }
 
@@ -2184,7 +2184,7 @@
             cursor: pointer;
             font-size: 0.7rem;
             padding: 2px 8px;
-            margin-right: 6px;
+            margin-featureht: 6px;
             transition: transform 0.2s ease;
         }
 
@@ -2245,7 +2245,7 @@
                 font-size: 0.8rem;
             }
 
-            .new-issue-btn {
+            .new-ticket-btn {
                 padding: 8px 14px;
                 font-size: 0.8rem;
             }
@@ -2287,13 +2287,13 @@
                 justify-content: center;
             }
 
-            .mayor-banner {
+            .product manager-banner {
                 flex-direction: column;
                 gap: 12px;
                 text-align: center;
             }
 
-            .mayor-status {
+            .product manager-status {
                 justify-content: center;
             }
 
@@ -2304,7 +2304,7 @@
 
             /* Wider text truncation */
             .pr-title,
-            .issue-title,
+            .ticket-title,
             .hook-title,
             .mail-subject,
             .ready-title {
@@ -2342,7 +2342,7 @@
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
+            featureht: 0;
             bottom: 0;
             z-index: 100;
             margin: 0;
@@ -2368,8 +2368,8 @@
         /* Don't truncate text when expanded */
         .panel.expanded .pr-title,
         .panel.expanded .convoy-id,
-        .panel.expanded .polecat-issue,
-        .panel.expanded .issue-title,
+        .panel.expanded .agent-ticket,
+        .panel.expanded .ticket-title,
         .panel.expanded .hook-title,
         .panel.expanded .mail-subject,
         .panel.expanded .mail-thread-preview,
@@ -2406,14 +2406,14 @@
                 display: none; /* Hide on mobile, too wide */
             }
 
-            .mayor-banner {
+            .product manager-banner {
                 flex-direction: column;
                 gap: 12px;
                 text-align: center;
                 padding: 10px 14px;
             }
 
-            .mayor-status {
+            .product manager-status {
                 justify-content: center;
             }
 
@@ -2475,7 +2475,7 @@
                 font-size: 0.8rem;
             }
 
-            .new-issue-btn,
+            .new-ticket-btn,
             .compose-btn {
                 padding: 10px 16px;
                 font-size: 0.85rem;
@@ -2503,7 +2503,7 @@
 
             /* Truncation tighter on phone */
             .pr-title,
-            .issue-title,
+            .ticket-title,
             .hook-title,
             .mail-subject,
             .ready-title,
@@ -2511,7 +2511,7 @@
                 max-width: 120px;
             }
 
-            .polecat-issue {
+            .agent-ticket {
                 max-width: 100px;
             }
 
@@ -2556,9 +2556,9 @@
                 gap: 4px;
             }
 
-            /* PR/Issue detail adjustments */
+            /* PR/Ticket detail adjustments */
             .pr-detail-meta,
-            .issue-detail-meta {
+            .ticket-detail-meta {
                 flex-direction: column;
                 gap: 4px;
             }
@@ -2571,7 +2571,7 @@
             .toast-container,
             #toast-container {
                 left: 8px;
-                right: 8px;
+                featureht: 8px;
                 top: auto;
                 bottom: 8px;
             }
@@ -2639,7 +2639,7 @@
             }
 
             .pr-title,
-            .issue-title,
+            .ticket-title,
             .hook-title,
             .mail-subject,
             .ready-title {
@@ -2678,7 +2678,7 @@
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
+            featureht: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
             z-index: 9999;
@@ -2776,7 +2776,7 @@
             background: var(--bg-dark);
             padding: 2px 5px;
             border-radius: 3px;
-            margin-right: 4px;
+            margin-featureht: 4px;
         }
 
         /* Command palette section headers */
@@ -2908,7 +2908,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Dynamic options (clickable buttons for rigs/polecats/etc) */
+        /* Dynamic options (clickable buttons for features/agents/etc) */
         .command-options {
             margin-bottom: 12px;
         }
@@ -3009,8 +3009,8 @@
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c7680' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
+            background-position: featureht 12px center;
+            padding-featureht: 36px;
         }
 
         .command-field-select option {
@@ -3118,11 +3118,11 @@
             font-size: 0.8rem;
         }
 
-        .mail-thread-right {
+        .mail-thread-featureht {
             flex-shrink: 0;
         }
 
-        .mail-thread-right .mail-time {
+        .mail-thread-featureht .mail-time {
             font-size: 0.75rem;
         }
 
@@ -3293,7 +3293,7 @@
             border-radius: 4px;
             font-size: 0.85rem;
             cursor: pointer;
-            margin-right: 8px;
+            margin-featureht: 8px;
         }
 
         .compose-btn:hover {
@@ -3472,7 +3472,7 @@
         .toast-container {
             position: fixed;
             top: 20px;
-            right: 20px;
+            featureht: 20px;
             z-index: 10000;
             display: flex;
             flex-direction: column;
@@ -3513,7 +3513,7 @@
             position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
+            featureht: 0;
             background: var(--bg-card);
             border-top: 1px solid var(--border);
             z-index: 9000;

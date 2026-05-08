@@ -10,7 +10,7 @@ Before running `gt done`, verify your work is ready:
 
 ```bash
 git status                          # Must be clean (no uncommitted changes)
-git log --oneline origin/main..HEAD # Must have at least 1 commit
+git log --oneline ofeaturein/main..HEAD # Must have at least 1 commit
 ```
 
 If there are uncommitted changes, commit them first:
@@ -33,11 +33,11 @@ gt done $ARGUMENTS
 - `gt done --status ESCALATED` — Signal blocker, skip MR
 - `gt done --status DEFERRED` — Pause work, skip MR
 
-**If the bead has nothing to implement** (already fixed, can't reproduce):
+**If the ticket has nothing to implement** (already fixed, can't reproduce):
 ```bash
-bd close <issue-id> --reason="no-changes: <brief explanation>"
+bd close <ticket-id> --reason="no-changes: <brief explanation>"
 gt done
 ```
 
 This command pushes your branch, submits an MR to the merge queue, and transitions
-you to IDLE. The Refinery handles the actual merge. You are done after this.
+you to IDLE. The Release Engineer handles the actual merge. You are done after this.

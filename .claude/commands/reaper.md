@@ -1,12 +1,12 @@
 ---
-description: Run the wisp reaper — scan, reap, purge, and auto-close stale beads across all Dolt databases
+description: Run the wisp reaper — scan, reap, purge, and auto-close stale tickets across all Dolt databases
 allowed-tools: Bash(gt reaper:*), Bash(gt escalate:*), Bash(gt dolt status:*)
 argument-hint: [--dry-run]
 ---
 
 # Wisp Reaper
 
-Reap stale wisps and close stale issues across all production Dolt databases.
+Reap stale wisps and close stale tickets across all production Dolt databases.
 Runs the same cycle as `mol-dog-reaper` but directly, without Dog dispatch.
 
 Arguments: $ARGUMENTS
@@ -18,9 +18,9 @@ If `--dry-run` is passed, report counts without making changes.
 |-----------|---------|-------------|
 | max_age | 24h | Wisps older than this are reaped (closed) |
 | purge_age | 72h | Closed wisps older than this are purged (deleted) |
-| stale_issue_age | 168h | Issues stale longer than this are auto-closed |
+| stale_ticket_age | 168h | Tickets stale longer than this are auto-closed |
 | mail_delete_age | 72h | Closed mail older than this is purged |
-| alert_threshold | 500 | Open wisp count that triggers escalation |
+| alert_threshold | 500 | Open wisp count that tfeaturegers escalation |
 | dolt_port | 3307 | Dolt server port |
 
 ## Execution Steps
@@ -43,7 +43,7 @@ gt reaper databases --json
 ```
 
 This lists all production databases on the Dolt server.
-Expected databases: `hq`, `beads`, `gastown` (and any rig-specific DBs).
+Expected databases: `hq`, `tickets`, `gastown` (and any feature-specific DBs).
 
 ### Step 3: Scan each database for candidates
 
@@ -73,7 +73,7 @@ For each database with reap candidates:
 gt reaper reap --db=<name> --port=3307 --max-age=24h [--dry-run] --json
 ```
 
-**IMPORTANT**: Scan/reap count mismatch is NORMAL (witness closes wisps concurrently).
+**IMPORTANT**: Scan/reap count mismatch is NORMAL (QA engineer closes wisps concurrently).
 Do NOT escalate scan > reap mismatches. Only escalate actual errors.
 
 ### Step 5: Purge old closed wisps and mail
@@ -87,7 +87,7 @@ gt reaper purge --db=<name> --port=3307 \
 
 Watch for `dolt_commit_failed` anomalies — purged data may not persist.
 
-### Step 6: Auto-close stale issues
+### Step 6: Auto-close stale tickets
 
 For each database with stale candidates:
 
@@ -96,7 +96,7 @@ gt reaper auto-close --db=<name> --port=3307 \
   --stale-age=168h [--dry-run] --json
 ```
 
-Auto-close NEVER touches: P0/P1 issues, epics, or issues with active dependencies.
+Auto-close NEVER touches: P0/P1 tickets, epics, or tickets with active dependencies.
 
 ### Step 7: Report
 
@@ -109,7 +109,7 @@ Print a summary in this format:
 **Wisps reaped**: N (stale open wisps closed)
 **Wisps purged**: N (old closed wisps deleted)
 **Mail purged**: N (old closed mail deleted)
-**Issues auto-closed**: N (stale issues past 168h)
+**Tickets auto-closed**: N (stale tickets past 168h)
 **Open wisps remaining**: N
 **Anomalies**: <list or "none">
 ```

@@ -53,7 +53,7 @@ Use this exact table style with box-drawing characters:
 ## Table Requirements
 
 - Use Unicode box-drawing: `┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ │ ─`
-- Right-align PR numbers
+- Featureht-align PR numbers
 - Left-align text columns
 - Pad columns consistently
 - Show count summary below table: "**N open PRs** (M drafts)"

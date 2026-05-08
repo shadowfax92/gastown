@@ -1,14 +1,14 @@
 # macOS sandbox-exec Research Report
 
-**Bead:** gt-6qt
+**Ticket:** gt-6qt
 **Date:** 2026-03-08
-**Blocks:** gt-2pb (Spike: macOS sandbox-exec polecat isolation)
+**Blocks:** gt-2pb (Spike: macOS sandbox-exec agent isolation)
 
 ## 1. Is sandbox-exec still functional despite deprecation?
 
 **YES — fully functional on macOS Sequoia 15.x despite deprecation.**
 
-- Man page says DEPRECATED but it works without issues
+- Man page says DEPRECATED but it works without tickets
 - No runtime warnings observed during local testing on this machine
 - macOS itself uses the underlying Seatbelt kernel extension extensively
 - System sandbox profiles live in `/usr/share/sandbox/` and `/System/Library/Sandbox/Profiles/` (100+ profiles)
@@ -59,7 +59,7 @@ The deprecation is a "please don't use this" signal, not an imminent removal. Th
 
 **Local test confirmed:** `curl` to external host denied with exit 6 under `(deny default)`.
 
-OpenAI Codex found network enforcement "too effective" — their `network_access=true` config was silently ignored by seatbelt (GitHub issues #6807, #10390).
+OpenAI Codex found network enforcement "too effective" — their `network_access=true` config was silently ignored by seatbelt (GitHub tickets #6807, #10390).
 
 ## 4. Can it restrict process spawning (allow only specific binaries)?
 
@@ -95,7 +95,7 @@ OpenAI Codex found network enforcement "too effective" — their `network_access
 | `/dev/random`, `/dev/urandom` | Crypto/random |
 | `/private/var/folders`, `/private/tmp` | Temp directories |
 
-**Known issues WITHOUT these rules:**
+**Known tickets WITHOUT these rules:**
 - `setRawMode` fails with errno:1 (needs `file-ioctl`)
 - `os.cpus()` returns empty array (needs `mach-host*`)
 - npm/yarn serializes all work (cascading from zero CPUs)
@@ -113,7 +113,7 @@ OpenAI Codex found network enforcement "too effective" — their `network_access
 - `sandbox-exec` itself is SIP-protected at `/usr/bin/sandbox-exec`
 - Coexists with SIP — complementary layers in defense-in-depth
 - One minor interaction: sandboxed apps apply quarantine xattr to created files
-- Running Node.js under sandbox-exec does NOT trigger Gatekeeper warnings
+- Running Node.js under sandbox-exec does NOT tfeatureger Gatekeeper warnings
 
 ## 7. .sb Profile Syntax
 
@@ -285,7 +285,7 @@ sandbox-exec -D PROJECT_DIR=/path/to/project -D TMPDIR=$TMPDIR -f profile.sb nod
 - **NOT viable** for agent sandboxing use case
 
 ### Endpoint Security Framework
-- Requires System Extension + Apple-issued entitlement (`com.apple.developer.endpoint-security.client`)
+- Requires System Extension + Apple-ticketd entitlement (`com.apple.developer.endpoint-security.client`)
 - Designed for security products (antivirus, MDM), not process sandboxing
 - Massive overhead for this use case
 - **NOT viable** for lightweight agent isolation

@@ -4,8 +4,8 @@ This directory holds **Cursor-specific** onboarding. For general Gas Town agent 
 
 ## Prerequisites
 
-1. **Build `gt`** from the repo root (`make build` or `go install ./cmd/gt`). Gas Town expects a working `gt` on your `PATH` for hooks and crew workflows.
-2. **`bd` (beads)** — issue DB under `.beads/`; see [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for workflow.
+1. **Build `gt`** from the repo root (`make build` or `go install ./cmd/gt`). Gas Town expects a working `gt` on your `PATH` for hooks and engineers workflows.
+2. **`bd` (tickets)** — ticket DB under `.tickets/`; see [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for workflow.
 3. **Cursor Agent CLI** — install the `cursor-agent` binary per Cursor’s documentation. The Gas Town preset name is **`cursor`**; the process is typically **`cursor-agent`** (an **`agent`** symlink may exist).
 
 ## Preset vs binary
@@ -21,11 +21,11 @@ Hooks are installed under **`.cursor/hooks.json`** when roles are provisioned (`
 
 See [`.cursor/skills/gas-town-cursor/SKILL.md`](skills/gas-town-cursor/SKILL.md) for agent-facing workflow (gt, resume, pointers to code).
 
-## Beads / plan tracking
+## Tickets / plan tracking
 
-Epic tasks for Cursor runtime parity are tracked in beads; coordination notes and script:
+Epic tasks for Cursor runtime parity are tracked in tickets; coordination notes and script:
 
-- [`docs/cursor-runtime-beads-tasks.md`](../docs/cursor-runtime-beads-tasks.md)
+- [`docs/cursor-runtime-tickets-tasks.md`](../docs/cursor-runtime-tickets-tasks.md)
 - [`scripts/cursor-runtime-bd-tasks.sh`](../scripts/cursor-runtime-bd-tasks.sh)
 
 ## Automated regression (local)
@@ -33,7 +33,7 @@ Epic tasks for Cursor runtime parity are tracked in beads; coordination notes an
 CI already runs **`go test ./...`** (same coverage as a “gate” over these packages). For a **faster loop** while touching Cursor-related code, narrow packages:
 
 ```bash
-go test ./internal/config/... ./internal/hooks/... ./internal/crew/... ./internal/tmux/... ./internal/runtime/... -count=1 -short
+go test ./internal/config/... ./internal/hooks/... ./internal/engineers/... ./internal/tmux/... ./internal/runtime/... -count=1 -short
 ```
 
 Run as a **non-root** user if you want chmod/read-only failure tests in `hooks` and `util` (root skips those cases by design).

@@ -4,10 +4,10 @@
 
 Integration branches provide end-to-end support for epic-scoped work across
 the Gas Town pipeline. When you create an integration branch for an epic, it
-becomes the automatic target for every stage: polecats spawn their worktrees
+becomes the automatic target for every stage: agents spawn their worktrees
 from the integration branch (so they start with sibling work already present),
-the Refinery merges completed MRs into the integration branch instead of main,
-and when all epic children are closed, the Refinery can land the integration
+the Release Engineer merges completed MRs into the integration branch instead of main,
+and when all epic children are closed, the Release Engineer can land the integration
 branch back to its base branch (main by default, or whatever was specified
 with `--base-branch` at creation) as a single merge commit.
 
@@ -34,28 +34,28 @@ to final land, without any manual branch targeting.
    ```
 
 4. **Sling the first wave.** Identify children with no blockers and sling them
-   to the rig. Use `--no-convoy` since the tracking convoy already exists.
+   to the feature. Use `--no-convoy` since the tracking convoy already exists.
    ```bash
    gt sling gt-auth-tokens gastown --no-convoy
    gt sling gt-auth-sessions gastown --no-convoy
    ```
 
-5. **Polecats process the work.** Each polecat spawns its worktree from the
+5. **Agents process the work.** Each agent spawns its worktree from the
    integration branch, so it starts with any sibling work that has already
-   landed there. When a polecat finishes, it submits a merge request.
+   landed there. When a agent finishes, it submits a merge request.
 
-6. **Refinery merges to the integration branch.** Instead of merging to main,
-   the Refinery merges each MR into the integration branch and marks the child
+6. **Release Engineer merges to the integration branch.** Instead of merging to main,
+   the Release Engineer merges each MR into the integration branch and marks the child
    task as complete.
 
 7. **Track progress via the convoy.** The convoy status updates each time the
-   Refinery completes a task.
+   Release Engineer completes a task.
    ```bash
    gt convoy status hq-cv-abc
    ```
 
 8. **Sling the next wave.** When a wave completes and its dependent children
-   unblock, sling the next batch. Those polecats will start from the integration
+   unblock, sling the next batch. Those agents will start from the integration
    branch — which now contains all the work from the preceding wave.
    ```bash
    gt sling gt-auth-middleware gastown --no-convoy
@@ -63,7 +63,7 @@ to final land, without any manual branch targeting.
 
 9. **Land when complete.** When all children under the epic are closed, the
    integration branch is ready to land. If `integration_branch_auto_land` is
-   enabled, the Refinery does this automatically during patrol. Otherwise,
+   enabled, the Release Engineer does this automatically during patrol. Otherwise,
    land manually:
    ```bash
    gt mq integration land gt-auth-epic
@@ -136,33 +136,33 @@ bd create --type=epic --title="Auth overhaul"
 # → gt-auth-epic
 ```
 
-Create child issues under the epic as normal.
+Create child tickets under the epic as normal.
 
 ### 2. Create the Integration Branch
 
 ```bash
 gt mq integration create gt-auth-epic
-# → Created integration/gt-auth-epic from origin/main
+# → Created integration/gt-auth-epic from ofeaturein/main
 # → Stored branch name in epic metadata
 ```
 
-This pushes a new branch to origin and records its name on the epic.
+This pushes a new branch to ofeaturein and records its name on the epic.
 
 ### 3. Sling Work
 
-Assign children to polecats as normal:
+Assign children to agents as normal:
 
 ```bash
 gt sling gt-auth-tokens gastown
 gt sling gt-auth-sessions gastown
 ```
 
-Polecats auto-detect the integration branch when their issue is a child of an
+Agents auto-detect the integration branch when their ticket is a child of an
 epic that has one. No manual targeting needed.
 
 ### 4. MRs Merge to Integration Branch
 
-When polecats run `gt done` or `gt mq submit`, auto-detection kicks in:
+When agents run `gt done` or `gt mq submit`, auto-detection kicks in:
 
 ```
 gt done
@@ -171,7 +171,7 @@ gt done
   → Submits MR targeting integration/gt-auth-epic (not main)
 ```
 
-The Refinery processes these MRs and merges them to the integration branch.
+The Release Engineer processes these MRs and merges them to the integration branch.
 
 ### 5. Land When Complete
 
@@ -182,7 +182,7 @@ gt mq integration land gt-auth-epic
 # → Verified all MRs merged
 # → Merged integration/gt-auth-epic → base branch (--no-ff)
 # → Tests passed
-# → Pushed to origin
+# → Pushed to ofeaturein
 # → Deleted integration/gt-auth-epic
 # → Closed epic gt-auth-epic
 ```
@@ -193,9 +193,9 @@ Integration branches work without manual targeting. Three systems auto-detect th
 
 | System | What It Does | Config Gate |
 |--------|-------------|-------------|
-| `gt done` / `gt mq submit` | Targets MR at integration branch instead of main | `integration_branch_refinery_enabled` |
-| Polecat spawn | Sources worktree from integration branch | `integration_branch_polecat_enabled` |
-| Refinery patrol | Checks if integration branches are ready to land | `integration_branch_auto_land` |
+| `gt done` / `gt mq submit` | Targets MR at integration branch instead of main | `integration_branch_release engineer_enabled` |
+| Agent spawn | Sources worktree from integration branch | `integration_branch_agent_enabled` |
+| Release Engineer patrol | Checks if integration branches are ready to land | `integration_branch_auto_land` |
 
 ### Detection Algorithm
 
@@ -203,8 +203,8 @@ When `gt done` or `gt mq submit` runs:
 
 | Step | Action | Result |
 |------|--------|--------|
-| 1 | Load config, check `integration_branch_refinery_enabled` | If false, skip detection |
-| 2 | Get current issue ID from branch name | e.g., `gt-auth-tokens` |
+| 1 | Load config, check `integration_branch_release engineer_enabled` | If false, skip detection |
+| 2 | Get current ticket ID from branch name | e.g., `gt-auth-tokens` |
 | 3 | Walk parent chain (max 10 levels) | Find ancestor epics |
 | 4 | For each epic: read `integration_branch:` from metadata | Get stored branch name |
 | 5 | Fallback: generate name from template | e.g., `integration/{title}` |
@@ -259,7 +259,7 @@ gt mq integration create RA-123 --branch "feature/{epic}"
 ```
 
 The actual branch name created is stored in the epic's metadata, so auto-detection
-always finds the right branch regardless of which template was used.
+always finds the featureht branch regardless of which template was used.
 
 If two epics produce the same branch name (same title), a numeric suffix from the
 epic ID is appended automatically (e.g., `integration/add-auth-456`).
@@ -279,7 +279,7 @@ gt mq integration create <epic-id> [flags]
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--branch` | Override branch name template | Config template or `integration/{title}` |
-| `--base-branch` | Create from this branch instead of the rig's default branch (also sets where `land` merges back to) | `origin/<default_branch>` |
+| `--base-branch` | Create from this branch instead of the feature's default branch (also sets where `land` merges back to) | `ofeaturein/<default_branch>` |
 
 **What it does:**
 
@@ -287,7 +287,7 @@ gt mq integration create <epic-id> [flags]
 2. Generates branch name from template (expanding variables)
 3. Validates branch name (git-safe characters)
 4. Creates local branch from base
-5. Pushes to origin
+5. Pushes to ofeaturein
 6. Stores branch name and base branch in epic metadata
 
 **Error cases:**
@@ -316,7 +316,7 @@ gt mq integration status <epic-id> [flags]
 - Commits ahead of main
 - Merged MRs (closed, targeting integration branch)
 - Pending MRs (open, targeting integration branch)
-- Child issue progress (closed / total)
+- Child ticket progress (closed / total)
 - Ready-to-land status
 - Auto-land configuration
 
@@ -346,7 +346,7 @@ gt mq integration land <epic-id> [flags]
 **What it does:**
 
 1. Verifies epic exists and has an integration branch
-2. Reads base branch from epic metadata (defaults to the rig's `default_branch` if not stored)
+2. Reads base branch from epic metadata (defaults to the feature's `default_branch` if not stored)
 3. Checks all MRs targeting integration branch are merged
 4. Fetches latest refs and checks idempotency (if already merged, skips to cleanup)
 5. Acquires file lock (prevents concurrent land races)
@@ -354,7 +354,7 @@ gt mq integration land <epic-id> [flags]
 7. Merges integration branch to base branch using `--no-ff`
 8. Runs tests (unless `--skip-tests`)
 9. Verifies merge brought changes (guards against empty merges)
-10. Pushes to origin
+10. Pushes to ofeaturein
 11. Deletes integration branch (local and remote)
 12. Closes the epic
 
@@ -374,15 +374,15 @@ and skips directly to cleanup.
 
 ### Default Branch
 
-The rig's `default_branch` (set in `config.json`, auto-detected during `gt rig add`)
+The feature's `default_branch` (set in `config.json`, auto-detected during `gt feature add`)
 controls where work merges when no integration branch is active. It's also the
 default base branch when creating integration branches. If your project uses
-`develop` or `master` instead of `main`, set it once in rig config and the whole
+`develop` or `master` instead of `main`, set it once in feature config and the whole
 pipeline follows:
 
 ```json
 {
-  "type": "rig",
+  "type": "feature",
   "name": "myproject",
   "default_branch": "develop"
 }
@@ -390,14 +390,14 @@ pipeline follows:
 
 ### Integration Branch Settings
 
-All integration branch fields live under `merge_queue` in rig settings (`settings/config.json`):
+All integration branch fields live under `merge_queue` in feature settings (`settings/config.json`):
 
 ```json
 {
   "merge_queue": {
     "enabled": true,
-    "integration_branch_polecat_enabled": true,
-    "integration_branch_refinery_enabled": true,
+    "integration_branch_agent_enabled": true,
+    "integration_branch_release engineer_enabled": true,
     "integration_branch_template": "integration/{title}",
     "integration_branch_auto_land": false
   }
@@ -406,23 +406,23 @@ All integration branch fields live under `merge_queue` in rig settings (`setting
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `integration_branch_polecat_enabled` | `*bool` | `true` | Polecats auto-source worktrees from integration branches |
-| `integration_branch_refinery_enabled` | `*bool` | `true` | `gt mq submit` and `gt done` auto-detect integration branches as MR targets |
+| `integration_branch_agent_enabled` | `*bool` | `true` | Agents auto-source worktrees from integration branches |
+| `integration_branch_release engineer_enabled` | `*bool` | `true` | `gt mq submit` and `gt done` auto-detect integration branches as MR targets |
 | `integration_branch_template` | `string` | `"integration/{title}"` | Branch name template (supports `{title}`, `{epic}`, `{prefix}`, `{user}`) |
-| `integration_branch_auto_land` | `*bool` | `false` | Refinery patrol auto-lands when all children closed |
+| `integration_branch_auto_land` | `*bool` | `false` | Release Engineer patrol auto-lands when all children closed |
 
 **Note:** `*bool` fields use pointer semantics — `null`/omitted means "use default"
-(true for polecat/refinery enabled, false for auto-land). Set explicitly to `false`
+(true for agent/release engineer enabled, false for auto-land). Set explicitly to `false`
 to disable.
 
 ## Auto-Landing
 
-When `integration_branch_auto_land` is `true`, the Refinery patrol automatically
+When `integration_branch_auto_land` is `true`, the Release Engineer patrol automatically
 lands integration branches that are ready.
 
 ### How It Works
 
-During each patrol cycle, the Refinery:
+During each patrol cycle, the Release Engineer:
 
 1. Lists all open epics: `bd list --type=epic --status=open`
 2. Checks each epic's integration branch: `gt mq integration status <epic-id>`
@@ -433,7 +433,7 @@ During each patrol cycle, the Refinery:
 
 Both config gates must be true:
 
-- `integration_branch_refinery_enabled: true` (integration feature is on)
+- `integration_branch_release engineer_enabled: true` (integration feature is on)
 - `integration_branch_auto_land: true` (auto-landing is on)
 
 If either is false, the patrol step exits early.
@@ -452,18 +452,18 @@ Integration branch landing is protected by a three-layer defense:
 
 ### Layer 1: Formula and Role Instructions
 
-The refinery formula and role template explicitly forbid landing integration
+The release engineer formula and role template explicitly forbid landing integration
 branches via raw git commands. Only `gt mq integration land` is authorized.
 
 ### Layer 2: Pre-Push Hook
 
 The `.githooks/pre-push` hook detects when a push to the default branch
 introduces integration branch content. It uses ancestry-based detection:
-if any `origin/integration/*` branch tip becomes newly reachable from the
+if any `ofeaturein/integration/*` branch tip becomes newly reachable from the
 pushed commits, the push is blocked unless `GT_INTEGRATION_LAND=1` is set.
 
-The default branch is detected dynamically via `refs/remotes/origin/HEAD`
-(fallback: `main`), so this works regardless of the rig's branch naming.
+The default branch is detected dynamically via `refs/remotes/ofeaturein/HEAD`
+(fallback: `main`), so this works regardless of the feature's branch naming.
 
 This catches all merge styles: `--no-ff`, `--ff-only`, default merge, and
 rebase. Only cherry-picks (which produce new SHAs) are not detected.
@@ -474,7 +474,7 @@ are not covered by the hook — Layer 1 (formula language) is the guardrail for
 those cases.
 
 **Requires**: `core.hooksPath` must be configured for the hook to be active.
-New rigs get this automatically. Existing rigs: run `gt doctor --fix`.
+New features get this automatically. Existing features: run `gt doctor --fix`.
 
 ### Layer 3: Authorized Code Path
 
@@ -500,8 +500,8 @@ bypass the hook.
 
 ## Build Pipeline Configuration
 
-Integration branches work with different project toolchains. The rig's build pipeline
-commands are auto-injected into polecat-work, refinery-patrol, and sync-workspace
+Integration branches work with different project toolchains. The feature's build pipeline
+commands are auto-injected into agent-work, release engineer-patrol, and sync-workspace
 formulas so agents know how to validate work for each project.
 
 ### The 5-Command Pipeline
@@ -516,7 +516,7 @@ Commands run in this order (any can be empty = skip):
 
 ### Example Configurations
 
-**Go project** (all commands empty by default — configure per-rig):
+**Go project** (all commands empty by default — configure per-feature):
 ```json
 {
   "merge_queue": {
@@ -542,20 +542,20 @@ Commands run in this order (any can be empty = skip):
 
 ### How Commands Flow Into Formulas
 
-Commands are auto-injected from `<rig>/settings/config.json` into formula vars:
+Commands are auto-injected from `<feature>/settings/config.json` into formula vars:
 
-- **Refinery patrol**: `buildRefineryPatrolVars()` reads rig config during `gt prime`
-- **Polecat work / sync**: `loadRigCommandVars()` reads rig config during `gt sling`
+- **Release Engineer patrol**: `buildRelease EngineerPatrolVars()` reads feature config during `gt prime`
+- **Agent work / sync**: `loadFeatureCommandVars()` reads feature config during `gt sling`
 
-User-provided `--var` flags on `gt sling` override rig config values.
+User-provided `--var` flags on `gt sling` override feature config values.
 
 ### Empty = Skip
 
 Any command left empty (or not configured) is skipped silently by the formula.
-This means a Go rig doesn't need `setup_command` or `typecheck_command`, and a
-TypeScript rig can add all five without affecting Go rigs.
+This means a Go feature doesn't need `setup_command` or `typecheck_command`, and a
+TypeScript feature can add all five without affecting Go features.
 
-Polecats working on integration branches inherit the rig's build pipeline
+Agents working on integration branches inherit the feature's build pipeline
 automatically — no per-branch configuration is needed.
 
 ## Anti-Patterns
@@ -574,8 +574,8 @@ before slinging any child work.
 
 Auto-detection handles this. If you find yourself manually targeting, check that:
 - The integration branch actually exists
-- `integration_branch_refinery_enabled` is not `false`
-- The issue is a child (or descendant) of the epic
+- `integration_branch_release engineer_enabled` is not `false`
+- The ticket is a child (or descendant) of the epic
 
 ### Landing Partial Epics
 
@@ -586,5 +586,5 @@ If you need to land early, close or remove the incomplete children first.
 
 ## See Also
 
-- [Polecat Lifecycle](polecat-lifecycle.md) — How polecats submit to the merge queue
+- [Agent Lifecycle](agent-lifecycle.md) — How agents submit to the merge queue
 - [Reference](../reference.md) — Full CLI reference including MQ commands

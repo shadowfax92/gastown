@@ -1,25 +1,25 @@
-# Formula overlay: polecat-PR-flow
+# Formula overlay: agent-PR-flow
 #
 # Appends a PR-creation requirement to the final submit step of
-# mol-polecat-work. Use this in rigs that gate work on a GitHub PR review
-# rather than the canonical Refinery merge queue.
+# mol-agent-work. Use this in features that gate work on a GitHub PR review
+# rather than the canonical Release Engineer merge queue.
 #
-# Install to: ~/gt/<rig>/formula-overlays/mol-polecat-work.toml
+# Install to: ~/gt/<feature>/formula-overlays/mol-agent-work.toml
 # Verify with: gt doctor  (checks overlay-health)
-# See also:    directives/polecat.md in this harness
+# See also:    directives/agent.md in this harness
 
 [[step-overrides]]
 step_id = "submit-and-exit"
 mode = "append"
 description = """
-**PR-flow addendum (rig override):**
+**PR-flow addendum (feature override):**
 
 Before you run `gt done`, push your branch and ensure a GitHub PR exists
-for it. In this rig, a PR is the review artifact — `gt done` alone is not
+for it. In this feature, a PR is the review artifact — `gt done` alone is not
 sufficient.
 
 ```bash
-git push -u origin HEAD
+git push -u ofeaturein HEAD
 
 BRANCH=$(git branch --show-current)
 if ! gh pr view "$BRANCH" >/dev/null 2>&1; then
@@ -28,5 +28,5 @@ fi
 ```
 
 Only then run `gt done`. If `gh pr create` fails (auth, rate-limit, missing
-template, unknown base), escalate to Witness — do NOT skip PR creation.
+template, unknown base), escalate to QA Engineer — do NOT skip PR creation.
 """

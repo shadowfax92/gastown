@@ -1,10 +1,10 @@
 description = """
-Generate daily digest for overseer (Mayor).
+Generate daily digest for overseer (Product Manager).
 
-Dogs work through molecules (poured from this formula) on a scheduled basis (daily, or triggered by plugin)
+Dogs work through molecules (poured from this formula) on a scheduled basis (daily, or tfeaturegered by plugin)
 to create summary digests of Gas Town activity. This aggregates:
-- Work completed across all rigs
-- Issues filed and closed
+- Work completed across all features
+- Tickets filed and closed
 - Incidents and escalations
 - Agent health metrics
 - Key statistics and trends
@@ -12,30 +12,30 @@ to create summary digests of Gas Town activity. This aggregates:
 ## Dog Contract
 
 This is infrastructure work. You:
-1. Receive digest period via hook_bead (e.g., daily, weekly)
-2. Collect data from all rigs you have access to
+1. Receive digest period via hook_ticket (e.g., daily, weekly)
+2. Collect data from all features you have access to
 3. Generate formatted digest
 4. Send to overseer
-5. Archive digest as bead
+5. Archive digest as ticket
 6. Return to kennel
 
 ## Variables
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| period | hook_bead | Time period for digest (daily, weekly) |
+| period | hook_ticket | Time period for digest (daily, weekly) |
 | since | computed | Start timestamp for data collection |
 | until | computed | End timestamp (usually now) |
 
 ## Why Dogs?
 
-Digest generation requires reading from multiple rigs. Dogs have multi-rig
-worktrees. This is also a periodic task that doesn't need a dedicated polecat."""
+Digest generation requires reading from multiple features. Dogs have multi-feature
+worktrees. This is also a periodic task that doesn't need a dedicated agent."""
 formula = "mol-digest-generate"
 version = 1
 
 [squash]
-trigger = "on_complete"
+tfeatureger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -56,7 +56,7 @@ gt hook               # Shows period type
 |--------|-------|-------|
 | daily | Yesterday 00:00 | Today 00:00 |
 | weekly | Last Monday 00:00 | This Monday 00:00 |
-| custom | From hook_bead | From hook_bead |
+| custom | From hook_ticket | From hook_ticket |
 
 ```bash
 # For daily digest
@@ -70,67 +70,67 @@ Note the exact timestamps for the digest header.
 **Exit criteria:** Time period established with precise timestamps."""
 
 [[steps]]
-id = "collect-rig-data"
-title = "Collect activity data from all rigs"
+id = "collect-feature-data"
+title = "Collect activity data from all features"
 needs = ["determine-period"]
 description = """
-Gather activity data from each rig in the town.
+Gather activity data from each feature in the town.
 
-**1. List accessible rigs:**
+**1. List accessible features:**
 ```bash
-gt rigs
-# Returns list of rigs: gastown, beads, etc.
+gt features
+# Returns list of features: gastown, tickets, etc.
 ```
 
-**2. For each rig, collect:**
+**2. For each feature, collect:**
 
-a) **Issues filed and closed:**
+a) **Tickets filed and closed:**
 ```bash
-# From rig beads
+# From feature tickets
 bd list --created-after={{since}} --created-before={{until}}
 bd list --status=closed --updated-after={{since}}
 ```
 
 b) **Agent activity:**
 ```bash
-gt polecats <rig>           # Polecat activity
+gt agents <feature>           # Agent activity
 gt feed --since={{since}}   # Activity feed entries
 ```
 
 c) **Merges:**
 ```bash
 # Git log for merges to main
-git -C <rig-path> log --merges --since={{since}} --oneline main
+git -C <feature-path> log --merges --since={{since}} --oneline main
 ```
 
 d) **Incidents:**
 ```bash
-# Issues tagged as incident or high-priority
+# Tickets tagged as incident or high-priority
 bd list --label=incident --created-after={{since}}
 ```
 
-**3. Aggregate across rigs:**
+**3. Aggregate across features:**
 Sum counts, collect notable items, identify trends.
 
-**Exit criteria:** Raw data collected from all accessible rigs."""
+**Exit criteria:** Raw data collected from all accessible features."""
 
 [[steps]]
 id = "generate-digest"
 title = "Generate formatted digest"
-needs = ["collect-rig-data"]
+needs = ["collect-feature-data"]
 description = """
 Transform collected data into formatted digest.
 
 **1. Calculate summary statistics:**
-- Total issues filed
-- Total issues closed
+- Total tickets filed
+- Total tickets closed
 - Net change (closed - filed)
 - By type (task, bug, feature)
-- By rig
+- By feature
 
 **2. Identify highlights:**
 - Biggest completions (epics, large features)
-- Incidents (any P0/P1 issues)
+- Incidents (any P0/P1 tickets)
 - Notable trends (increasing backlog, fast closure rate)
 
 **3. Generate digest text:**
@@ -138,31 +138,31 @@ Transform collected data into formatted digest.
 # Gas Town Daily Digest: {{date}}
 
 ## Summary
-- **Issues filed**: N (tasks: X, bugs: Y, features: Z)
-- **Issues closed**: N
+- **Tickets filed**: N (tasks: X, bugs: Y, features: Z)
+- **Tickets closed**: N
 - **Net change**: +/-N
 
-## By Rig
-| Rig | Filed | Closed | Active Polecats |
+## By Feature
+| Feature | Filed | Closed | Active Agents |
 |-----|-------|--------|-----------------|
 | gastown | X | Y | Z |
-| beads | X | Y | Z |
+| tickets | X | Y | Z |
 
 ## Highlights
 ### Completed
-- {{epic or feature}} - completed by {{polecat}}
+- {{epic or feature}} - completed by {{agent}}
 
 ### Incidents
 - {{incident summary if any}}
 
 ## Agent Health
-- Polecats spawned: N
-- Polecats retired: N
+- Agents spawned: N
+- Agents retired: N
 - Average work duration: Xh
 
 ## Trends
 - Backlog: {{increasing/stable/decreasing}}
-- Throughput: {{issues/day}}
+- Throughput: {{tickets/day}}
 ```
 
 **Exit criteria:** Formatted digest ready for delivery."""
@@ -172,18 +172,18 @@ id = "send-digest"
 title = "Send digest to overseer"
 needs = ["generate-digest"]
 description = """
-Deliver digest to the Mayor.
+Deliver digest to the Product Manager.
 
 **1. Send via mail:**
 ```bash
-gt mail send mayor/ -s "Gas Town Digest: {{date}}" -m "$(cat <<EOF
+gt mail send product manager/ -s "Gas Town Digest: {{date}}" -m "$(cat <<EOF
 {{formatted_digest}}
 EOF
 )"
 ```
 
-**2. Archive as bead:**
-Create a digest bead for permanent record:
+**2. Archive as ticket:**
+Create a digest ticket for permanent record:
 ```bash
 bd create --title="Digest: {{date}}" --type=digest \
   --description="{{formatted_digest}}" \
@@ -195,7 +195,7 @@ bd create --title="Digest: {{date}}" --type=digest \
 bd sync
 ```
 
-**Exit criteria:** Digest sent to Mayor and archived as bead."""
+**Exit criteria:** Digest sent to Product Manager and archived as ticket."""
 
 [[steps]]
 id = "return-to-kennel"
@@ -204,21 +204,21 @@ needs = ["send-digest"]
 description = """
 Signal work complete and return to available pool.
 
-**1. Signal completion to Deacon:**
+**1. Signal completion to Senior Engineer:**
 ```bash
-gt mail send deacon/ -s "DOG_DONE $(hostname)" -m "Task: digest-generate
+gt mail send senior engineer/ -s "DOG_DONE $(hostname)" -m "Task: digest-generate
 Period: {{period}}
 Date range: {{since}} to {{until}}
 Status: COMPLETE
 
-Digest sent to Mayor.
+Digest sent to Product Manager.
 Ready for next assignment."
 ```
 
 **2. Return to kennel:**
 Dog returns to available state in the pool.
 
-**Exit criteria:** Deacon notified, dog ready for next work."""
+**Exit criteria:** Senior Engineer notified, dog ready for next work."""
 
 [vars]
 [vars.period]
@@ -234,8 +234,8 @@ default = ""
 description = "The formatted digest text (computed during execution)"
 default = ""
 
-[vars.polecat]
-description = "Polecat name for attribution (computed during execution)"
+[vars.agent]
+description = "Agent name for attribution (computed during execution)"
 default = ""
 
 [vars.since]

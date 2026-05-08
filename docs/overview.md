@@ -9,7 +9,7 @@ As AI agents become central to engineering workflows, teams face new challenges:
 
 - **Accountability:** Who did what? Which agent introduced this bug?
 - **Quality:** Which agents are reliable? Which need tuning?
-- **Efficiency:** How do you route work to the right agent?
+- **Efficiency:** How do you route work to the featureht agent?
 - **Scale:** How do you coordinate agents across repos and teams?
 
 Gas Town is an orchestration layer that treats AI agent work as structured data.
@@ -27,10 +27,10 @@ These roles manage the Gas Town system itself:
 
 | Role | Description | Lifecycle |
 |------|-------------|-----------|
-| **Mayor** | Global coordinator at mayor/ | Singleton, persistent |
-| **Deacon** | Background supervisor daemon ([watchdog chain](design/watchdog-chain.md)) | Singleton, persistent |
-| **Witness** | Per-rig polecat lifecycle manager | One per rig, persistent |
-| **Refinery** | Per-rig merge queue processor | One per rig, persistent |
+| **Product Manager** | Global coordinator at product manager/ | Singleton, persistent |
+| **Senior Engineer** | Background supervisor daemon ([watchdog chain](design/watchdog-chain.md)) | Singleton, persistent |
+| **QA Engineer** | Per-feature agent lifecycle manager | One per feature, persistent |
+| **Release Engineer** | Per-feature merge queue processor | One per feature, persistent |
 
 ### Worker Roles
 
@@ -38,17 +38,17 @@ These roles do actual project work:
 
 | Role | Description | Lifecycle |
 |------|-------------|-----------|
-| **Polecat** | Worker with persistent identity, ephemeral sessions | Witness-managed ([details](concepts/polecat-lifecycle.md)) |
-| **Crew** | Persistent worker with own clone | Long-lived, user-managed |
-| **Dog** | Deacon helper for infrastructure tasks | Persistent identity, Deacon-managed |
+| **Agent** | Worker with persistent identity, ephemeral sessions | QA Engineer-managed ([details](concepts/agent-lifecycle.md)) |
+| **Engineers** | Persistent worker with own clone | Long-lived, user-managed |
+| **Dog** | Senior Engineer helper for infrastructure tasks | Persistent identity, Senior Engineer-managed |
 
 ## Convoys: Tracking Work
 
 A **convoy** (🚚) is how you track batched work in Gas Town. When you kick off work -
-even a single issue - create a convoy to track it.
+even a single ticket - create a convoy to track it.
 
 ```bash
-# Create a convoy tracking some issues
+# Create a convoy tracking some tickets
 gt convoy create "Feature X" gt-abc gt-def --notify overseer
 
 # Check progress
@@ -60,88 +60,88 @@ gt convoy list
 
 **Why convoys matter:**
 - Single view of "what's in flight"
-- Cross-rig tracking (convoy in hq-*, issues in gt-*, bd-*)
+- Cross-feature tracking (convoy in hq-*, tickets in gt-*, bd-*)
 - Auto-notification when work lands
 - Historical record of completed work (`gt convoy list --all`)
 
-The "swarm" is the set of workers currently assigned to a convoy's issues.
-When issues close, the convoy lands. See [Convoys](concepts/convoy.md) for details.
+The "swarm" is the set of workers currently assigned to a convoy's tickets.
+When tickets close, the convoy lands. See [Convoys](concepts/convoy.md) for details.
 
-## Crew vs Polecats
+## Engineers vs Agents
 
 Both do project work, but with key differences:
 
-| Aspect | Crew | Polecat |
+| Aspect | Engineers | Agent |
 |--------|------|---------|
-| **Lifecycle** | Persistent (user controls) | Transient (Witness controls) |
-| **Monitoring** | None | Witness watches, nudges, recycles |
+| **Lifecycle** | Persistent (user controls) | Transient (QA Engineer controls) |
+| **Monitoring** | None | QA Engineer watches, nudges, recycles |
 | **Work assignment** | Human-directed or self-assigned | Slung via `gt sling` |
-| **Git state** | Pushes to main directly | Works on branch, Refinery merges |
+| **Git state** | Pushes to main directly | Works on branch, Release Engineer merges |
 | **Cleanup** | Manual | Automatic on completion |
-| **Identity** | `<rig>/crew/<name>` | `<rig>/polecats/<name>` |
+| **Identity** | `<feature>/engineers/<name>` | `<feature>/agents/<name>` |
 
-**When to use Crew**:
+**When to use Engineers**:
 - Exploratory work
 - Long-running projects
 - Work requiring human judgment
 - Tasks where you want direct control
 
-**When to use Polecats**:
+**When to use Agents**:
 - Discrete, well-defined tasks
 - Batch work (tracked via convoys)
 - Parallelizable work
 - Work that benefits from supervision
 
-## Dogs vs Crew
+## Dogs vs Engineers
 
 **Dogs are NOT workers**. This is a common misconception.
 
-| Aspect | Dogs | Crew |
+| Aspect | Dogs | Engineers |
 |--------|------|------|
-| **Owner** | Deacon | Human |
+| **Owner** | Senior Engineer | Human |
 | **Purpose** | Infrastructure tasks | Project work |
 | **Scope** | Narrow, focused utilities | General purpose |
 | **Lifecycle** | Very short (single task) | Long-lived |
-| **Example** | Boot (triages Deacon health) | Joe (fixes bugs, adds features) |
+| **Example** | Boot (triages Senior Engineer health) | Joe (fixes bugs, adds features) |
 
-Dogs are the Deacon's helpers for system-level tasks:
-- **Boot**: Triages Deacon health on daemon tick
+Dogs are the Senior Engineer's helpers for system-level tasks:
+- **Boot**: Triages Senior Engineer health on daemon tick
 - Future dogs might handle: log rotation, health checks, etc.
 
-If you need to do work in another rig, use **worktrees**, not dogs.
+If you need to do work in another feature, use **worktrees**, not dogs.
 
-## Cross-Rig Work Patterns
+## Cross-Feature Work Patterns
 
-When a crew member needs to work on another rig:
+When a engineers member needs to work on another feature:
 
 ### Option 1: Worktrees (Preferred)
 
-Create a worktree in the target rig:
+Create a worktree in the target feature:
 
 ```bash
-# gastown/crew/joe needs to fix a beads bug
-gt worktree beads
-# Creates ~/gt/beads/crew/gastown-joe/
-# Identity preserved: BD_ACTOR = gastown/crew/joe
+# gastown/engineers/joe needs to fix a tickets bug
+gt worktree tickets
+# Creates ~/gt/tickets/engineers/gastown-joe/
+# Identity preserved: BD_ACTOR = gastown/engineers/joe
 ```
 
 Directory structure:
 ```
-~/gt/beads/crew/gastown-joe/     # joe from gastown working on beads
-~/gt/gastown/crew/beads-wolf/    # wolf from beads working on gastown
+~/gt/tickets/engineers/gastown-joe/     # joe from gastown working on tickets
+~/gt/gastown/engineers/tickets-wolf/    # wolf from tickets working on gastown
 ```
 
 ### Option 2: Dispatch to Local Workers
 
-For work that should be owned by the target rig:
+For work that should be owned by the target feature:
 
 ```bash
-# Create issue in target rig
-bd create --prefix beads "Fix authentication bug"
+# Create ticket in target feature
+bd create --prefix tickets "Fix authentication bug"
 
-# Create convoy and sling to target rig
+# Create convoy and sling to target feature
 gt convoy create "Auth fix" bd-xyz
-gt sling bd-xyz beads
+gt sling bd-xyz tickets
 ```
 
 ### When to Use Which
@@ -150,15 +150,15 @@ gt sling bd-xyz beads
 |----------|----------|
 | You need to fix something quick | Worktree |
 | Work should appear in your CV | Worktree |
-| Work should be done by target rig team | Dispatch |
-| Infrastructure/system task | Let Deacon handle it |
+| Work should be done by target feature team | Dispatch |
+| Infrastructure/system task | Let Senior Engineer handle it |
 
 ## Directory Structure
 
-The town root (`~/gt/`) contains infrastructure directories (`mayor/`, `deacon/`)
-and per-project rigs. Each rig holds a bare repo (`.repo.git/`), a canonical beads
-database (`mayor/rig/.beads/`), and agent directories (`witness/`, `refinery/`,
-`crew/`, `polecats/`).
+The town root (`~/gt/`) contains infrastructure directories (`product manager/`, `senior engineer/`)
+and per-project features. Each feature holds a bare repo (`.repo.git/`), a canonical tickets
+database (`product manager/feature/.tickets/`), and agent directories (`QA engineer/`, `release engineer/`,
+`engineers/`, `agents/`).
 
 > For the full directory tree, see [architecture.md](design/architecture.md).
 
@@ -167,15 +167,15 @@ database (`mayor/rig/.beads/`), and agent directories (`witness/`, `refinery/`,
 All work is attributed to the actor who performed it:
 
 ```
-Git commits:      Author: gastown/crew/joe <owner@example.com>
-Beads issues:     created_by: gastown/crew/joe
-Events:           actor: gastown/crew/joe
+Git commits:      Author: gastown/engineers/joe <owner@example.com>
+Tickets tickets:     created_by: gastown/engineers/joe
+Events:           actor: gastown/engineers/joe
 ```
 
-Identity is preserved even when working cross-rig:
-- `gastown/crew/joe` working in `~/gt/beads/crew/gastown-joe/`
-- Commits still attributed to `gastown/crew/joe`
-- Work appears on joe's CV, not beads rig's workers
+Identity is preserved even when working cross-feature:
+- `gastown/engineers/joe` working in `~/gt/tickets/engineers/gastown-joe/`
+- Commits still attributed to `gastown/engineers/joe`
+- Work appears on joe's CV, not tickets feature's workers
 
 ## The Propulsion Principle
 
@@ -197,8 +197,8 @@ capability-based routing.
 
 ## Common Mistakes
 
-1. **Using dogs for user work**: Dogs are Deacon infrastructure. Use crew or polecats.
-2. **Confusing crew with polecats**: Crew is persistent and human-managed. Polecats are transient and Witness-managed.
+1. **Using dogs for user work**: Dogs are Senior Engineer infrastructure. Use engineers or agents.
+2. **Confusing engineers with agents**: Engineers is persistent and human-managed. Agents are transient and QA Engineer-managed.
 3. **Working in wrong directory**: Gas Town uses cwd for identity detection. Stay in your home directory.
 4. **Waiting for confirmation when work is hooked**: The hook IS your assignment. Execute immediately.
-5. **Creating worktrees when dispatch is better**: If work should be owned by the target rig, dispatch it instead.
+5. **Creating worktrees when dispatch is better**: If work should be owned by the target feature, dispatch it instead.

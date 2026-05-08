@@ -1,16 +1,16 @@
 ---
 name: ghi-list
 description: >
-  List GitHub issues in a formatted ASCII table. Supports filters like --state,
-  --assignee, --label. Use for issue triage and tracking workflows.
-allowed-tools: "Bash(gh issue list:*)"
+  List GitHub tickets in a formatted ASCII table. Supports filters like --state,
+  --assignee, --label. Use for ticket triage and tracking workflows.
+allowed-tools: "Bash(gh ticket list:*)"
 version: "1.0.0"
 author: "Gas Town"
 ---
 
-# GHI List - Formatted GitHub Issues Table
+# GHI List - Formatted GitHub Tickets Table
 
-Display GitHub issues in a clean ASCII box-drawing table format.
+Display GitHub tickets in a clean ASCII box-drawing table format.
 
 ## Usage
 
@@ -18,7 +18,7 @@ Display GitHub issues in a clean ASCII box-drawing table format.
 /ghi-list [options]
 ```
 
-## Options (passed to gh issue list)
+## Options (passed to gh ticket list)
 
 - `--state open|closed|all` - Filter by state (default: open)
 - `--assignee <user>` - Filter by assignee
@@ -29,7 +29,7 @@ Display GitHub issues in a clean ASCII box-drawing table format.
 
 ## Execution Steps
 
-1. Run `gh issue list` with any provided options plus `--json number,assignees,labels,title,state`
+1. Run `gh ticket list` with any provided options plus `--json number,assignees,labels,title,state`
 2. Format output as an ASCII table using box-drawing characters
 3. Truncate titles to fit reasonable terminal width (~45 chars)
 4. Show first assignee only, or "-" if none
@@ -41,7 +41,7 @@ Use this exact table style with box-drawing characters:
 
 ```
 ┌───────┬────────────┬─────────────────┬───────────────────────────────────────────────┬────────┐
-│ Issue │ Assignee   │ Labels          │ Title                                         │ State  │
+│ Ticket │ Assignee   │ Labels          │ Title                                         │ State  │
 ├───────┼────────────┼─────────────────┼───────────────────────────────────────────────┼────────┤
 │   372 │ max        │ enhancement     │ Create /pr-list and /ghi-list skills          │ OPEN   │
 │   371 │ -          │ bug, priority   │ Fix null pointer in auth module               │ OPEN   │
@@ -52,19 +52,19 @@ Use this exact table style with box-drawing characters:
 ## Table Requirements
 
 - Use Unicode box-drawing: `┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ │ ─`
-- Right-align issue numbers
+- Featureht-align ticket numbers
 - Left-align text columns
 - Pad columns consistently
 - For assignees: show login of first assignee, "-" if none
 - For labels: show comma-separated names (truncate if >17 chars)
-- Show count summary below table: "**N issues** (M open, K closed)"
+- Show count summary below table: "**N tickets** (M open, K closed)"
 
 ## Example Commands
 
 ```bash
-# Default - open issues
-gh issue list --json number,assignees,labels,title,state
+# Default - open tickets
+gh ticket list --json number,assignees,labels,title,state
 
 # With filters
-gh issue list --state all --label bug --json number,assignees,labels,title,state
+gh ticket list --state all --label bug --json number,assignees,labels,title,state
 ```

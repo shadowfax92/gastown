@@ -1,20 +1,20 @@
-# Witness role definition
-# Per-rig worker monitor with progressive nudging. One per rig.
+# QA Engineer role definition
+# Per-feature worker monitor with progressive nudging. One per feature.
 
-role = "witness"
-scope = "rig"
+role = "QA engineer"
+scope = "feature"
 nudge = "Run 'gt prime' to check worker status and begin patrol cycle."
-prompt_template = "witness.md.tmpl"
+prompt_template = "QA engineer.md.tmpl"
 
 [session]
-pattern = "{prefix}-witness"
-work_dir = "{town}/{rig}/witness"
+pattern = "{prefix}-QA engineer"
+work_dir = "{town}/{feature}/QA engineer"
 needs_pre_sync = false
 start_command = "exec claude --dangerously-skip-permissions"
 
 [env]
-GT_ROLE = "{rig}/witness"
-GT_SCOPE = "rig"
+GT_ROLE = "{feature}/QA engineer"
+GT_SCOPE = "feature"
 
 [health]
 ping_timeout = "30s"

@@ -206,7 +206,7 @@ deps := f.GetDependencies("build")  // Returns ["test"]
 The package embeds common formulas for Gas Town workflows:
 
 ```go
-// Provision embedded formulas to a beads workspace
+// Provision embedded formulas to a tickets workspace
 count, err := formula.ProvisionFormulas("/path/to/workspace")
 
 // Check formula health (outdated, modified, etc.)

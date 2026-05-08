@@ -1,13 +1,13 @@
-# Deacon Patrol: Plugin Gate Evaluation
+# Senior Engineer Patrol: Plugin Gate Evaluation
 # Tests whether the model correctly evaluates plugin gates (cooldown, cron, manual).
 # This is highly mechanical — pure timestamp math and config parsing.
-# Strong candidate for proving Sonnet/Haiku can handle deacon work.
+# Strong candidate for proving Sonnet/Haiku can handle senior engineer work.
 
 - description: "Cooldown gate open — elapsed"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. Each plugin has a gate that controls
+      You are the Senior Engineer evaluating plugin gates. Each plugin has a gate that controls
       when it runs. Cooldown gates require a minimum time between runs. Check state.json
       for last_run time and compare against the gate duration.
     formula_step: plugin-run
@@ -35,9 +35,9 @@
 
 - description: "Cooldown gate closed — not elapsed"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. Cooldown gates require a minimum time
+      You are the Senior Engineer evaluating plugin gates. Cooldown gates require a minimum time
       between runs. If the cooldown has not elapsed, skip the plugin.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
@@ -64,9 +64,9 @@
 
 - description: "Cooldown gate open — first run (no state.json)"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. If no state.json exists, the plugin
+      You are the Senior Engineer evaluating plugin gates. If no state.json exists, the plugin
       has never run before. First runs should always execute.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
@@ -93,9 +93,9 @@
 
 - description: "Cron gate — schedule matches"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. Cron gates fire based on a cron
+      You are the Senior Engineer evaluating plugin gates. Cron gates fire based on a cron
       schedule. If the current time matches the schedule, execute.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
@@ -122,9 +122,9 @@
 
 - description: "Cron gate — schedule does not match"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. Cron gates only fire when the
+      You are the Senior Engineer evaluating plugin gates. Cron gates only fire when the
       schedule matches. If the current time doesn't match, skip.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
@@ -151,10 +151,10 @@
 
 - description: "Manual gate — no gate section"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. Plugins with no [gate] section are
-      manual — they require explicit trigger and should not be auto-executed during patrol.
+      You are the Senior Engineer evaluating plugin gates. Plugins with no [gate] section are
+      manual — they require explicit tfeatureger and should not be auto-executed during patrol.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
     shell_output: |
@@ -174,15 +174,15 @@
         const d = JSON.parse(output);
         return d.action === "skip";
     - type: contains-any
-      value: ["manual", "trigger", "explicit", "no gate"]
+      value: ["manual", "tfeatureger", "explicit", "no gate"]
 
 - description: "Edge: cooldown gate with missing duration field"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. This plugin declares a cooldown gate
+      You are the Senior Engineer evaluating plugin gates. This plugin declares a cooldown gate
       but is missing the duration field. This is malformed configuration — skip and note
-      the issue.
+      the ticket.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
     shell_output: |
@@ -204,9 +204,9 @@
 
 - description: "Edge: unknown gate type"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. This plugin has an unrecognized gate
+      You are the Senior Engineer evaluating plugin gates. This plugin has an unrecognized gate
       type. Skip it — do not attempt to execute unknown gate types.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'
@@ -229,9 +229,9 @@
 
 - description: "Edge: previous run failed, gate is open"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating plugin gates. The previous run of this plugin failed.
+      You are the Senior Engineer evaluating plugin gates. The previous run of this plugin failed.
       The gate cooldown has elapsed. Re-execute — retry failed plugins when their gate
       opens again. (notify_on_failure is handled separately.)
     formula_step: plugin-run
@@ -261,9 +261,9 @@
 
 - description: "Edge: multiple plugins, mixed gate states"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon evaluating multiple plugins. Assess each plugin's gate
+      You are the Senior Engineer evaluating multiple plugins. Assess each plugin's gate
       independently. Report which plugins should execute and which should skip.
     formula_step: plugin-run
     allowed_actions: '["execute-plugin", "skip"]'

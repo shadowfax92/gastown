@@ -58,7 +58,7 @@ formula = "mol-dog-compactor"
 version = 2
 
 [squash]
-trigger = "on_complete"
+tfeatureger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -159,7 +159,7 @@ Generate summary of compaction cycle.
 
 [vars]
 [vars.commit_threshold]
-description = "Minimum commit count before compaction triggers (default 500)"
+description = "Minimum commit count before compaction tfeaturegers (default 500)"
 default = "500"
 
 [vars.databases]

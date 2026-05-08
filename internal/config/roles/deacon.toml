@@ -1,19 +1,19 @@
-# Deacon role definition
+# Senior Engineer role definition
 # Daemon beacon for heartbeats and monitoring. One per town.
 
-role = "deacon"
+role = "senior engineer"
 scope = "town"
 nudge = "Run 'gt prime' to check patrol status and begin heartbeat cycle."
-prompt_template = "deacon.md.tmpl"
+prompt_template = "senior engineer.md.tmpl"
 
 [session]
-pattern = "hq-deacon"
+pattern = "hq-senior engineer"
 work_dir = "{town}"
 needs_pre_sync = false
 start_command = "exec claude --dangerously-skip-permissions"
 
 [env]
-GT_ROLE = "deacon"
+GT_ROLE = "senior engineer"
 GT_SCOPE = "town"
 
 [health]

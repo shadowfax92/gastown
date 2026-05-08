@@ -8,7 +8,7 @@ type = "cooldown"
 duration = "1h"
 
 [tracking]
-labels = ["plugin:rebuild-gt", "rig:gastown", "category:maintenance"]
+labels = ["plugin:rebuild-gt", "feature:gastown", "category:maintenance"]
 digest = true
 
 [execution]
@@ -23,12 +23,12 @@ Checks if the gt binary is stale (built from older commit than HEAD) and rebuild
 
 **SAFETY**: This plugin MUST only rebuild forward (binary ancestor of HEAD) and
 only from the main branch. Rebuilding to an older or diverged commit caused a
-crash loop where every new session's startup hook failed, the witness respawned
+crash loop where every new session's startup hook failed, the QA engineer respawned
 it, and the loop repeated every 1-2 minutes.
 
 ## Gate Check
 
-The Deacon evaluates this before dispatch. If gate closed, skip.
+The Senior Engineer evaluates this before dispatch. If gate closed, skip.
 
 ## Detection
 
@@ -48,7 +48,7 @@ Parse the JSON output and check these fields:
 If `safe_to_rebuild` is false, record a skip wisp:
 ```bash
 bd create --wisp-type patrol \
-  --labels type:plugin-run,plugin:rebuild-gt,rig:gastown,result:skipped \
+  --labels type:plugin-run,plugin:rebuild-gt,feature:gastown,result:skipped \
   --description "Skipped: not safe to rebuild (forward=$FORWARD, main=$ON_MAIN)" \
   "Plugin: rebuild-gt [skipped]"
 ```
@@ -58,7 +58,7 @@ bd create --wisp-type patrol \
 Before building, verify the source repo is clean and on main:
 
 ```bash
-cd ~/gt/gastown/mayor/rig
+cd ~/gt/gastown/product manager/feature
 git status --porcelain  # Must be clean
 git branch --show-current  # Must be "main"
 ```
@@ -67,10 +67,10 @@ If either check fails, skip the rebuild and record a wisp.
 
 ## Action
 
-Rebuild from source (the mayor/rig directory is the canonical source):
+Rebuild from source (the product manager/feature directory is the canonical source):
 
 ```bash
-cd ~/gt/gastown/mayor/rig && make build && make safe-install
+cd ~/gt/gastown/product manager/feature && make build && make safe-install
 ```
 
 **IMPORTANT**: Use `make safe-install` (not `make install`) to avoid restarting
@@ -82,7 +82,7 @@ NOT restart the daemon — sessions will pick up the new binary on their next cy
 On success:
 ```bash
 bd create --wisp-type patrol \
-  --labels type:plugin-run,plugin:rebuild-gt,rig:gastown,result:success \
+  --labels type:plugin-run,plugin:rebuild-gt,feature:gastown,result:success \
   --description "Rebuilt gt: $OLD → $NEW ($N commits)" \
   "Plugin: rebuild-gt [success]"
 ```
@@ -90,7 +90,7 @@ bd create --wisp-type patrol \
 On failure:
 ```bash
 bd create --wisp-type patrol \
-  --labels type:plugin-run,plugin:rebuild-gt,rig:gastown,result:failure \
+  --labels type:plugin-run,plugin:rebuild-gt,feature:gastown,result:failure \
   --description "Build failed: $ERROR" \
   "Plugin: rebuild-gt [failure]"
 

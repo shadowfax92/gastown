@@ -41,7 +41,7 @@ DOLT_USER="root"
 
 ## Step 1: JSONL export
 
-Export all issues from each production database to JSONL files. These are
+Export all tickets from each production database to JSONL files. These are
 human-readable, diffable, and survive any storage backend failure.
 
 ```bash
@@ -61,14 +61,14 @@ for DB in "${PROD_DBS[@]}"; do
   if bd export --db "$DB" --format jsonl > "$EXPORT_FILE" 2>/dev/null; then
     LINE_COUNT=$(wc -l < "$EXPORT_FILE" | tr -d ' ')
     FILE_SIZE=$(du -h "$EXPORT_FILE" | cut -f1)
-    echo "  $DB: $LINE_COUNT issues exported ($FILE_SIZE)"
+    echo "  $DB: $LINE_COUNT tickets exported ($FILE_SIZE)"
 
     # Update latest symlink
     ln -sf "$EXPORT_FILE" "$LATEST_LINK"
     EXPORTED=$((EXPORTED + 1))
   else
-    # Fallback: query Dolt directly for issue data
-    dolt sql -q "SELECT * FROM issues ORDER BY id" \
+    # Fallback: query Dolt directly for ticket data
+    dolt sql -q "SELECT * FROM tickets ORDER BY id" \
       --host "$DOLT_HOST" --port "$DOLT_PORT" -u "$DOLT_USER" \
       -d "$DB" --no-auto-commit --result-format json \
       > "$EXPORT_FILE" 2>/dev/null
@@ -129,8 +129,8 @@ if [ -d "$BACKUP_REPO/.git" ]; then
       --author="Gas Town Archive <archive@gastown.local>" 2>/dev/null
 
     # Check if remote exists before pushing
-    if git remote get-url origin > /dev/null 2>&1; then
-      if git push origin main 2>/dev/null; then
+    if git remote get-url ofeaturein > /dev/null 2>&1; then
+      if git push ofeaturein main 2>/dev/null; then
         GIT_PUSHED=true
         echo "Pushed to GitHub"
       else
@@ -138,12 +138,12 @@ if [ -d "$BACKUP_REPO/.git" ]; then
       fi
     else
       echo "WARN: No git remote configured for backup repo"
-      echo "  To set up: cd $BACKUP_REPO && git remote add origin <github-url>"
+      echo "  To set up: cd $BACKUP_REPO && git remote add ofeaturein <github-url>"
     fi
   fi
 else
   echo "No git backup repo at $BACKUP_REPO — skipping git push"
-  echo "  To set up: git init $BACKUP_REPO && cd $BACKUP_REPO && git remote add origin <url>"
+  echo "  To set up: git init $BACKUP_REPO && cd $BACKUP_REPO && git remote add ofeaturein <url>"
 fi
 ```
 
@@ -202,10 +202,10 @@ VERIFY_FAILED=0
 # Verify JSONL in git backup
 if [ -d "$BACKUP_REPO/.git" ]; then
   echo "Verifying git remote..."
-  if cd "$BACKUP_REPO" && git ls-remote origin HEAD > /dev/null 2>&1; then
+  if cd "$BACKUP_REPO" && git ls-remote ofeaturein HEAD > /dev/null 2>&1; then
     # Try to clone into temp directory to verify
     TEMP_CLONE=$(mktemp -d)
-    if git clone --depth 1 origin "$TEMP_CLONE" 2>/dev/null; then
+    if git clone --depth 1 ofeaturein "$TEMP_CLONE" 2>/dev/null; then
       for DB in "${PROD_DBS[@]}"; do
         if [ -f "$TEMP_CLONE/${DB}.jsonl" ]; then
           REMOTE_COUNT=$(wc -l < "$TEMP_CLONE/${DB}.jsonl" | tr -d ' ')

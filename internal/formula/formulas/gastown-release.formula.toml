@@ -15,16 +15,16 @@ This formula orchestrates a release cycle for Gas Town:
 gt mol wisp create gastown-release --var version=0.3.0
 ```
 
-Or assign to a crew member:
+Or assign to a engineers member:
 ```bash
-gt sling gastown/crew/max --formula gastown-release --var version=0.3.0
+gt sling gastown/engineers/max --formula gastown-release --var version=0.3.0
 ```
 
 ## Error Handling
 
-- **Crew members (with user present)**: Attempt to resolve issues (merge branches,
+- **Engineers members (with user present)**: Attempt to resolve tickets (merge branches,
   commit/stash work). Ask the user if blocked.
-- **Polecats (autonomous)**: Escalate via `gt escalate` if preflight fails or
+- **Agents (autonomous)**: Escalate via `gt escalate` if preflight fails or
   unrecoverable errors occur. Do not proceed with a release if workspaces have
   uncommitted work.
 """
@@ -43,11 +43,11 @@ description = """
 Before releasing, ensure no gastown workspaces have uncommitted work that would
 be excluded from the release.
 
-Check all crew workspaces and the mayor rig:
+Check all engineers workspaces and the product manager feature:
 
 ```bash
 # Check each workspace
-for dir in $GT_ROOT/gastown/crew/* $GT_ROOT/gastown/mayor; do
+for dir in $GT_ROOT/gastown/engineers/* $GT_ROOT/gastown/product manager; do
   if [ -d "$dir/.git" ] || [ -d "$dir" ]; then
     echo "=== Checking $dir ==="
     cd "$dir" 2>/dev/null || continue
@@ -74,9 +74,9 @@ for dir in $GT_ROOT/gastown/crew/* $GT_ROOT/gastown/mayor; do
 done
 ```
 
-## If issues found:
+## If tickets found:
 
-**For crew members (interactive)**:
+**For engineers members (interactive)**:
 1. Try to resolve: merge branches, commit work, apply/drop stashes
 2. If work is in-progress and not ready, ask the user whether to:
    - Wait for completion
@@ -84,7 +84,7 @@ done
    - Exclude from this release
 3. Only proceed when all workspaces are clean on main
 
-**For polecats (autonomous)**:
+**For agents (autonomous)**:
 1. If any workspace has uncommitted work: STOP and escalate
 2. Use: `gt escalate --severity medium "Release blocked: workspace X has uncommitted work"`
 3. Do NOT proceed with release - uncommitted work would be excluded
@@ -108,8 +108,8 @@ If there are uncommitted changes:
 - Stash them: `git stash` (if they should NOT be in the release)
 
 ## On failure:
-- **Crew**: Commit or stash your changes, then continue
-- **Polecat**: Escalate if you have uncommitted changes you didn't create
+- **Engineers**: Commit or stash your changes, then continue
+- **Agent**: Escalate if you have uncommitted changes you didn't create
 """
 
 [[steps]]
@@ -117,15 +117,15 @@ id = "preflight-pull"
 title = "Preflight: Pull latest"
 needs = ["preflight-git"]
 description = """
-Ensure we're up to date with origin.
+Ensure we're up to date with ofeaturein.
 
 ```bash
 git pull --rebase
 ```
 
 ## On merge conflicts:
-- **Crew**: Resolve conflicts manually. Ask user if unsure about resolution.
-- **Polecat**: Escalate immediately. Do not attempt to resolve release-blocking
+- **Engineers**: Resolve conflicts manually. Ask user if unsure about resolution.
+- **Agent**: Escalate immediately. Do not attempt to resolve release-blocking
   merge conflicts autonomously.
 """
 
@@ -224,8 +224,8 @@ Review the changes shown by the script.
 
 ## On failure:
 If the script fails (e.g., version already exists, format error):
-- **Crew**: Debug and fix, or ask user
-- **Polecat**: Escalate with error details
+- **Engineers**: Debug and fix, or ask user
+- **Agent**: Escalate with error details
 """
 
 [[steps]]
@@ -244,8 +244,8 @@ Both should show {{version}}.
 
 ## On mismatch:
 Do NOT proceed. Either the bump script failed or there's a bug.
-- **Crew**: Investigate and fix manually
-- **Polecat**: Escalate immediately - version mismatch is a release blocker
+- **Engineers**: Investigate and fix manually
+- **Agent**: Escalate immediately - version mismatch is a release blocker
 """
 
 [[steps]]
@@ -282,8 +282,8 @@ Verify: `git tag -l | tail -5`
 
 ## If tag already exists:
 The version may have been previously (partially) released.
-- **Crew**: Ask user how to proceed (delete tag and retry? use different version?)
-- **Polecat**: Escalate - do not delete existing tags autonomously
+- **Engineers**: Ask user how to proceed (delete tag and retry? use different version?)
+- **Agent**: Escalate - do not delete existing tags autonomously
 """
 
 [[steps]]
@@ -291,21 +291,21 @@ id = "push-release"
 title = "Push commit and tag"
 needs = ["create-tag"]
 description = """
-Push the release commit and tag to origin.
+Push the release commit and tag to ofeaturein.
 
 ```bash
-git push origin main
-git push origin v{{version}}
+git push ofeaturein main
+git push ofeaturein v{{version}}
 ```
 
-This triggers GitHub Actions to build release artifacts.
+This tfeaturegers GitHub Actions to build release artifacts.
 
 Monitor: https://github.com/steveyegge/gastown/actions
 
 ## On push rejection:
 Someone pushed while we were releasing.
-- **Crew**: Pull, rebase, re-tag, try again. Ask user if conflicts.
-- **Polecat**: Escalate - release coordination conflict requires human decision
+- **Engineers**: Pull, rebase, re-tag, try again. Ask user if conflicts.
+- **Agent**: Escalate - release coordination conflict requires human decision
 """
 
 [[steps]]
@@ -332,8 +332,8 @@ gt version
 Should show {{version}}.
 
 ## On build failure:
-- **Crew**: Debug build error, fix, retry
-- **Polecat**: Escalate - release is pushed but local install failed
+- **Engineers**: Debug build error, fix, retry
+- **Agent**: Escalate - release is pushed but local install failed
 """
 
 [[steps]]
@@ -370,7 +370,7 @@ Summary:
 - CHANGELOG.md updated with release date
 - info.go versionChanges updated for `gt info --whats-new`
 - Git tag v{{version}} pushed
-- GitHub Actions triggered for artifact builds
+- GitHub Actions tfeaturegered for artifact builds
 - Local gt binary rebuilt and installed
 - Daemons restarted with new version
 

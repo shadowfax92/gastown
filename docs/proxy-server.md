@@ -1,18 +1,18 @@
 # gt-proxy-server and gt-proxy-client
 
-The proxy server and client implement sandboxed execution for polecats: containers
+The proxy server and client implement sandboxed execution for agents: containers
 can call `gt` and `bd` commands, and push/pull git repositories, over an encrypted
 and mutually authenticated channel — without direct access to the host filesystem,
 credentials, or GitHub.
 
 ## Overview
 
-When a polecat runs inside a container or isolated execution environment (such as
+When a agent runs inside a container or isolated execution environment (such as
 [Daytona](https://www.daytona.io/)), it still needs to interact with Gas Town's
 control plane. Specifically, it needs to:
 
-- Call `gt` and `bd` commands (mail, status, handoff, issue updates, etc.)
-- Push its work to the polecat branch in the rig's `.repo.git` bare repository
+- Call `gt` and `bd` commands (mail, status, handoff, ticket updates, etc.)
+- Push its work to the agent branch in the feature's `.repo.git` bare repository
 
 The proxy solves this by running two small Go binaries:
 
@@ -25,7 +25,7 @@ The proxy solves this by running two small Go binaries:
  Container                          Host
  ─────────────────────              ──────────────────────────────────────────
   gt mail inbox           ──mTLS──► gt-proxy-server ──► exec gt mail inbox
-  git push origin/proxy   ──mTLS──► gt-proxy-server ──► git-receive-pack ~/gt/MyRig/.repo.git
+  git push ofeaturein/proxy   ──mTLS──► gt-proxy-server ──► git-receive-pack ~/gt/MyFeature/.repo.git
 ```
 
 Both sides authenticate with certificates signed by a single CA that the server
@@ -56,11 +56,11 @@ go install github.com/steveyegge/gastown/cmd/gt-proxy-client@latest
 
 The server listens on an mTLS port and provides two endpoints:
 
-- **`POST /v1/exec`** — run a `gt` or `bd` subcommand on behalf of a polecat
-- **`GET/POST /v1/git/<rig>/...`** — proxy git smart-HTTP for a rig's bare repo
+- **`POST /v1/exec`** — run a `gt` or `bd` subcommand on behalf of a agent
+- **`GET/POST /v1/git/<feature>/...`** — proxy git smart-HTTP for a feature's bare repo
 
 Every client must present a certificate signed by the server's CA.  Only
-certificates whose Common Name matches `gt-<rig>-<name>` are accepted (polecat
+certificates whose Common Name matches `gt-<feature>-<name>` are accepted (agent
 identity format).
 
 ### Starting the server
@@ -73,7 +73,7 @@ gt-proxy-server \
   --town-root ~/gt
 ```
 
-The server generates or loads a CA on first run, then self-issues a server
+The server generates or loads a CA on first run, then self-tickets a server
 certificate.  After startup you will see:
 
 ```
@@ -151,8 +151,8 @@ The CA is a self-signed certificate stored in `--ca-dir`:
 On first run the CA is created automatically.  You can pre-create it or
 rotate it with `gt-proxy-server --ca-dir` pointing at a fresh directory.
 
-Polecat leaf certificates are issued per-polecat and must be generated
-separately (see "Issuing polecat certificates" below).
+Agent leaf certificates are ticketd per-agent and must be generated
+separately (see "Issuing agent certificates" below).
 
 ### HTTP timeouts
 
@@ -200,32 +200,32 @@ without any changes to agent code.
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GT_PROXY_URL` | Yes (for proxy) | Base URL of the proxy server, e.g. `https://192.168.1.10:9876` |
-| `GT_PROXY_CERT` | Yes (for proxy) | Path to the polecat's client certificate (PEM) |
-| `GT_PROXY_KEY` | Yes (for proxy) | Path to the polecat's client private key (PEM) |
+| `GT_PROXY_CERT` | Yes (for proxy) | Path to the agent's client certificate (PEM) |
+| `GT_PROXY_KEY` | Yes (for proxy) | Path to the agent's client private key (PEM) |
 | `GT_PROXY_CA` | Recommended | Path to the CA certificate used to verify the server's TLS cert |
 | `GT_REAL_BIN` | No | Path to the real `gt` binary when falling back (default: `/usr/local/bin/gt.real`) |
 
 If any of `GT_PROXY_URL`, `GT_PROXY_CERT`, or `GT_PROXY_KEY` is absent, the
 client silently falls through to `execReal()`.  This makes it safe to install
-unconditionally — polecats that are not sandboxed simply exec the real binary.
+unconditionally — agents that are not sandboxed simply exec the real binary.
 
 ### Git integration
 
 For git operations, configure git to use the proxy's git smart-HTTP endpoint:
 
 ```bash
-# Tell git to use the proxy server for this rig's repo
-git remote set-url origin https://<proxy-host>:9876/v1/git/<RigName>
+# Tell git to use the proxy server for this feature's repo
+git remote set-url ofeaturein https://<proxy-host>:9876/v1/git/<FeatureName>
 
-# Tell git to use the CA cert and polecat cert for TLS
+# Tell git to use the CA cert and agent cert for TLS
 export GIT_SSL_CAINFO=$GT_PROXY_CA
 export GIT_SSL_CERT=$GT_PROXY_CERT
 export GIT_SSL_KEY=$GT_PROXY_KEY
 ```
 
 The git client authenticates with the same mTLS certificate as the exec client.
-Branch authorization is enforced server-side: a polecat named `rust` can only
-push to `refs/heads/polecat/rust-*`.
+Branch authorization is enforced server-side: a agent named `rust` can only
+push to `refs/heads/agent/rust-*`.
 
 ---
 
@@ -240,21 +240,21 @@ gt-proxy-server --listen 0.0.0.0:9876
 # The CA cert is now at ~/gt/.runtime/ca/ca.crt
 ```
 
-### Step 2: Issue a polecat certificate
+### Step 2: Ticket a agent certificate
 
 Use the Go API or a small helper:
 
 ```go
 ca, _ := proxy.LoadOrGenerateCA("~/gt/.runtime/ca")
-certPEM, keyPEM, _ := ca.IssuePolecat("gt-MyRig-rust", 365*24*time.Hour)
+certPEM, keyPEM, _ := ca.TicketAgent("gt-MyFeature-rust", 365*24*time.Hour)
 ```
 
 Save the output files:
 
 ```
-~/gt/.runtime/polecats/rust/
-  polecat.crt   ← client certificate for this polecat
-  polecat.key   ← client private key for this polecat
+~/gt/.runtime/agents/rust/
+  agent.crt   ← client certificate for this agent
+  agent.key   ← client private key for this agent
 ```
 
 ### Step 3: Install the client binary in the container
@@ -270,15 +270,15 @@ ln -s gt-proxy-client /usr/local/bin/gt
 ln -s gt-proxy-client /usr/local/bin/bd
 
 # If the real gt binary should be accessible as a fallback:
-mv /usr/local/bin/gt.original /usr/local/bin/gt.real
+mv /usr/local/bin/gt.ofeatureinal /usr/local/bin/gt.real
 ```
 
 ### Step 4: Configure the container environment
 
 ```bash
 export GT_PROXY_URL=https://192.168.1.10:9876
-export GT_PROXY_CERT=/secrets/polecat.crt
-export GT_PROXY_KEY=/secrets/polecat.key
+export GT_PROXY_CERT=/secrets/agent.crt
+export GT_PROXY_KEY=/secrets/agent.key
 export GT_PROXY_CA=/secrets/ca.crt
 
 # For git operations:
@@ -287,7 +287,7 @@ export GIT_SSL_CERT=$GT_PROXY_CERT
 export GIT_SSL_KEY=$GT_PROXY_KEY
 ```
 
-You may mount `ca.crt`, `polecat.crt`, and `polecat.key` as container secrets
+You may mount `ca.crt`, `agent.crt`, and `agent.key` as container secrets
 (Docker secrets, Kubernetes secrets, Daytona workspace env, etc.).
 
 ### Step 5: Verify the connection
@@ -297,7 +297,7 @@ Inside the container:
 ```bash
 gt version           # Should print the Gas Town version via the proxy
 gt status            # Should show town status from the host
-git push origin HEAD # Should push to the polecat branch via the proxy
+git push ofeaturein HEAD # Should push to the agent branch via the proxy
 ```
 
 ---
@@ -334,7 +334,7 @@ always take precedence over file values.
 | `admin_listen_addr` | `string` | TCP address for the local admin HTTP server (default: `127.0.0.1:9877`); set to `""` to disable |
 | `ca_dir` | `string` | Directory holding `ca.crt` and `ca.key` (default: `~/gt/.runtime/ca`) |
 | `town_root` | `string` | Gas Town root directory (default: `$GT_TOWN` or `~/gt`) |
-| `allowed_commands` | `[]string` | Binary names polecats may execute |
+| `allowed_commands` | `[]string` | Binary names agents may execute |
 | `allowed_subcommands` | `map[string][]string` | Per-command subcommand allowlists |
 | `extra_san_ips` | `[]string` | Additional IP addresses to include in the server certificate's SAN list |
 | `extra_san_hosts` | `[]string` | Additional hostnames (DNS names) to include in the server certificate's SAN list |
@@ -379,12 +379,12 @@ curl -s https://api.ipify.org
 |-------|------|-----|
 | **Transport** | All traffic is encrypted | TLS 1.3 minimum |
 | **Server identity** | Container verifies the host is legitimate | Server cert signed by the shared CA |
-| **Client identity** | Server verifies every request comes from a known polecat | Client cert signed by the same CA; CN format `gt-<rig>-<name>` required |
+| **Client identity** | Server verifies every request comes from a known agent | Client cert signed by the same CA; CN format `gt-<feature>-<name>` required |
 | **Exec allowlist** | Containers can only call `gt` and `bd` (or the configured set) | `--allowed-cmds` checked on every `/v1/exec` request |
-| **Subcommand allowlist** | Polecats may only invoke permitted subcommands of `gt`/`bd` | `--allowed-subcmds` checked on every `/v1/exec` request; missing or disallowed subcommands → 403 |
-| **Subcommand injection** | Polecat identity is injected as `--identity <rig>/<name>` and cannot be overridden | Server derives identity from the client certificate, not from the request body |
-| **Branch scope** | A polecat can only push to `refs/heads/polecat/<name>-*` | pkt-line stream parsed and validated before `git-receive-pack` is invoked |
-| **Path traversal** | Rig names are validated against `[a-zA-Z0-9_-]+` | Rejects `../` and other traversal attempts |
+| **Subcommand allowlist** | Agents may only invoke permitted subcommands of `gt`/`bd` | `--allowed-subcmds` checked on every `/v1/exec` request; missing or disallowed subcommands → 403 |
+| **Subcommand injection** | Agent identity is injected as `--identity <feature>/<name>` and cannot be overridden | Server derives identity from the client certificate, not from the request body |
+| **Branch scope** | A agent can only push to `refs/heads/agent/<name>-*` | pkt-line stream parsed and validated before `git-receive-pack` is invoked |
+| **Path traversal** | Feature names are validated against `[a-zA-Z0-9_-]+` | Rejects `../` and other traversal attempts |
 | **Body size limits** | `/v1/exec` body capped at 1 MiB; receive-pack ref list capped at 32 MiB | `http.MaxBytesReader` applied before reading |
 | **Env isolation** | `gt`/`bd`/`git` subprocesses only see `HOME` and `PATH` | Server never passes its own `GITHUB_TOKEN`, `GT_TOKEN`, or other credentials |
 | **Rate limiting** | Per-client exec rate limited (default: 10 req/s, burst 20) | `golang.org/x/time/rate` limiter per mTLS cert CN; HTTP 429 on excess |
@@ -409,18 +409,18 @@ security.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/v1/admin/issue-cert` | Issue a new polecat client certificate |
+| `POST` | `/v1/admin/ticket-cert` | Ticket a new agent client certificate |
 | `POST` | `/v1/admin/deny-cert` | Add a certificate serial to the runtime deny list |
 
-### Issuing a polecat certificate
+### Issuing a agent certificate
 
-Issue a client certificate for a polecat by providing the rig name, polecat
+Ticket a client certificate for a agent by providing the feature name, agent
 name, and an optional TTL (defaults to 720h / 30 days):
 
 ```bash
-curl -s -X POST http://127.0.0.1:9877/v1/admin/issue-cert \
+curl -s -X POST http://127.0.0.1:9877/v1/admin/ticket-cert \
   -H 'Content-Type: application/json' \
-  -d '{"rig": "MyRig", "name": "rust", "ttl": "720h"}'
+  -d '{"feature": "MyFeature", "name": "rust", "ttl": "720h"}'
 ```
 
 Returns HTTP 200 with a JSON body containing the PEM-encoded certificate, key,
@@ -428,7 +428,7 @@ and CA certificate, plus metadata:
 
 ```json
 {
-  "cn":         "gt-MyRig-rust",
+  "cn":         "gt-MyFeature-rust",
   "cert":       "-----BEGIN CERTIFICATE-----\n...",
   "key":        "-----BEGIN EC PRIVATE KEY-----\n...",
   "ca":         "-----BEGIN CERTIFICATE-----\n...",
@@ -439,8 +439,8 @@ and CA certificate, plus metadata:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `rig` | `string` | **Required.** Rig name (e.g. `"MyRig"`) |
-| `name` | `string` | **Required.** Polecat name (e.g. `"rust"`) |
+| `feature` | `string` | **Required.** Feature name (e.g. `"MyFeature"`) |
+| `name` | `string` | **Required.** Agent name (e.g. `"rust"`) |
 | `ttl` | `string` | Optional Go duration (e.g. `"720h"`). Default: `720h` (30 days) |
 
 ### Revoking a certificate
@@ -456,7 +456,7 @@ curl -s -X POST http://127.0.0.1:9877/v1/admin/deny-cert \
 Returns HTTP 204 on success.  The serial is added to an in-memory deny list;
 any future TLS handshake presenting that certificate is rejected immediately.
 The deny list is not persisted across restarts — if a cert must remain revoked
-after a restart, do not reissue it.
+after a restart, do not reticket it.
 
 ---
 
@@ -467,36 +467,36 @@ over mTLS.  Git clients inside containers configure their remote URL to point at
 the proxy:
 
 ```
-https://<proxy-host>:9876/v1/git/<RigName>
+https://<proxy-host>:9876/v1/git/<FeatureName>
 ```
 
 Git then makes the same requests it would make to any HTTPS git server:
 
 ```
 # Clone / fetch
-GET  /v1/git/MyRig/info/refs?service=git-upload-pack
-POST /v1/git/MyRig/git-upload-pack
+GET  /v1/git/MyFeature/info/refs?service=git-upload-pack
+POST /v1/git/MyFeature/git-upload-pack
 
 # Push
-GET  /v1/git/MyRig/info/refs?service=git-receive-pack
-POST /v1/git/MyRig/git-receive-pack
+GET  /v1/git/MyFeature/info/refs?service=git-receive-pack
+POST /v1/git/MyFeature/git-receive-pack
 ```
 
 The server translates each request into a local subprocess call:
 
 ```
-git-upload-pack  --stateless-rpc [--advertise-refs] ~/gt/MyRig/.repo.git
-git-receive-pack --stateless-rpc [--advertise-refs] ~/gt/MyRig/.repo.git
+git-upload-pack  --stateless-rpc [--advertise-refs] ~/gt/MyFeature/.repo.git
+git-receive-pack --stateless-rpc [--advertise-refs] ~/gt/MyFeature/.repo.git
 ```
 
 For pushes (`git-receive-pack`), the server reads the pkt-line ref list **before**
-passing the body to git, and rejects any ref that falls outside the polecat's
+passing the body to git, and rejects any ref that falls outside the agent's
 allowed scope:
 
 ```
-refs/heads/polecat/<name>-*   ✓ allowed
+refs/heads/agent/<name>-*   ✓ allowed
 refs/heads/main               ✗ denied (403 Forbidden)
-refs/heads/polecat/other-*    ✗ denied (belongs to another polecat)
+refs/heads/agent/other-*    ✗ denied (belongs to another agent)
 ```
 
 The pkt-line stream is then rewound and fed to `git-receive-pack` unchanged, so
@@ -512,7 +512,7 @@ The container is connecting to the server by an IP address that is not listed in
 the server certificate's Subject Alternative Names.
 
 **Fix**: Add the IP to `extra_san_ips` in `~/gt/.runtime/proxy/config.json` and
-restart the server (a new server cert is issued on each startup).
+restart the server (a new server cert is ticketd on each startup).
 
 ```json
 { "extra_san_ips": ["10.0.2.15"] }
@@ -520,14 +520,14 @@ restart the server (a new server cert is issued on each startup).
 
 ### `remote error: tls: bad certificate`
 
-The client certificate was not issued by the CA the server trusts, or `GT_PROXY_CA`
+The client certificate was not ticketd by the CA the server trusts, or `GT_PROXY_CA`
 points at the wrong file.
 
 Verify:
 
 ```bash
 # Check that the client cert was signed by ca.crt
-openssl verify -CAfile ~/gt/.runtime/ca/ca.crt /path/to/polecat.crt
+openssl verify -CAfile ~/gt/.runtime/ca/ca.crt /path/to/agent.crt
 
 # Check that GT_PROXY_CA points at the correct CA
 openssl x509 -in $GT_PROXY_CA -noout -subject
@@ -543,8 +543,8 @@ the agent is trying to execute a shell — which is intentionally blocked.
 
 ### `push to "refs/heads/main" denied`
 
-The polecat tried to push to a branch it does not own.  Polecats may only push to
-`refs/heads/polecat/<their-name>-*`.  The refinery merges these branches; polecats
+The agent tried to push to a branch it does not own.  Agents may only push to
+`refs/heads/agent/<their-name>-*`.  The release engineer merges these branches; agents
 do not push directly to `main` or `proxy`.
 
 ### `gt-proxy-client: proxy request failed: ...` (fallback active)
@@ -576,15 +576,15 @@ but for production always configure the correct SANs or use a hostname.
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/v1/exec` | Execute a `gt` or `bd` command |
-| `GET` | `/v1/git/<rig>/info/refs?service=<svc>` | git smart-HTTP capability advertisement |
-| `POST` | `/v1/git/<rig>/git-upload-pack` | git fetch / clone |
-| `POST` | `/v1/git/<rig>/git-receive-pack` | git push (CN-scoped branch authorization) |
+| `GET` | `/v1/git/<feature>/info/refs?service=<svc>` | git smart-HTTP capability advertisement |
+| `POST` | `/v1/git/<feature>/git-upload-pack` | git fetch / clone |
+| `POST` | `/v1/git/<feature>/git-receive-pack` | git push (CN-scoped branch authorization) |
 
 **Local admin server (default: `127.0.0.1:9877`, no TLS)**
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/v1/admin/issue-cert` | Issue a new polecat client certificate |
+| `POST` | `/v1/admin/ticket-cert` | Ticket a new agent client certificate |
 | `POST` | `/v1/admin/deny-cert` | Add a certificate serial to the runtime deny list |
 
 ### Certificate CN format
@@ -592,14 +592,14 @@ but for production always configure the correct SANs or use a hostname.
 | Role | CN format | Example |
 |------|-----------|---------|
 | Server | `gt-proxy-server` | `gt-proxy-server` |
-| Polecat client | `gt-<rig>-<name>` | `gt-GasTown-rust` |
+| Agent client | `gt-<feature>-<name>` | `gt-GasTown-rust` |
 
-The server derives the polecat's identity (`<rig>/<name>`) from the CN at request
-time.  The last `-` in the remainder after stripping `gt-` is the rig/name
-separator, so hyphenated rig names such as `my-rig` are parsed correctly:
+The server derives the agent's identity (`<feature>/<name>`) from the CN at request
+time.  The last `-` in the remainder after stripping `gt-` is the feature/name
+separator, so hyphenated feature names such as `my-feature` are parsed correctly:
 
 ```
-CN: gt-my-rig-rust   →   rig=my-rig, name=rust, identity=my-rig/rust
+CN: gt-my-feature-rust   →   feature=my-feature, name=rust, identity=my-feature/rust
 ```
 
 ### File layout
@@ -612,10 +612,10 @@ CN: gt-my-rig-rust   →   rig=my-rig, name=rust, identity=my-rig/rust
       ca.key           ← CA private key  (host-only; never leave this machine)
     proxy/
       config.json      ← Optional: extra_san_ips, extra_san_hosts
-    polecats/
+    agents/
       <name>/
-        polecat.crt    ← Per-polecat client certificate
-        polecat.key    ← Per-polecat private key
-  <RigName>/
+        agent.crt    ← Per-agent client certificate
+        agent.key    ← Per-agent private key
+  <FeatureName>/
     .repo.git/         ← Bare repository proxied by git endpoints
 ```

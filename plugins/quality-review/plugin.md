@@ -19,8 +19,8 @@ severity = "medium"
 
 # Quality Review — Trend Analysis
 
-This plugin runs every 6h during Deacon patrol. It analyzes quality-review result
-wisps recorded by the Refinery during merges, computes per-worker trends, and
+This plugin runs every 6h during Senior Engineer patrol. It analyzes quality-review result
+wisps recorded by the Release Engineer during merges, computes per-worker trends, and
 alerts on quality breaches.
 
 ## Step 1: Query recent quality-review results
@@ -43,8 +43,8 @@ bd create "quality-review: No results in last 24h" -t chore --ephemeral \
 ## Step 2: Compute per-worker trends
 
 Parse the wisp labels to extract per-worker data. Each result wisp has labels:
-- `worker:<polecat-name>`
-- `rig:<rig-name>`
+- `worker:<agent-name>`
+- `feature:<feature-name>`
 - `score:<0.0-1.0>`
 - `recommendation:<approve|request_changes>`
 
@@ -68,14 +68,14 @@ Apply thresholds to each worker's average score:
 For each worker in BREACH status, send an alert:
 
 ```bash
-gt mail send mayor/ -s "Quality BREACH: <worker>" -m "Worker: <worker>
-Rig: <rig>
+gt mail send product manager/ -s "Quality BREACH: <worker>" -m "Worker: <worker>
+Feature: <feature>
 Avg Score: <avg>
 Reviews: <count>
 Rejection Rate: <rate>%
 Trend: <improving|stable|declining>
 
-Action: Review recent merges from this worker for quality issues."
+Action: Review recent merges from this worker for quality tickets."
 ```
 
 Also escalate:
@@ -83,7 +83,7 @@ Also escalate:
 ```bash
 gt escalate "Quality BREACH: <worker> (avg: <avg>)" \
   --severity medium \
-  --reason "Worker <worker> in rig <rig> has avg quality score <avg> over <count> reviews"
+  --reason "Worker <worker> in feature <feature> has avg quality score <avg> over <count> reviews"
 ```
 
 ## Step 5: Record run result
@@ -114,13 +114,13 @@ gt escalate "Plugin FAILED: quality-review" \
 
 ## How scores get recorded (reference)
 
-This plugin does NOT record scores itself. The Refinery records result wisps during
+This plugin does NOT record scores itself. The Release Engineer records result wisps during
 merges via the `quality-review` formula step. Each merge produces a wisp like:
 
 ```bash
 bd create "quality-review: Score 0.85, approve" -t chore --ephemeral \
-  -l type:plugin-run,plugin:quality-review-result,worker:<polecat-name>,rig:<rig-name>,score:0.85,recommendation:approve,result:success \
-  -d "Score: 0.85, approve. Issues: 1 minor (style)" \
+  -l type:plugin-run,plugin:quality-review-result,worker:<agent-name>,feature:<feature-name>,score:0.85,recommendation:approve,result:success \
+  -d "Score: 0.85, approve. Tickets: 1 minor (style)" \
   --silent 2>/dev/null || true
 ```
 

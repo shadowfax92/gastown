@@ -4,47 +4,47 @@ Technical reference for Gas Town internals. Read the README first.
 
 > For directory structure details, see [architecture.md](design/architecture.md).
 
-## Beads Routing
+## Tickets Routing
 
-Gas Town routes beads commands based on issue ID prefix. You don't need to think
-about which database to use - just use the issue ID.
+Gas Town routes tickets commands based on ticket ID prefix. You don't need to think
+about which database to use - just use the ticket ID.
 
 ```bash
-bd show gp-xyz    # Routes to greenplace rig's beads
-bd show hq-abc    # Routes to town-level beads
-bd show wyv-123   # Routes to wyvern rig's beads
+bd show gp-xyz    # Routes to greenplace feature's tickets
+bd show hq-abc    # Routes to town-level tickets
+bd show wyv-123   # Routes to wyvern feature's tickets
 ```
 
-**How it works**: Routes are defined in `~/gt/.beads/routes.jsonl`. Each rig's
-prefix maps to its beads location (the mayor's clone in that rig).
+**How it works**: Routes are defined in `~/gt/.tickets/routes.jsonl`. Each feature's
+prefix maps to its tickets location (the product manager's clone in that feature).
 
 | Prefix | Routes To | Purpose |
 |--------|-----------|---------|
-| `hq-*` | `~/gt/.beads/` | Mayor mail, cross-rig coordination |
-| `gp-*` | `~/gt/greenplace/mayor/rig/.beads/` | Greenplace project issues |
-| `wyv-*` | `~/gt/wyvern/mayor/rig/.beads/` | Wyvern project issues |
+| `hq-*` | `~/gt/.tickets/` | Product Manager mail, cross-feature coordination |
+| `gp-*` | `~/gt/greenplace/product manager/feature/.tickets/` | Greenplace project tickets |
+| `wyv-*` | `~/gt/wyvern/product manager/feature/.tickets/` | Wyvern project tickets |
 
 Debug routing: `BD_DEBUG_ROUTING=1 bd show <id>`
 
 ## Configuration
 
-### Rig Config (`config.json`)
+### Feature Config (`config.json`)
 
 ```json
 {
-  "type": "rig",
+  "type": "feature",
   "name": "myproject",
   "git_url": "https://github.com/...",
   "default_branch": "main",
-  "beads": { "prefix": "mp" }
+  "tickets": { "prefix": "mp" }
 }
 ```
 
-**Rig config fields:**
+**Feature config fields:**
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `default_branch` | `string` | `"main"` | Default branch for the rig. Auto-detected from remote during `gt rig add`. Used as the merge target by the Refinery and as the base for polecats when no integration branch is active. |
+| `default_branch` | `string` | `"main"` | Default branch for the feature. Auto-detected from remote during `gt feature add`. Used as the merge target by the Release Engineer and as the base for agents when no integration branch is active. |
 
 ### Settings (`settings/config.json`)
 
@@ -58,9 +58,9 @@ Debug routing: `BD_DEBUG_ROUTING=1 bd show <id>`
       "fg": "#eeeeee"
     },
     "role_themes": {
-      "witness": "rust",
-      "refinery": "plum",
-      "crew": "none"
+      "QA engineer": "rust",
+      "release engineer": "plum",
+      "engineers": "none"
     }
   },
   "merge_queue": {
@@ -76,8 +76,8 @@ Debug routing: `BD_DEBUG_ROUTING=1 bd show <id>`
     "retry_flaky_tests": 1,
     "poll_interval": "30s",
     "max_concurrent": 1,
-    "integration_branch_polecat_enabled": true,
-    "integration_branch_refinery_enabled": true,
+    "integration_branch_agent_enabled": true,
+    "integration_branch_release engineer_enabled": true,
     "integration_branch_template": "integration/{title}",
     "integration_branch_auto_land": false
   }
@@ -88,20 +88,20 @@ Debug routing: `BD_DEBUG_ROUTING=1 bd show <id>`
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `disabled` | `bool` | `false` | Disable tmux status/window theming for the rig |
-| `name` | `string` | auto-assigned by rig name | Use a named built-in palette theme |
+| `disabled` | `bool` | `false` | Disable tmux status/window theming for the feature |
+| `name` | `string` | auto-assigned by feature name | Use a named built-in palette theme |
 | `custom.bg` | `string` | unset | Custom tmux background color |
 | `custom.fg` | `string` | unset | Custom tmux foreground color |
-| `role_themes` | `map[string]string` | unset | Per-role overrides for `witness`, `refinery`, `crew`, `polecat`; use `"none"` to disable theming for a role |
+| `role_themes` | `map[string]string` | unset | Per-role overrides for `QA engineer`, `release engineer`, `engineers`, `agent`; use `"none"` to disable theming for a role |
 
 Theme resolution:
-- No `theme` config: auto-assign a built-in palette theme by rig name
+- No `theme` config: auto-assign a built-in palette theme by feature name
 - `disabled: true`: skip both `status-style` and `window-style`
 - `name`: use that built-in theme
 - `custom`: use exact `{bg, fg}` colors
-- `role_themes`: override role-specific sessions within the rig
+- `role_themes`: override role-specific sessions within the feature
 
-Town-level role defaults live in `mayor/config.json` under:
+Town-level role defaults live in `product manager/config.json` under:
 
 ```json
 {
@@ -113,16 +113,16 @@ Town-level role defaults live in `mayor/config.json` under:
       "fg": "#eeeeee"
     },
     "role_defaults": {
-      "mayor": "forest",
-      "deacon": "plum",
-      "witness": "rust",
-      "crew": "none"
+      "product manager": "forest",
+      "senior engineer": "plum",
+      "QA engineer": "rust",
+      "engineers": "none"
     }
   }
 }
 ```
 
-`role_defaults` supports `mayor`, `deacon`, `witness`, `refinery`, `crew`, and `polecat`.
+`role_defaults` supports `product manager`, `senior engineer`, `QA engineer`, `release engineer`, `engineers`, and `agent`.
 
 **Merge queue fields:**
 
@@ -138,12 +138,12 @@ Town-level role defaults live in `mayor/config.json` under:
 | `on_conflict` | `string` | `"assign_back"` | Conflict strategy: `assign_back` or `auto_rebase` |
 | `delete_merged_branches` | `bool` | `true` | Delete source branches after merging |
 | `retry_flaky_tests` | `int` | `1` | Number of times to retry flaky tests |
-| `poll_interval` | `string` | `"30s"` | How often Refinery polls for new MRs |
+| `poll_interval` | `string` | `"30s"` | How often Release Engineer polls for new MRs |
 | `max_concurrent` | `int` | `1` | Maximum concurrent merges |
-| `integration_branch_polecat_enabled` | `*bool` | `true` | Polecats auto-source worktrees from integration branches |
-| `integration_branch_refinery_enabled` | `*bool` | `true` | `gt done` / `gt mq submit` auto-target integration branches |
+| `integration_branch_agent_enabled` | `*bool` | `true` | Agents auto-source worktrees from integration branches |
+| `integration_branch_release engineer_enabled` | `*bool` | `true` | `gt done` / `gt mq submit` auto-target integration branches |
 | `integration_branch_template` | `string` | `"integration/{title}"` | Branch name template (`{title}`, `{epic}`, `{prefix}`, `{user}`) |
-| `integration_branch_auto_land` | `*bool` | `false` | Refinery patrol auto-lands when all children closed |
+| `integration_branch_auto_land` | `*bool` | `false` | Release Engineer patrol auto-lands when all children closed |
 
 See [Integration Branches](concepts/integration-branches.md) for integration branch details.
 
@@ -151,25 +151,25 @@ See [Integration Branches](concepts/integration-branches.md) for integration bra
 
 Process state, PIDs, ephemeral data.
 
-### Rig-Level Configuration
+### Feature-Level Configuration
 
-Rigs support layered configuration through:
-1. **Wisp layer** (`.beads-wisp/config/`) - transient, local overrides
-2. **Rig identity bead labels** - persistent rig settings
+Features support layered configuration through:
+1. **Wisp layer** (`.tickets-wisp/config/`) - transient, local overrides
+2. **Feature identity ticket labels** - persistent feature settings
 3. **Town defaults** (`~/gt/settings/config.json`)
 4. **System defaults** - compiled-in fallbacks
 
-#### Polecat Branch Naming
+#### Agent Branch Naming
 
-Configure custom branch name templates for polecats:
+Configure custom branch name templates for agents:
 
 ```bash
 # Set via wisp (transient - for testing)
-echo '{"polecat_branch_template": "adam/{year}/{month}/{description}"}' > \
-  ~/gt/.beads-wisp/config/myrig.json
+echo '{"agent_branch_template": "adam/{year}/{month}/{description}"}' > \
+  ~/gt/.tickets-wisp/config/myfeature.json
 
-# Or set via rig identity bead labels (persistent)
-bd update gt-rig-myrig --labels="polecat_branch_template:adam/{year}/{month}/{description}"
+# Or set via feature identity ticket labels (persistent)
+bd update gt-feature-myfeature --labels="agent_branch_template:adam/{year}/{month}/{description}"
 ```
 
 **Template Variables:**
@@ -179,16 +179,16 @@ bd update gt-rig-myrig --labels="polecat_branch_template:adam/{year}/{month}/{de
 | `{user}` | From `git config user.name` | `adam` |
 | `{year}` | Current year (YY format) | `26` |
 | `{month}` | Current month (MM format) | `01` |
-| `{name}` | Polecat name | `alpha` |
-| `{issue}` | Issue ID without prefix | `123` (from `gt-123`) |
-| `{description}` | Sanitized issue title | `fix-auth-bug` |
+| `{name}` | Agent name | `alpha` |
+| `{ticket}` | Ticket ID without prefix | `123` (from `gt-123`) |
+| `{description}` | Sanitized ticket title | `fix-auth-bug` |
 | `{timestamp}` | Unique timestamp | `1ks7f9a` |
 
 **Default Behavior (backward compatible):**
 
-When `polecat_branch_template` is empty or not set:
-- With issue: `polecat/{name}/{issue}@{timestamp}`
-- Without issue: `polecat/{name}-{timestamp}`
+When `agent_branch_template` is empty or not set:
+- With ticket: `agent/{name}/{ticket}@{timestamp}`
+- Without ticket: `agent/{name}-{timestamp}`
 
 **Example Configurations:**
 
@@ -197,10 +197,10 @@ When `polecat_branch_template` is empty or not set:
 "adam/{year}/{month}/{description}"
 
 # Simple feature branches
-"feature/{issue}"
+"feature/{ticket}"
 
-# Include polecat name for clarity
-"work/{name}/{issue}"
+# Include agent name for clarity
+"work/{name}/{ticket}"
 ```
 
 ## Formula Format
@@ -250,13 +250,13 @@ with = "macro-formula"
 
 ## Agent Lifecycle
 
-### Polecat Shutdown
+### Agent Shutdown
 
 ```
 1. Work through formula checklist (shown inline by gt prime)
 2. Submit to merge queue via gt done
 3. gt done nukes sandbox and exits
-4. Witness removes worktree + branch
+4. QA Engineer removes worktree + branch
 ```
 
 ### Session Cycling
@@ -278,20 +278,20 @@ These are set in tmux session environment when agents are spawned.
 
 | Variable | Purpose | Example |
 |----------|---------|---------|
-| `GT_ROLE` | Agent role type | `mayor`, `witness`, `polecat`, `crew` |
+| `GT_ROLE` | Agent role type | `product manager`, `QA engineer`, `agent`, `engineers` |
 | `GT_ROOT` | Town root directory | `/home/user/gt` |
-| `BD_ACTOR` | Agent identity for attribution | `gastown/polecats/toast` |
-| `GIT_AUTHOR_NAME` | Commit attribution (same as BD_ACTOR) | `gastown/polecats/toast` |
-| `BEADS_DIR` | Beads database location | `/home/user/gt/gastown/.beads` |
+| `BD_ACTOR` | Agent identity for attribution | `gastown/agents/toast` |
+| `GIT_AUTHOR_NAME` | Commit attribution (same as BD_ACTOR) | `gastown/agents/toast` |
+| `BEADS_DIR` | Tickets database location | `/home/user/gt/gastown/.tickets` |
 
-### Rig-Level Variables
+### Feature-Level Variables
 
 | Variable | Purpose | Roles |
 |----------|---------|-------|
-| `GT_RIG` | Rig name | witness, refinery, polecat, crew |
-| `GT_POLECAT` | Polecat worker name | polecat only |
-| `GT_CREW` | Crew worker name | crew only |
-| `BEADS_AGENT_NAME` | Agent name for beads operations | polecat, crew |
+| `GT_RIG` | Feature name | QA engineer, release engineer, agent, engineers |
+| `GT_POLECAT` | Agent worker name | agent only |
+| `GT_CREW` | Engineers worker name | engineers only |
+| `BEADS_AGENT_NAME` | Agent name for tickets operations | agent, engineers |
 
 ### Other Variables
 
@@ -305,13 +305,13 @@ These are set in tmux session environment when agents are spawned.
 
 | Role | Key Variables |
 |------|---------------|
-| **Mayor** | `GT_ROLE=mayor`, `BD_ACTOR=mayor` |
-| **Deacon** | `GT_ROLE=deacon`, `BD_ACTOR=deacon` |
-| **Boot** | `GT_ROLE=deacon/boot`, `BD_ACTOR=deacon-boot` |
-| **Witness** | `GT_ROLE=witness`, `GT_RIG=<rig>`, `BD_ACTOR=<rig>/witness` |
-| **Refinery** | `GT_ROLE=refinery`, `GT_RIG=<rig>`, `BD_ACTOR=<rig>/refinery` |
-| **Polecat** | `GT_ROLE=polecat`, `GT_RIG=<rig>`, `GT_POLECAT=<name>`, `BD_ACTOR=<rig>/polecats/<name>` |
-| **Crew** | `GT_ROLE=crew`, `GT_RIG=<rig>`, `GT_CREW=<name>`, `BD_ACTOR=<rig>/crew/<name>` |
+| **Product Manager** | `GT_ROLE=product manager`, `BD_ACTOR=product manager` |
+| **Senior Engineer** | `GT_ROLE=senior engineer`, `BD_ACTOR=senior engineer` |
+| **Boot** | `GT_ROLE=senior engineer/boot`, `BD_ACTOR=senior engineer-boot` |
+| **QA Engineer** | `GT_ROLE=QA engineer`, `GT_RIG=<feature>`, `BD_ACTOR=<feature>/QA engineer` |
+| **Release Engineer** | `GT_ROLE=release engineer`, `GT_RIG=<feature>`, `BD_ACTOR=<feature>/release engineer` |
+| **Agent** | `GT_ROLE=agent`, `GT_RIG=<feature>`, `GT_POLECAT=<name>`, `BD_ACTOR=<feature>/agents/<name>` |
+| **Engineers** | `GT_ROLE=engineers`, `GT_RIG=<feature>`, `GT_CREW=<name>`, `BD_ACTOR=<feature>/engineers/<name>` |
 
 ### Doctor Check
 
@@ -320,7 +320,7 @@ environment variables. Mismatches are reported as warnings:
 
 ```
 ⚠ env-vars: Found 3 env var mismatch(es) across 1 session(s)
-    hq-mayor: missing GT_ROOT (expected "/home/user/gt")
+    hq-product manager: missing GT_ROOT (expected "/home/user/gt")
 ```
 
 Fix by restarting sessions: `gt shutdown && gt up`
@@ -334,15 +334,15 @@ Understanding this hierarchy is essential for proper configuration.
 
 | Role | Working Directory | Notes |
 |------|-------------------|-------|
-| **Mayor** | `~/gt/mayor/` | Town-level coordinator, isolated from rigs |
-| **Deacon** | `~/gt/deacon/` | Background supervisor daemon |
-| **Witness** | `~/gt/<rig>/witness/` | No git clone, monitors polecats only |
-| **Refinery** | `~/gt/<rig>/refinery/rig/` | Worktree on main branch |
-| **Crew** | `~/gt/<rig>/crew/<name>/rig/` | Persistent human workspace clone |
-| **Polecat** | `~/gt/<rig>/polecats/<name>/rig/` | Polecat worktree (ephemeral sandbox) |
+| **Product Manager** | `~/gt/product manager/` | Town-level coordinator, isolated from features |
+| **Senior Engineer** | `~/gt/senior engineer/` | Background supervisor daemon |
+| **QA Engineer** | `~/gt/<feature>/QA engineer/` | No git clone, monitors agents only |
+| **Release Engineer** | `~/gt/<feature>/release engineer/feature/` | Worktree on main branch |
+| **Engineers** | `~/gt/<feature>/engineers/<name>/feature/` | Persistent human workspace clone |
+| **Agent** | `~/gt/<feature>/agents/<name>/feature/` | Agent worktree (ephemeral sandbox) |
 
-Note: The per-rig `<rig>/mayor/rig/` directory is NOT a working directory—it's
-a git clone that holds the canonical `.beads/` database for that rig.
+Note: The per-feature `<feature>/product manager/feature/` directory is NOT a working directory—it's
+a git clone that holds the canonical `.tickets/` database for that feature.
 
 ### Settings File Locations
 
@@ -351,13 +351,13 @@ Claude Code via the `--settings` flag. This keeps customer repos clean:
 
 ```
 ~/gt/
-├── mayor/.claude/settings.json              # Mayor settings (cwd = settings dir)
-├── deacon/.claude/settings.json             # Deacon settings (cwd = settings dir)
-└── <rig>/
-    ├── crew/.claude/settings.json           # Shared by all crew members
-    ├── polecats/.claude/settings.json       # Shared by all polecats
-    ├── witness/.claude/settings.json        # Witness settings
-    └── refinery/.claude/settings.json       # Refinery settings
+├── product manager/.claude/settings.json              # Product Manager settings (cwd = settings dir)
+├── senior engineer/.claude/settings.json             # Senior Engineer settings (cwd = settings dir)
+└── <feature>/
+    ├── engineers/.claude/settings.json           # Shared by all engineers members
+    ├── agents/.claude/settings.json       # Shared by all agents
+    ├── QA engineer/.claude/settings.json        # QA Engineer settings
+    └── release engineer/.claude/settings.json       # Release Engineer settings
 ```
 
 The `--settings` flag loads these as a separate priority tier that merges
@@ -380,7 +380,7 @@ via the SessionStart hook. No per-directory CLAUDE.md or AGENTS.md files are cre
 
 Gas Town no longer uses git sparse checkout to hide customer repo files. Customer
 repositories can have their own `.claude/` directory and `CLAUDE.md` — these are
-preserved in all worktrees (crew, polecats, refinery, mayor/rig).
+preserved in all worktrees (engineers, agents, release engineer, product manager/feature).
 
 Gas Town's context comes from the town-root `CLAUDE.md` identity anchor
 (picked up by all agents via Claude Code's upward directory traversal),
@@ -417,8 +417,8 @@ Gas Town uses two settings templates based on role type:
 
 | Type | Roles | Key Difference |
 |------|-------|----------------|
-| **Interactive** | Mayor, Crew | Mail injected on `UserPromptSubmit` hook |
-| **Autonomous** | Polecat, Witness, Refinery, Deacon | Mail injected on `SessionStart` hook |
+| **Interactive** | Product Manager, Engineers | Mail injected on `UserPromptSubmit` hook |
+| **Autonomous** | Agent, QA Engineer, Release Engineer, Senior Engineer | Mail injected on `SessionStart` hook |
 
 Autonomous agents may start without user input, so they need mail checked
 at session start. Interactive agents wait for user prompts.
@@ -430,7 +430,7 @@ at session start. Interactive agents wait for user prompts.
 | Agent using wrong settings | Check `gt doctor`, verify `.claude/settings.json` in role parent dir |
 | Settings not found | Run `gt install` to recreate settings, or `gt doctor --fix` |
 | Source repo settings leaking | Run `gt doctor --fix` to remove legacy sparse checkout |
-| Mayor settings affecting polecats | Mayor should run in `mayor/`, not town root |
+| Product Manager settings affecting agents | Product Manager should run in `product manager/`, not town root |
 
 ## CLI Reference
 
@@ -490,10 +490,10 @@ gt config default-agent claude-glm       # Set default
 }
 ```
 
-**Rig-level agents** (`<rig>/settings/config.json`):
+**Feature-level agents** (`<feature>/settings/config.json`):
 ```json
 {
-  "type": "rig-settings",
+  "type": "feature-settings",
   "version": 1,
   "agent": "opencode",
   "agents": {
@@ -532,19 +532,19 @@ a custom agent with `"command": "opencode"` automatically inherits ACP support
 from the opencode preset. You can override or extend the ACP args by specifying
 the `acp` field explicitly.
 
-**Agent resolution order**: rig-level → town-level → built-in presets.
+**Agent resolution order**: feature-level → town-level → built-in presets.
 
 For OpenCode autonomous mode, set env var in your shell profile:
 ```bash
 export OPENCODE_PERMISSION='{"*":"allow"}'
 ```
 
-### Rig Management
+### Feature Management
 
 ```bash
-gt rig add <name> <url>
-gt rig list
-gt rig remove <name>
+gt feature add <name> <url>
+gt feature list
+gt feature remove <name>
 ```
 
 ### Convoy Management (Primary Dashboard)
@@ -552,32 +552,32 @@ gt rig remove <name>
 ```bash
 gt convoy list                          # Dashboard of active convoys
 gt convoy status [convoy-id]            # Show progress (🚚 hq-cv-*)
-gt convoy create "name" [issues...]     # Create convoy tracking issues
-gt convoy create "name" gt-a bd-b --notify mayor/  # With notification
+gt convoy create "name" [tickets...]     # Create convoy tracking tickets
+gt convoy create "name" gt-a bd-b --notify product manager/  # With notification
 gt convoy list --all                    # Include landed convoys
 gt convoy list --status=closed          # Only landed convoys
 ```
 
-Note: "Swarm" is ephemeral (workers on a convoy's issues). See [Convoys](concepts/convoy.md).
+Note: "Swarm" is ephemeral (workers on a convoy's tickets). See [Convoys](concepts/convoy.md).
 
 ### Work Assignment
 
 ```bash
 # Standard workflow: convoy first, then sling
 gt convoy create "Feature X" gt-abc gt-def
-gt sling gt-abc <rig>                    # Assign to polecat
-gt sling gt-abc <rig> --agent codex      # Override runtime for this sling/spawn
-gt sling <proto> --on gt-def <rig>       # With workflow template
+gt sling gt-abc <feature>                    # Assign to agent
+gt sling gt-abc <feature> --agent codex      # Override runtime for this sling/spawn
+gt sling <proto> --on gt-def <feature>       # With workflow template
 
 # Quick sling (auto-creates convoy)
-gt sling <bead> <rig>                    # Auto-convoy for dashboard visibility
+gt sling <ticket> <feature>                    # Auto-convoy for dashboard visibility
 ```
 
 Agent overrides:
 
-- `gt start --agent <alias>` overrides the Mayor/Deacon runtime for this launch.
-- `gt mayor start|attach|restart --agent <alias>` and `gt deacon start|attach|restart --agent <alias>` do the same.
-- `gt start crew <name> --agent <alias>` and `gt crew at <name> --agent <alias>` override the crew worker runtime.
+- `gt start --agent <alias>` overrides the Product Manager/Senior Engineer runtime for this launch.
+- `gt product manager start|attach|restart --agent <alias>` and `gt senior engineer start|attach|restart --agent <alias>` do the same.
+- `gt start engineers <name> --agent <alias>` and `gt engineers at <name> --agent <alias>` override the engineers worker runtime.
 
 ### Communication
 
@@ -603,8 +603,8 @@ See [escalation.md](design/escalation.md) for full protocol.
 
 ```bash
 gt handoff                   # Request cycle (context-aware)
-gt handoff --shutdown        # Terminate (polecats)
-gt session stop <rig>/<agent>
+gt handoff --shutdown        # Terminate (agents)
+gt session stop <feature>/<agent>
 gt peek <agent>              # Check health
 gt nudge <agent> "message"   # Send message to agent
 gt seance                    # List discoverable predecessor sessions
@@ -619,7 +619,7 @@ in Claude's `/resume` picker:
 [GAS TOWN] recipient <- sender • timestamp • topic[:mol-id]
 ```
 
-Example: `[GAS TOWN] gastown/crew/gus <- human • 2025-12-30T15:42 • restart`
+Example: `[GAS TOWN] gastown/engineers/gus <- human • 2025-12-30T15:42 • restart`
 
 **IMPORTANT**: Always use `gt nudge` to send messages to Claude sessions.
 Never use raw `tmux send-keys` - it doesn't handle Claude's input correctly.
@@ -629,21 +629,21 @@ Never use raw `tmux send-keys` - it doesn't handle Claude's input correctly.
 
 ```bash
 gt stop --all                # Kill all sessions
-gt stop --rig <name>         # Kill rig sessions
+gt stop --feature <name>         # Kill feature sessions
 ```
 
 ### Health Check
 
 ```bash
-gt deacon health-check <agent>   # Send health check ping, track response
-gt deacon health-state           # Show health check state for all agents
+gt senior engineer health-check <agent>   # Send health check ping, track response
+gt senior engineer health-state           # Show health check state for all agents
 ```
 
 ### Merge Queue (MQ)
 
 ```bash
-gt mq list [rig]             # Show the merge queue
-gt mq next [rig]             # Show highest-priority merge request
+gt mq list [feature]             # Show the merge queue
+gt mq next [feature]             # Show highest-priority merge request
 gt mq submit                 # Submit current branch to merge queue
 gt mq status <id>            # Show detailed merge request status
 gt mq retry <id>             # Retry a failed merge request
@@ -666,7 +666,7 @@ gt mq integration land <epic-id> --skip-tests   # Skip test run
 
 See [Integration Branches](concepts/integration-branches.md) for the full workflow.
 
-## Beads Commands (bd)
+## Tickets Commands (bd)
 
 ```bash
 bd ready                     # Work with no blockers
@@ -681,13 +681,13 @@ bd dep add <child> <parent>  # child depends on parent
 
 ## Patrol Agents
 
-Deacon, Witness, and Refinery run continuous patrol loops using wisps:
+Senior Engineer, QA Engineer, and Release Engineer run continuous patrol loops using wisps:
 
 | Agent | Patrol Molecule | Responsibility |
 |-------|-----------------|----------------|
-| **Deacon** | `mol-deacon-patrol` | Agent lifecycle, plugin execution, health checks |
-| **Witness** | `mol-witness-patrol` | Monitor polecats, nudge stuck workers |
-| **Refinery** | `mol-refinery-patrol` | Process merge queue, review MRs, check integration branches |
+| **Senior Engineer** | `mol-senior engineer-patrol` | Agent lifecycle, plugin execution, health checks |
+| **QA Engineer** | `mol-QA engineer-patrol` | Monitor agents, nudge stuck workers |
+| **Release Engineer** | `mol-release engineer-patrol` | Process merge queue, review MRs, check integration branches |
 
 ```
 1. gt patrol new               # Create root-only wisp
@@ -703,7 +703,7 @@ Plugins are molecules with specific labels:
 ```json
 {
   "id": "mol-security-scan",
-  "labels": ["template", "plugin", "witness", "tier:haiku"]
+  "labels": ["template", "plugin", "QA engineer", "tier:haiku"]
 }
 ```
 
@@ -717,16 +717,16 @@ bd mol bond mol-security-scan $PATROL_ID --var scope="$SCOPE"
 
 **CRITICAL**: Different formula types require different invocation methods.
 
-### Workflow Formulas (sequential steps, single polecat)
+### Workflow Formulas (sequential steps, single agent)
 
-Examples: `shiny`, `shiny-enterprise`, `mol-polecat-work`
+Examples: `shiny`, `shiny-enterprise`, `mol-agent-work`
 
 ```bash
-gt sling <formula> --on <bead-id> <target>
+gt sling <formula> --on <ticket-id> <target>
 gt sling shiny-enterprise --on gt-abc123 gastown
 ```
 
-### Convoy Formulas (parallel legs, multiple polecats)
+### Convoy Formulas (parallel legs, multiple agents)
 
 Examples: `code-review`
 
@@ -751,17 +751,17 @@ bd formula list          # Lists formulas by type
 ### Why This Matters
 
 - `gt sling` attempts to cook+pour the formula, which fails for convoy type
-- `gt formula run` handles convoy dispatch directly, spawning parallel polecats
-- Convoy formulas create multiple polecats (one per leg) + synthesis step
+- `gt formula run` handles convoy dispatch directly, spawning parallel agents
+- Convoy formulas create multiple agents (one per leg) + synthesis step
 
-## Common Issues
+## Common Tickets
 
 | Problem | Solution |
 |---------|----------|
 | Agent in wrong directory | Check cwd, `gt doctor` |
-| Beads prefix mismatch | Check `bd show` vs rig config |
+| Tickets prefix mismatch | Check `bd show` vs feature config |
 | Worktree conflicts | Check worktree state, `gt doctor` |
 | Stuck worker | `gt nudge`, then `gt peek` |
 | Dirty git state | Commit or discard, then `gt handoff` |
 
-> For architecture details (bare repo pattern, beads as control plane, nondeterministic idempotence), see [architecture.md](design/architecture.md).
+> For architecture details (bare repo pattern, tickets as control plane, nondeterministic idempotence), see [architecture.md](design/architecture.md).

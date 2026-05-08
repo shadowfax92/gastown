@@ -1,7 +1,7 @@
-# Ledger Export Triggers
+# Ledger Export Tfeaturegers
 
 > **Status**: Design — addresses gt-ayk
-> **Author**: mel (crew)
+> **Author**: mel (engineers)
 > **Date**: 2026-02-07
 > **Related**: dolt-storage.md (Three Data Planes), WISP-COMPACTION-POLICY.md (Level 0-1),
 > PRIMING.md (Identity and CV Model, Skill Derivation)
@@ -13,10 +13,10 @@
 The dolt-storage architecture defines three data planes (Operational, Ledger, Design)
 and references a fidelity model with Levels 0-3. The wisp compaction design handles
 Level 0 (ephemeral) to Level 1 (promoted/permanent operational) transitions. What's
-missing is the trigger specification for when work moves from the **Operational plane
+missing is the tfeatureger specification for when work moves from the **Operational plane
 (Level 1)** to the **Ledger plane (Level 2-3)**.
 
-Without defined triggers, the ledger plane stays empty. No permanent record accumulates.
+Without defined tfeaturegers, the ledger plane stays empty. No permanent record accumulates.
 No skill derivation happens. No CVs grow. The HOP economy doesn't bootstrap.
 
 ## Fidelity Level Reference
@@ -24,12 +24,12 @@ No skill derivation happens. No CVs grow. The HOP economy doesn't bootstrap.
 | Level | Plane | What | Durability | Visibility |
 |-------|-------|------|------------|------------|
 | 0 | Operational | Ephemeral wisps (heartbeats, patrols) | TTL-based | Local |
-| 1 | Operational | Permanent operational records (open/active beads) | Days-weeks | Local |
+| 1 | Operational | Permanent operational records (open/active tickets) | Days-weeks | Local |
 | 2 | Ledger | Compressed completion records | Permanent | Federated |
 | 3 | Ledger | Full fidelity ground truth | Permanent | Federated |
 
 Level 0 -> 1 is handled by wisp compaction policy (promotion on proven value).
-**This document defines Level 1 -> 2 and Level 1 -> 3 triggers.**
+**This document defines Level 1 -> 2 and Level 1 -> 3 tfeaturegers.**
 
 ---
 
@@ -37,15 +37,15 @@ Level 0 -> 1 is handled by wisp compaction policy (promotion on proven value).
 
 ### 1. Export Is One-Way and Append-Only
 
-Ledger records are never updated. If a bead is reopened after export, a new
+Ledger records are never updated. If a ticket is reopened after export, a new
 ledger entry is created (a correction record), not a mutation of the old one.
 This preserves the audit trail and matches the append-only property of Plane 2.
 
-### 2. The Trigger Is the Boundary, Not the Clock
+### 2. The Tfeatureger Is the Boundary, Not the Clock
 
-Ledger export happens at meaningful work boundaries, not on a timer. A bead that
+Ledger export happens at meaningful work boundaries, not on a timer. A ticket that
 closes at 3am gets exported at 3am. Batching is acceptable for efficiency (export
-every N minutes) but the conceptual trigger is always the boundary event.
+every N minutes) but the conceptual tfeatureger is always the boundary event.
 
 ### 3. Level Selection Is Based on HOP Value, Not Importance
 
@@ -56,39 +56,39 @@ is the skill signal).
 
 ### 4. Export Fails Safe
 
-If the trigger fires but export fails (server down, schema mismatch), the
-operational record is unaffected. Export is retried on the next trigger scan.
+If the tfeatureger fires but export fails (server down, schema mismatch), the
+operational record is unaffected. Export is retried on the next tfeatureger scan.
 No data is lost; the ledger just lags.
 
 ---
 
-## Level 2 Triggers: Compressed Completion Records
+## Level 2 Tfeaturegers: Compressed Completion Records
 
 Level 2 captures **what was done** — the fact of completion, the metadata, the
 outcome. It discards operational churn (status changes, intermediate comments,
 agent heartbeats). Think of it as the "git squash" of work records.
 
-### Trigger 1: Bead Closure
+### Tfeatureger 1: Ticket Closure
 
-**When**: A bead transitions to `status: closed` (via `bd close <id>`).
+**When**: A ticket transitions to `status: closed` (via `bd close <id>`).
 
 **What gets exported**:
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| `id` | bead.id | Stable identifier |
-| `type` | bead.type | task, bug, feature, etc. |
-| `title` | bead.title | As-closed title |
-| `outcome` | bead.description | Final description (not history) |
-| `priority` | bead.priority | As-assigned |
-| `owner` | bead.owner | Who owned the work |
-| `assignee` | bead.assignee | Who did the work |
-| `labels` | bead.labels | Classification tags |
-| `created_at` | bead.created_at | When work was imagined |
-| `closed_at` | bead.closed_at | When work completed |
+| `id` | ticket.id | Stable identifier |
+| `type` | ticket.type | task, bug, feature, etc. |
+| `title` | ticket.title | As-closed title |
+| `outcome` | ticket.description | Final description (not history) |
+| `priority` | ticket.priority | As-assigned |
+| `owner` | ticket.owner | Who owned the work |
+| `assignee` | ticket.assignee | Who did the work |
+| `labels` | ticket.labels | Classification tags |
+| `created_at` | ticket.created_at | When work was imagined |
+| `closed_at` | ticket.closed_at | When work completed |
 | `duration_days` | computed | closed_at - created_at |
-| `parent` | bead.parent | Convoy/epic linkage |
-| `rig` | context | Which rig this belongs to |
+| `parent` | ticket.parent | Convoy/epic linkage |
+| `feature` | context | Which feature this belongs to |
 | `commit_refs` | git log | Associated git commits (if any) |
 | `files_touched` | git diff | File paths changed (for skill derivation) |
 | `lines_changed` | git diff | +/- line counts |
@@ -98,52 +98,52 @@ flagged for Level 3), agent assignment churn, heartbeat/patrol associations.
 
 **Exclusions**: Wisps (`wisp: true`) are never exported to Level 2. They either
 get deleted by TTL or promoted to Level 1 (permanent operational). Promoted wisps
-can then trigger Level 2 export on closure like any other bead.
+can then tfeatureger Level 2 export on closure like any other ticket.
 
-### Trigger 2: Convoy Completion
+### Tfeatureger 2: Convoy Completion
 
-**When**: All beads in a convoy reach `closed` status.
+**When**: All tickets in a convoy reach `closed` status.
 
 **What gets exported**: A convoy-level summary record in addition to the
-individual bead records (which export via Trigger 1).
+individual ticket records (which export via Tfeatureger 1).
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| `convoy_id` | convoy bead id | The coordination unit |
+| `convoy_id` | convoy ticket id | The coordination unit |
 | `title` | convoy title | What was coordinated |
-| `bead_count` | count of children | Scale of effort |
+| `ticket_count` | count of children | Scale of effort |
 | `agents_involved` | unique assignees | Who participated |
-| `rigs_involved` | unique rig contexts | Cross-rig breadth |
+| `features_involved` | unique feature contexts | Cross-feature breadth |
 | `created_at` | convoy created | When coordination began |
 | `completed_at` | last child closed | When all work landed |
 | `duration_days` | computed | Total elapsed time |
 
-**Why separate from Trigger 1**: Convoy records capture coordination patterns —
-multi-agent work, cross-rig breadth, parallelism. These are distinct skill
-signals that individual bead records don't capture.
+**Why separate from Tfeatureger 1**: Convoy records capture coordination patterns —
+multi-agent work, cross-feature breadth, parallelism. These are distinct skill
+signals that individual ticket records don't capture.
 
-### Trigger 3: Refinery Merge
+### Tfeatureger 3: Release Engineer Merge
 
-**When**: The Refinery successfully merges a polecat's work to main.
+**When**: The Release Engineer successfully merges a agent's work to main.
 
-**What gets exported**: An enriched version of the bead closure record with
+**What gets exported**: An enriched version of the ticket closure record with
 validation metadata.
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| `merge_id` | refinery record | Merge queue entry |
-| `bead_id` | associated bead | Links to bead record |
-| `branch` | polecat branch | Source of work |
-| `merged_by` | refinery agent | Validator identity |
+| `merge_id` | release engineer record | Merge queue entry |
+| `ticket_id` | associated ticket | Links to ticket record |
+| `branch` | agent branch | Source of work |
+| `merged_by` | release engineer agent | Validator identity |
 | `merge_result` | pass/fail/conflict | Outcome |
 | `test_results` | CI output | If tests ran |
 | `conflict_resolution` | merge strategy | How conflicts were handled |
 
-**Why this matters for HOP**: Refinery merge is external validation. A bead can
+**Why this matters for HOP**: Release Engineer merge is external validation. A ticket can
 be self-closed by the assignee, but a merge proves the work was code-reviewed
 (even if automated). This is a stronger skill signal.
 
-### Trigger 4: Milestone/Sprint Boundary
+### Tfeatureger 4: Milestone/Sprint Boundary
 
 **When**: A time-based or count-based boundary is reached (configurable).
 
@@ -154,31 +154,31 @@ be self-closed by the assignee, but a merge proves the work was code-reviewed
 | `period` | config | "daily", "weekly", or custom |
 | `period_start` | timestamp | Beginning of window |
 | `period_end` | timestamp | End of window |
-| `beads_closed` | count | Volume |
-| `beads_opened` | count | Incoming rate |
+| `tickets_closed` | count | Volume |
+| `tickets_opened` | count | Incoming rate |
 | `agents_active` | unique assignees | Workforce size |
 | `top_labels` | label frequency | What kind of work dominated |
 | `anomalies` | heuristics | Unusual patterns |
 
-**Purpose**: Aggregate signals that individual beads don't capture. A single
+**Purpose**: Aggregate signals that individual tickets don't capture. A single
 bug fix says little; 47 bug fixes in a week says "debugging sprint." These
 patterns feed HOP skill derivation at a higher level.
 
 ---
 
-## Level 3 Triggers: Full Fidelity Ground Truth
+## Level 3 Tfeaturegers: Full Fidelity Ground Truth
 
 Level 3 captures **how work was done** — the reasoning, the decisions, the
 problem-solving approach. This is the raw material for HOP skill derivation.
 Level 3 records are larger and rarer than Level 2.
 
-### Trigger 5: Design Decision
+### Tfeatureger 5: Design Decision
 
-**When**: A bead is closed with labels indicating a design outcome:
+**When**: A ticket is closed with labels indicating a design outcome:
 - `label: design-decision`
 - `label: architecture`
 - `label: rfc`
-- `type: design` (bead type)
+- `type: design` (ticket type)
 
 Or: a design document is committed to the repo (detected via file path
 patterns like `docs/design/*.md`, `**/DESIGN.md`, `**/RFC-*.md`).
@@ -187,8 +187,8 @@ patterns like `docs/design/*.md`, `**/DESIGN.md`, `**/RFC-*.md`).
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| All Level 2 fields | bead | Base record |
-| `full_description` | bead.description | Complete text, not summarized |
+| All Level 2 fields | ticket | Base record |
+| `full_description` | ticket.description | Complete text, not summarized |
 | `comments` | all comments | Full discussion thread |
 | `decision_context` | extracted | What alternatives were considered |
 | `design_doc_path` | git | Path to associated design doc |
@@ -199,17 +199,17 @@ option B, what tradeoffs were weighed, what constraints existed. This is the
 highest-value signal for HOP skill derivation. A future agent learning "how
 to design storage systems" needs the reasoning, not just the outcome.
 
-### Trigger 6: Novel Problem Resolution
+### Tfeatureger 6: Novel Problem Resolution
 
 **When**: Heuristic detection of non-routine work:
-- Bead was reopened after closure (required rework)
-- Bead has more than N comments (significant discussion)
-- Bead was reassigned (initial assignee couldn't solve it)
-- Bead has `label: investigation` or `label: debugging`
-- Bead duration exceeds 3x the rolling average for its type
-- Bead's commit diff touches more than M files (wide-impact change)
+- Ticket was reopened after closure (required rework)
+- Ticket has more than N comments (significant discussion)
+- Ticket was reassigned (initial assignee couldn't solve it)
+- Ticket has `label: investigation` or `label: debugging`
+- Ticket duration exceeds 3x the rolling average for its type
+- Ticket's commit diff touches more than M files (wide-impact change)
 
-**Configurable thresholds** (in rig export config):
+**Configurable thresholds** (in feature export config):
 ```json
 {
   "level3_heuristics": {
@@ -217,7 +217,7 @@ to design storage systems" needs the reasoning, not just the outcome.
     "reassignment_count": 2,
     "duration_multiplier": 3.0,
     "file_touch_threshold": 15,
-    "reopen_triggers_level3": true
+    "reopen_tfeaturegers_level3": true
   }
 }
 ```
@@ -231,38 +231,38 @@ to design storage systems" needs the reasoning, not just the outcome.
 | `assignee_history` | dolt_history | Reassignment chain |
 | `reopen_count` | computed | How many times reopened |
 | `commit_diffs` | git | Actual code changes (summary) |
-| `trigger_reason` | heuristics | Why this was flagged Level 3 |
+| `tfeatureger_reason` | heuristics | Why this was flagged Level 3 |
 
 **Why this matters for HOP**: Routine completions (Level 2) prove an agent *can*
 do something. Novel problem resolution proves an agent can *figure out* something
 new. The latter is a fundamentally different and more valuable skill signal.
 
-### Trigger 7: Cross-Rig Coordination
+### Tfeatureger 7: Cross-Feature Coordination
 
-**When**: A bead or convoy involves work across multiple rigs (detected via
-convoy membership, cross-rig references, or worktree usage).
+**When**: A ticket or convoy involves work across multiple features (detected via
+convoy membership, cross-feature references, or worktree usage).
 
 **What gets exported**: All Level 2 fields plus:
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| `rigs_involved` | bead refs | Which rigs were touched |
-| `worktrees_used` | gt worktree | Cross-rig work sessions |
+| `features_involved` | ticket refs | Which features were touched |
+| `worktrees_used` | gt worktree | Cross-feature work sessions |
 | `coordination_pattern` | analysis | Serial vs parallel, delegation vs direct |
 | `mail_thread` | gt mail | Inter-agent communication for this work |
-| `convoy_structure` | bead graph | How work was decomposed |
+| `convoy_structure` | ticket graph | How work was decomposed |
 
-**Why this matters for HOP**: Cross-rig work demonstrates architectural
+**Why this matters for HOP**: Cross-feature work demonstrates architectural
 understanding — knowing where code lives, how systems interact, when to delegate
 vs do directly. This is the "breadth" dimension of skill vectors.
 
-### Trigger 8: Explicit Full-Fidelity Flag
+### Tfeatureger 8: Explicit Full-Fidelity Flag
 
-**When**: A human or agent explicitly marks a bead for Level 3 export:
+**When**: A human or agent explicitly marks a ticket for Level 3 export:
 - `bd update <id> --label ledger-full`
 - Comment containing `@ledger-full` or `#ground-truth`
 
-**What gets exported**: Everything available — full bead state, all comments,
+**What gets exported**: Everything available — full ticket state, all comments,
 all history, associated commits, associated design docs.
 
 **Why this exists**: Heuristics miss things. When a human recognizes something
@@ -273,66 +273,66 @@ explicitly. This is the "manual promote" escape hatch.
 
 ## Meaningful Boundaries
 
-Not every trigger fires independently. They cluster at natural work boundaries.
+Not every tfeatureger fires independently. They cluster at natural work boundaries.
 The export system should recognize these boundaries and batch exports for
 efficiency:
 
 ### Boundary 1: Task Completion
 
-A single bead closes. Most common boundary. Fires Trigger 1 (always) and
-potentially Trigger 5-8 (if Level 3 criteria are met).
+A single ticket closes. Most common boundary. Fires Tfeatureger 1 (always) and
+potentially Tfeatureger 5-8 (if Level 3 criteria are met).
 
 ```
-bead closes → Level 2 export (always)
-            → Level 3 export (if design/novel/cross-rig/flagged)
+ticket closes → Level 2 export (always)
+            → Level 3 export (if design/novel/cross-feature/flagged)
 ```
 
 ### Boundary 2: Convoy Landing
 
-All beads in a convoy close. Fires Trigger 2 (convoy summary) after all
-individual Trigger 1 exports. This is the natural "project completion" boundary.
+All tickets in a convoy close. Fires Tfeatureger 2 (convoy summary) after all
+individual Tfeatureger 1 exports. This is the natural "project completion" boundary.
 
 ```
-last convoy bead closes → all Trigger 1 exports (if not already done)
-                        → Trigger 2 convoy summary
-                        → Trigger 7 (if multi-rig)
+last convoy ticket closes → all Tfeatureger 1 exports (if not already done)
+                        → Tfeatureger 2 convoy summary
+                        → Tfeatureger 7 (if multi-feature)
 ```
 
 ### Boundary 3: Merge Validation
 
-Refinery merges code. Fires Trigger 3. Often follows shortly after Trigger 1
-(bead closes, then code merges), so these should be linked in the ledger.
+Release Engineer merges code. Fires Tfeatureger 3. Often follows shortly after Tfeatureger 1
+(ticket closes, then code merges), so these should be linked in the ledger.
 
 ```
-refinery merge → Trigger 3 (enriches existing Level 2 record)
+release engineer merge → Tfeatureger 3 (enriches existing Level 2 record)
 ```
 
 ### Boundary 4: Session Handoff
 
-An agent cycles via `gt handoff`. Not a direct export trigger, but a
-**checkpoint opportunity**: any pending exports from prior triggers should
+An agent cycles via `gt handoff`. Not a direct export tfeatureger, but a
+**checkpoint opportunity**: any pending exports from prior tfeaturegers should
 flush before the session ends.
 
 ```
 gt handoff → flush pending exports
-           → Trigger 4 if period boundary crossed
+           → Tfeatureger 4 if period boundary crossed
 ```
 
 ### Boundary 5: Design Crystallization
 
-A design doc is committed and the associated bead is closed. This is the
+A design doc is committed and the associated ticket is closed. This is the
 natural point where ideas leave the Design Plane and enter the Ledger Plane.
 
 ```
-design bead closes → Trigger 1 (base record)
-                   → Trigger 5 (full fidelity with doc content)
+design ticket closes → Tfeatureger 1 (base record)
+                   → Tfeatureger 5 (full fidelity with doc content)
 ```
 
 ---
 
 ## HOP Skill Derivation: What to Capture at Full Fidelity
 
-HOP derives skills from work evidence. The question for export triggers is:
+HOP derives skills from work evidence. The question for export tfeaturegers is:
 what evidence does HOP need, and at what fidelity?
 
 ### Skill Signals from Level 2 (Compressed)
@@ -342,10 +342,10 @@ These derive from metadata alone — no full content needed:
 | Signal | Derived From | Skill Category |
 |--------|-------------|----------------|
 | Language proficiency | `files_touched` extensions | Technical/Language |
-| Domain expertise | `labels`, `rig` context | Domain |
+| Domain expertise | `labels`, `feature` context | Domain |
 | Completion velocity | `duration_days` | Efficiency |
 | Work volume | count of Level 2 records | Capacity |
-| Breadth | unique rigs, unique label sets | Versatility |
+| Breadth | unique features, unique label sets | Versatility |
 | Reliability | closed/reopened ratio | Quality |
 
 ### Skill Signals from Level 3 (Full Fidelity)
@@ -358,7 +358,7 @@ These require reasoning content — Level 2 metadata alone is insufficient:
 | Debugging methodology | Problem resolution comments | Problem-solving |
 | Communication quality | Comment clarity, thread coherence | Collaboration |
 | Tradeoff analysis | Design doc "alternatives considered" | Decision-making |
-| System-level thinking | Cross-rig coordination patterns | Architecture |
+| System-level thinking | Cross-feature coordination patterns | Architecture |
 | Novel pattern recognition | How non-routine problems were approached | Innovation |
 | Teaching/mentoring | Explanatory comments, doc quality | Leadership |
 
@@ -384,15 +384,15 @@ manual `@ledger-full` flagging.
 ```sql
 -- Level 2: Compressed completion records
 CREATE TABLE ledger_completions (
-    id VARCHAR(64) PRIMARY KEY,      -- same as source bead ID
-    bead_type VARCHAR(32),
+    id VARCHAR(64) PRIMARY KEY,      -- same as source ticket ID
+    ticket_type VARCHAR(32),
     title TEXT,
     outcome TEXT,                     -- final description
     priority INT,
     owner VARCHAR(255),
     assignee VARCHAR(255),
     labels JSON,
-    rig VARCHAR(64),
+    feature VARCHAR(64),
     created_at TIMESTAMP,
     closed_at TIMESTAMP,
     duration_days FLOAT,
@@ -402,16 +402,16 @@ CREATE TABLE ledger_completions (
     lines_changed JSON,              -- {added: N, removed: M}
     fidelity_level INT DEFAULT 2,    -- 2 or 3
     exported_at TIMESTAMP,
-    export_trigger VARCHAR(32)       -- which trigger caused export
+    export_tfeatureger VARCHAR(32)       -- which tfeatureger caused export
 );
 
 -- Level 2: Convoy summary records
 CREATE TABLE ledger_convoys (
     convoy_id VARCHAR(64) PRIMARY KEY,
     title TEXT,
-    bead_count INT,
+    ticket_count INT,
     agents_involved JSON,
-    rigs_involved JSON,
+    features_involved JSON,
     created_at TIMESTAMP,
     completed_at TIMESTAMP,
     duration_days FLOAT,
@@ -421,7 +421,7 @@ CREATE TABLE ledger_convoys (
 -- Level 2: Merge validation records
 CREATE TABLE ledger_merges (
     merge_id VARCHAR(64) PRIMARY KEY,
-    bead_id VARCHAR(64),
+    ticket_id VARCHAR(64),
     branch VARCHAR(255),
     merged_by VARCHAR(255),
     merge_result VARCHAR(32),
@@ -431,7 +431,7 @@ CREATE TABLE ledger_merges (
 
 -- Level 3: Full fidelity extensions (linked to ledger_completions)
 CREATE TABLE ledger_ground_truth (
-    bead_id VARCHAR(64) PRIMARY KEY,
+    ticket_id VARCHAR(64) PRIMARY KEY,
     full_description TEXT,
     comments JSON,                    -- full comment thread
     status_history JSON,              -- all status transitions
@@ -439,11 +439,11 @@ CREATE TABLE ledger_ground_truth (
     design_doc_path VARCHAR(512),
     design_doc_content TEXT,
     commit_diffs JSON,                -- code change summaries
-    trigger_reasons JSON,             -- why Level 3 was triggered
-    coordination_pattern VARCHAR(64), -- for cross-rig work
+    tfeatureger_reasons JSON,             -- why Level 3 was tfeaturegered
+    coordination_pattern VARCHAR(64), -- for cross-feature work
     mail_thread JSON,                 -- inter-agent comms
     exported_at TIMESTAMP,
-    FOREIGN KEY (bead_id) REFERENCES ledger_completions(id)
+    FOREIGN KEY (ticket_id) REFERENCES ledger_completions(id)
 );
 
 -- Level 2: Periodic rollup records
@@ -452,9 +452,9 @@ CREATE TABLE ledger_rollups (
     period VARCHAR(32),
     period_start TIMESTAMP,
     period_end TIMESTAMP,
-    rig VARCHAR(64),
-    beads_closed INT,
-    beads_opened INT,
+    feature VARCHAR(64),
+    tickets_closed INT,
+    tickets_opened INT,
     agents_active JSON,
     top_labels JSON,
     anomalies JSON,
@@ -465,12 +465,12 @@ CREATE TABLE ledger_rollups (
 ### Export Process
 
 ```
-1. Trigger fires (bead closure, merge, etc.)
+1. Tfeatureger fires (ticket closure, merge, etc.)
 2. Collect source data from operational Dolt tables
 3. Evaluate Level 2 vs Level 3 (heuristics + explicit flags)
 4. Write to ledger tables (same Dolt server, different schema/namespace)
-5. Dolt commit: "ledger: export <bead-id> at level <N>"
-6. Mark source bead as exported (add label: "ledger-exported-L<N>")
+5. Dolt commit: "ledger: export <ticket-id> at level <N>"
+6. Mark source ticket as exported (add label: "ledger-exported-L<N>")
 ```
 
 When dolt-in-git ships, ledger tables are included in the git-tracked
@@ -479,21 +479,21 @@ live alongside operational tables in the same Dolt server.
 
 ### Retry and Idempotency
 
-Export is idempotent: re-exporting the same bead at the same level produces
-the same ledger record (INSERT OR REPLACE on bead_id). The `exported_at`
+Export is idempotent: re-exporting the same ticket at the same level produces
+the same ledger record (INSERT OR REPLACE on ticket_id). The `exported_at`
 timestamp updates but content is stable.
 
 Failed exports are tracked via an `export_queue` table:
 
 ```sql
 CREATE TABLE export_queue (
-    bead_id VARCHAR(64),
-    trigger VARCHAR(32),
-    triggered_at TIMESTAMP,
+    ticket_id VARCHAR(64),
+    tfeatureger VARCHAR(32),
+    tfeaturegered_at TIMESTAMP,
     attempts INT DEFAULT 0,
     last_error TEXT,
     next_retry_at TIMESTAMP,
-    PRIMARY KEY (bead_id, trigger)
+    PRIMARY KEY (ticket_id, tfeatureger)
 );
 ```
 
@@ -501,7 +501,7 @@ CREATE TABLE export_queue (
 
 ## Configuration
 
-Per-rig export config in `.beads/config/ledger-export.json`:
+Per-feature export config in `.tickets/config/ledger-export.json`:
 
 ```json
 {
@@ -513,7 +513,7 @@ Per-rig export config in `.beads/config/ledger-export.json`:
     "reassignment_count": 2,
     "duration_multiplier": 3.0,
     "file_touch_threshold": 15,
-    "reopen_triggers_level3": true
+    "reopen_tfeaturegers_level3": true
   },
   "level3_labels": [
     "design-decision",
@@ -523,7 +523,7 @@ Per-rig export config in `.beads/config/ledger-export.json`:
     "debugging",
     "ledger-full"
   ],
-  "level3_bead_types": [
+  "level3_ticket_types": [
     "design"
   ],
   "exclude_labels": [
@@ -534,7 +534,7 @@ Per-rig export config in `.beads/config/ledger-export.json`:
 }
 ```
 
-Override precedence: rig config > town defaults > hardcoded defaults.
+Override precedence: feature config > town defaults > hardcoded defaults.
 
 ---
 
@@ -543,7 +543,7 @@ Override precedence: rig config > town defaults > hardcoded defaults.
 ### With Wisp Compaction (WISP-COMPACTION-POLICY.md)
 
 Wisp compaction handles Level 0 -> Level 1 promotion. Once a wisp is promoted
-(becomes a permanent operational bead), it enters the normal Level 1 -> 2/3
+(becomes a permanent operational ticket), it enters the normal Level 1 -> 2/3
 export pipeline on closure. The two systems are complementary:
 
 ```
@@ -551,10 +551,10 @@ Level 0 (ephemeral) ──[wisp TTL/promotion]──> Level 1 (operational)
 Level 1 (operational) ──[this design]──> Level 2/3 (ledger)
 ```
 
-### With Refinery
+### With Release Engineer
 
-Refinery merge events fire Trigger 3. Implementation: the Refinery's merge
-completion hook calls `bd ledger export <bead-id> --trigger merge`.
+Release Engineer merge events fire Tfeatureger 3. Implementation: the Release Engineer's merge
+completion hook calls `bd ledger export <ticket-id> --tfeatureger merge`.
 
 ### With `gt handoff`
 
@@ -569,14 +569,14 @@ Ledger tables are the input to HOP skill queries. Example:
 -- "What Go work has agent X done?"
 SELECT lc.title, lc.files_touched, lc.duration_days
 FROM ledger_completions lc
-WHERE lc.assignee = 'gastown/crew/mel'
+WHERE lc.assignee = 'gastown/engineers/mel'
   AND JSON_CONTAINS(lc.files_touched, '"*.go"')
 ORDER BY lc.closed_at DESC;
 
 -- "Show me design decisions for storage architecture"
 SELECT lc.title, lgt.full_description, lgt.design_doc_content
 FROM ledger_completions lc
-JOIN ledger_ground_truth lgt ON lc.id = lgt.bead_id
+JOIN ledger_ground_truth lgt ON lc.id = lgt.ticket_id
 WHERE JSON_CONTAINS(lc.labels, '"architecture"')
   AND lc.fidelity_level = 3;
 ```
@@ -585,21 +585,21 @@ WHERE JSON_CONTAINS(lc.labels, '"architecture"')
 
 ## Implementation Roadmap
 
-### Phase 1: Level 2 Core (Trigger 1 + Schema)
+### Phase 1: Level 2 Core (Tfeatureger 1 + Schema)
 
 - Add ledger tables to Dolt schema
-- Implement bead-closure export (Trigger 1)
+- Implement ticket-closure export (Tfeatureger 1)
 - Add `ledger-exported-L2` label on successful export
-- `bd ledger export <id>` command for manual trigger
+- `bd ledger export <id>` command for manual tfeatureger
 - `bd ledger status` command to check export state
 
-### Phase 2: Convoy + Merge (Triggers 2-3)
+### Phase 2: Convoy + Merge (Tfeaturegers 2-3)
 
 - Convoy completion detection and summary export
-- Refinery merge hook integration
+- Release Engineer merge hook integration
 - Link merge records to completion records
 
-### Phase 3: Level 3 Heuristics (Triggers 5-8)
+### Phase 3: Level 3 Heuristics (Tfeaturegers 5-8)
 
 - Implement Level 3 selection heuristics
 - Design decision detection (labels + file paths)
@@ -607,7 +607,7 @@ WHERE JSON_CONTAINS(lc.labels, '"architecture"')
 - `@ledger-full` flag support
 - Full fidelity data collection (comments, history, diffs)
 
-### Phase 4: Rollups + Federation (Trigger 4 + dolt-in-git)
+### Phase 4: Rollups + Federation (Tfeatureger 4 + dolt-in-git)
 
 - Periodic rollup generation
 - Anomaly detection heuristics
@@ -624,7 +624,7 @@ WHERE JSON_CONTAINS(lc.labels, '"architecture"')
    database when dolt-in-git ships and federation needs demand it.
 
 2. **Retroactive export**: Should we backfill Level 2 records for all
-   currently-closed beads? Recommendation: yes, as a one-time migration.
+   currently-closed tickets? Recommendation: yes, as a one-time migration.
    The data exists in Dolt history; we just need to project it into the
    ledger schema.
 
@@ -633,8 +633,8 @@ WHERE JSON_CONTAINS(lc.labels, '"architecture"')
    Recommendation: file paths and line counts only at Level 2; summarized
    diffs at Level 3.
 
-4. **Privacy/redaction**: Should certain beads be excluded from the
-   federated ledger? (e.g., beads with `label: private` or in private
-   rigs). Recommendation: yes, add an `exclude_from_federation` flag
+4. **Privacy/redaction**: Should certain tickets be excluded from the
+   federated ledger? (e.g., tickets with `label: private` or in private
+   features). Recommendation: yes, add an `exclude_from_federation` flag
    that keeps the record in the local ledger but omits it from
    dolt-in-git export.

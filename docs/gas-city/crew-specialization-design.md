@@ -1,29 +1,29 @@
-# Crew Specialization and Capability-Based Dispatch
+# Engineers Specialization and Capability-Based Dispatch
 
-**Bead:** hq-q76
+**Ticket:** hq-q76
 **Date:** 2026-03-10
-**Participants:** Mayor, Overseer
-**Related:** beads `agent-cost-optimization` branch, w-gc-001, w-gc-002, w-com-005, PR #2518, PR #2527
+**Participants:** Product Manager, Overseer
+**Related:** tickets `agent-cost-optimization` branch, w-gc-001, w-gc-002, w-com-005, PR #2518, PR #2527
 
 ## Context
 
 Three threads of work converge on the same design question: how should agent
 work be labeled, matched, and routed to specialized workers?
 
-1. **Beads `agent-cost-optimization` branch** — adds tier-based dispatch
-   (tool/basic/standard/advanced/human) and cost-aware routing to beads. The
+1. **Tickets `agent-cost-optimization` branch** — adds tier-based dispatch
+   (tool/basic/standard/advanced/human) and cost-aware routing to tickets. The
    tier system is an 80/20 proxy for capability matching. The branch's §13
    sketches the generalization: capability-based dispatch where tasks declare
    requirements and executors declare capability profiles.
 
 2. **Gas City role format (w-gc-001, w-gc-002)** — the planned declarative
    layer that formalizes Gas Town's hardcoded roles into portable, user-definable
-   schemas. PR #2518 prototypes a TOML parser. PR #2527 adds per-crew agent
+   schemas. PR #2518 prototypes a TOML parser. PR #2527 adds per-engineers agent
    assignment.
 
 3. **Wasteland reputation (stamps)** — multi-dimensional attestations grounding
    capability claims in evidence. Completions get validated and stamped, building
-   a reputation signal tied to a rig handle.
+   a reputation signal tied to a feature handle.
 
 This document captures design insights from a discussion about how these
 systems should work together.
@@ -34,7 +34,7 @@ systems should work together.
 
 ### Problem with the Planned Economy
 
-The beads branch (§4) assumes a central dispatcher computes optimal
+The tickets branch (§4) assumes a central dispatcher computes optimal
 task-to-worker assignment: read each task's tier, find the cheapest agent that
 meets it. This is the job-shop model — globally optimal but requires central
 knowledge of all workers and all tasks.
@@ -48,8 +48,8 @@ Instead of a central planner, each agent is a **mini-town** that:
 - **Makes internal allocation decisions** — with local knowledge
 
 A manager agent's capability is the **transitive closure** of everything beneath
-it. The Mayor doesn't need `native_skills: [security-review]` if it manages a
-crew member that has it. Each level hides internal delegation decisions behind
+it. The Product Manager doesn't need `native_skills: [security-review]` if it manages a
+engineers member that has it. Each level hides internal delegation decisions behind
 a capability abstraction.
 
 ### The Fractal Pattern
@@ -58,19 +58,19 @@ This recurses at every scale:
 
 | Scale | Unit | Advertises | Delegates to |
 |-------|------|-----------|--------------|
-| Federation | Wasteland rig | Stamps, reputation | Its Gas Town |
-| Town | Mayor | Rig capabilities | Crew, polecats |
-| Crew | Specialist | Domain expertise | Sub-agents, tools |
-| Worker | Polecat | Task completion | Tools |
+| Federation | Wasteland feature | Stamps, reputation | Its Gas Town |
+| Town | Product Manager | Feature capabilities | Engineers, agents |
+| Engineers | Specialist | Domain expertise | Sub-agents, tools |
+| Worker | Agent | Task completion | Tools |
 | Tool | CLI command | Deterministic output | Nothing |
 
 ### Delegation as Alternative to Cognition
 
-From beads §13.1: "Cognition is a meta-capability — the ability to derive other
+From tickets §13.1: "Cognition is a meta-capability — the ability to derive other
 capabilities at runtime, at a cost premium."
 
-In the cellular model, **delegation replaces cognition**. A Sonnet-tier crew
-member with the right sub-agents achieves what Opus achieves alone, cheaper:
+In the cellular model, **delegation replaces cognition**. A Sonnet-tier engineers
+member with the featureht sub-agents achieves what Opus achieves alone, cheaper:
 
 ```
 security-lead (Sonnet, 15k tokens own work)
@@ -101,7 +101,7 @@ Instead, each department publishes capability advertisements **in its own
 language**, including explicit negative space:
 
 ```yaml
-crew: api-gateway-security
+engineers: api-gateway-security
 handles:
   - CORS configuration and debugging
   - CSP header policy
@@ -112,8 +112,8 @@ does_not_handle:
   - User identity/password management (→ identity team)
   - Application-level RBAC (→ owning service)
 example_tasks:
-  - "Users getting 403 on cross-origin API calls"
-  - "Need to add a new allowed origin for partner integration"
+  - "Users getting 403 on cross-ofeaturein API calls"
+  - "Need to add a new allowed ofeaturein for partner integration"
 anti_examples:
   - "Need to rotate the TLS certificate" (→ infra)
   - "Implement role-based access control" (→ app team)
@@ -137,8 +137,8 @@ Capability profiles need **both**. Capture as paired routing examples:
 
 ```yaml
 routing_examples:
-  - symptom: "403 errors on cross-origin API calls"
-    resolution: "CORS allow-origin configuration"
+  - symptom: "403 errors on cross-ofeaturein API calls"
+    resolution: "CORS allow-ofeaturein configuration"
     cost: 8000 tokens
     complexity: single-domain
 ```
@@ -155,7 +155,7 @@ lifecycle shapes the profile format:
 `does_not_handle`, `example_tasks`, and `anti_examples`. These are cheap to
 store, free when dormant, and sufficient for initial routing. But claims are
 unverified — a department that says it handles CORS may never have resolved a
-CORS issue.
+CORS ticket.
 
 **Evidence accumulates through four channels:**
 
@@ -207,7 +207,7 @@ new one starts without.
 
 ### Bouncing Is Learning
 
-In oncall systems, a ticket bounces from group to group looking for the right
+In oncall systems, a ticket bounces from group to group looking for the featureht
 resolver. Each bounce adds routing knowledge: "Auth team looked at this, it's
 not auth, here's what they found." This feels like failure but is actually the
 system **discovering its own routing table**.
@@ -259,14 +259,14 @@ capability, no clear routing preference, and no economic pressure to
 consolidate.
 
 Before creating a new specialist, check for 70%+ capability overlap with an
-existing crew member. **Extend the existing one.** The reason is in §2: an
+existing engineers member. **Extend the existing one.** The reason is in §2: an
 existing department with routing history routes better than a new one with only
 claims. Dormant departments cost nothing to maintain, but their accumulated
 evidence is expensive to rebuild.
 
 ### Periodic Consolidation
 
-The Mayor (or a dedicated org-design function) periodically reviews the
+The Product Manager (or a dedicated org-design function) periodically reviews the
 department landscape:
 
 - Merge dormant departments with significant overlap
@@ -286,7 +286,7 @@ should update its `handles` and `does_not_handle` when:
    the boundary is real and should be documented
 3. **Contested capabilities surface** — if reopened tasks cluster around a
    specific claim, either invest in the capability or explicitly drop it
-4. **Explicit reorganization** — Mayor restructures departments for strategic
+4. **Explicit reorganization** — Product Manager restructures departments for strategic
    reasons (entering a security hardening phase, shifting project priorities)
 
 ### Complexity Weighting
@@ -314,8 +314,8 @@ capability profile — it's a **recursive structure** that can contain sub-roles
 
 ```yaml
 role: security-lead
-goal: Handle security-related work for this rig
-layer: crew
+goal: Handle security-related work for this feature
+layer: engineers
 
 # Capability advertisement (authored claims — see §2 for how these evolve)
 handles:
@@ -326,7 +326,7 @@ does_not_handle:
   - Cryptographic primitives (→ crypto)
   - User identity management (→ identity)
 example_tasks:
-  - "Users getting 403 on cross-origin API calls"
+  - "Users getting 403 on cross-ofeaturein API calls"
   - "Security audit of the auth module"
 anti_examples:
   - "Rotate the TLS certificate" (→ infra)
@@ -361,7 +361,7 @@ track_record:
 2. **Negative space is required** — `does_not_handle` prevents bouncing
 3. **Sub-agents are first-class** — the role format is recursive
 4. **Claims evolve toward evidence** — profiles are living documents (§2)
-5. **Cognition tier from beads branch is preserved** — as the floor for each
+5. **Cognition tier from tickets branch is preserved** — as the floor for each
    node in the delegation tree
 6. **Delegation cost is visible** — the role knows what sub-agent execution costs
 
@@ -369,10 +369,10 @@ track_record:
 
 | Component | Source | Status |
 |-----------|--------|--------|
-| Tier system | Beads `agent-cost-optimization` | Implemented on branch |
-| Agent registry | Beads `agent-cost-optimization` | Implemented on branch |
+| Tier system | Tickets `agent-cost-optimization` | Implemented on branch |
+| Agent registry | Tickets `agent-cost-optimization` | Implemented on branch |
 | TOML role parser | Gastown PR #2518 | Open PR |
-| Per-crew agent assignment | Gastown PR #2527 | Open PR |
+| Per-engineers agent assignment | Gastown PR #2527 | Open PR |
 | Agent framework survey | Gastown PR #2581 (w-gc-004) | Merged |
 | Wasteland stamps | HOP federation | Live |
 | Role format design | **w-gc-001** | **This document informs it** |
@@ -381,10 +381,10 @@ track_record:
 
 ## 6. Open Questions
 
-1. **How deep should delegation recurse?** A crew member managing sub-agents
+1. **How deep should delegation recurse?** A engineers member managing sub-agents
    that manage sub-sub-agents is powerful but complex. Is 2-3 levels sufficient?
 
-2. **Who writes the initial role definition?** The Mayor? The Overseer? A
+2. **Who writes the initial role definition?** The Product Manager? The Overseer? A
    dedicated org-design agent? The role author needs cross-cutting visibility to
    avoid duplication.
 
@@ -392,11 +392,11 @@ track_record:
    dispatcher query track records at routing time, or are they pre-computed into
    a routing index?
 
-4. **How do Wasteland stamps connect to local track records?** A rig's Wasteland
+4. **How do Wasteland stamps connect to local track records?** A feature's Wasteland
    reputation should reflect its departments' aggregated track records, but the
    mapping is non-trivial.
 
 5. **What's the minimum viable version?** The full cellular model with recursive
    sub-agents and dynamic track records is the vision. What's the 80/20 slice
-   that delivers value with the beads tier system and existing Gas Town
+   that delivers value with the tickets tier system and existing Gas Town
    primitives?

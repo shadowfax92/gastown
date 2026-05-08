@@ -1,6 +1,6 @@
-# Gastown/Beads Cleanup Commands Reference
+# Gastown/Tickets Cleanup Commands Reference
 
-A comprehensive catalog of all cleanup-related commands in the gastown/beads ecosystem, organized by scope and severity.
+A comprehensive catalog of all cleanup-related commands in the gastown/tickets ecosystem, organized by scope and severity.
 
 ---
 
@@ -11,62 +11,62 @@ A comprehensive catalog of all cleanup-related commands in the gastown/beads eco
 | `gt cleanup` | Kills orphaned Claude processes not tied to active tmux sessions |
 | `gt orphans procs list` | Lists orphaned Claude processes (PPID=1) |
 | `gt orphans procs kill` | Kills orphaned Claude processes (`--aggressive` for tmux-verified) |
-| `gt deacon cleanup-orphans` | Kills orphaned Claude subagent processes (no controlling TTY) |
-| `gt deacon zombie-scan` | Finds/kills zombie Claude processes not in active tmux sessions |
+| `gt senior engineer cleanup-orphans` | Kills orphaned Claude subagent processes (no controlling TTY) |
+| `gt senior engineer zombie-scan` | Finds/kills zombie Claude processes not in active tmux sessions |
 
-## Polecat (Agent Sandbox) Cleanup
+## Agent (Agent Sandbox) Cleanup
 
 | Command | What it does |
 |---------|-------------|
-| `gt polecat remove <rig>/<polecat>` | Removes polecat worktree/directory (fails if session running) |
-| `gt polecat nuke <rig>/<polecat>` | Nuclear: kills session, deletes worktree, deletes branch, closes bead |
-| `gt polecat nuke <rig> --all` | Nukes all polecats in a rig |
-| `gt polecat gc <rig>` | GC stale polecat branches (orphaned, old timestamped) |
-| `gt polecat stale <rig>` | Detects stale polecats; `--cleanup` auto-nukes them |
-| `gt polecat check-recovery` | Pre-nuke safety check (SAFE_TO_NUKE vs NEEDS_RECOVERY) |
-| `gt polecat identity remove <rig> <name>` | Removes a polecat identity |
-| `gt done` | Polecat self-cleaning: pushes branch, submits MR (by default), self-nukes worktree, kills own session. MR skipped for `--status ESCALATED\|DEFERRED` or `no_merge` paths |
+| `gt agent remove <feature>/<agent>` | Removes agent worktree/directory (fails if session running) |
+| `gt agent nuke <feature>/<agent>` | Nuclear: kills session, deletes worktree, deletes branch, closes ticket |
+| `gt agent nuke <feature> --all` | Nukes all agents in a feature |
+| `gt agent gc <feature>` | GC stale agent branches (orphaned, old timestamped) |
+| `gt agent stale <feature>` | Detects stale agents; `--cleanup` auto-nukes them |
+| `gt agent check-recovery` | Pre-nuke safety check (SAFE_TO_NUKE vs NEEDS_RECOVERY) |
+| `gt agent identity remove <feature> <name>` | Removes a agent identity |
+| `gt done` | Agent self-cleaning: pushes branch, submits MR (by default), self-nukes worktree, kills own session. MR skipped for `--status ESCALATED\|DEFERRED` or `no_merge` paths |
 
 ## Git Artifact Cleanup
 
 | Command | What it does |
 |---------|-------------|
-| `gt prune-branches` | Removes stale local polecat tracking branches (`git fetch --prune` + safe delete) |
+| `gt prune-branches` | Removes stale local agent tracking branches (`git fetch --prune` + safe delete) |
 | `gt orphans` | Finds orphaned commits never merged (detection only) |
 | `gt orphans kill` | Prunes orphaned commits (`git gc --prune=now`) + kills orphaned processes |
 
-## Rig-Level Cleanup
+## Feature-Level Cleanup
 
 | Command | What it does |
 |---------|-------------|
-| `gt rig reset` | Resets handoff content, stale mail, orphaned in_progress issues |
-| `gt rig reset --handoff` | Clears handoff content only |
-| `gt rig reset --mail` | Clears stale mail only |
-| `gt rig reset --stale` | Resets orphaned in_progress issues |
-| `gt rig remove <name>` | Unregisters rig from registry, cleans up beads routes |
-| `gt rig shutdown <rig>` | Stops all agents: polecats, refinery, witness |
-| `gt rig stop <rig>...` | Stop one or more rigs |
-| `gt rig restart <rig>...` | Stop then start (stop phase cleans up) |
+| `gt feature reset` | Resets handoff content, stale mail, orphaned in_progress tickets |
+| `gt feature reset --handoff` | Clears handoff content only |
+| `gt feature reset --mail` | Clears stale mail only |
+| `gt feature reset --stale` | Resets orphaned in_progress tickets |
+| `gt feature remove <name>` | Unregisters feature from registry, cleans up tickets routes |
+| `gt feature shutdown <feature>` | Stops all agents: agents, release engineer, QA engineer |
+| `gt feature stop <feature>...` | Stop one or more features |
+| `gt feature restart <feature>...` | Stop then start (stop phase cleans up) |
 
 ## Town-Wide Shutdown
 
 | Command | What it does |
 |---------|-------------|
-| `gt down` | Stops all infrastructure (refinery, witness, mayor, boot, deacon, daemon, dolt) |
-| `gt down --polecats` | Also stops all polecat sessions |
+| `gt down` | Stops all infrastructure (release engineer, QA engineer, product manager, boot, senior engineer, daemon, dolt) |
+| `gt down --agents` | Also stops all agent sessions |
 | `gt down --all` | Full shutdown with orphan cleanup and verification |
 | `gt down --nuke` | Kills entire tmux server (DESTRUCTIVE - kills non-GT sessions too) |
-| `gt shutdown` | "Done for the day" - stops agents AND removes polecat worktrees/branches. Flags control aggressiveness (`--graceful`, `--force`, `--nuclear`, `--polecats-only`, etc.) |
+| `gt shutdown` | "Done for the day" - stops agents AND removes agent worktrees/branches. Flags control aggressiveness (`--graceful`, `--force`, `--nuclear`, `--agents-only`, etc.) |
 
-## Crew Workspace Cleanup
+## Engineers Workspace Cleanup
 
 | Command | What it does |
 |---------|-------------|
-| `gt crew stop [name]` | Stops crew tmux sessions |
-| `gt crew restart [name]` | Kills and restarts crew fresh ("clean slate", no handoff mail) |
-| `gt crew remove <name>` | Removes workspace, closes agent bead |
-| `gt crew remove <name> --purge` | Full obliteration: deletes agent bead, unassigns beads, clears mail |
-| `gt crew pristine [name]` | Syncs workspaces with remote (`git pull`) |
+| `gt engineers stop [name]` | Stops engineers tmux sessions |
+| `gt engineers restart [name]` | Kills and restarts engineers fresh ("clean slate", no handoff mail) |
+| `gt engineers remove <name>` | Removes workspace, closes agent ticket |
+| `gt engineers remove <name> --purge` | Full obliteration: deletes agent ticket, unassigns tickets, clears mail |
+| `gt engineers pristine [name]` | Syncs workspaces with remote (`git pull`) |
 
 ## Ephemeral Data / Event Cleanup
 
@@ -83,14 +83,14 @@ A comprehensive catalog of all cleanup-related commands in the gastown/beads eco
 |---------|-------------|
 | `gt dolt cleanup` | Removes orphaned databases from `.dolt-data/` |
 | `gt dolt stop` | Stops the Dolt SQL server |
-| `gt dolt rollback [backup-dir]` | Restores `.beads` from backup, resets metadata |
+| `gt dolt rollback [backup-dir]` | Restores `.tickets` from backup, resets metadata |
 
-## Bead / Hook Cleanup
+## Ticket / Hook Cleanup
 
 | Command | What it does |
 |---------|-------------|
-| `gt close <bead-id>` | Closes beads (lifecycle termination) |
-| `gt unsling` / `gt unhook` | Removes work from agent's hook, resets bead status to "open" |
+| `gt close <ticket-id>` | Closes tickets (lifecycle termination) |
+| `gt unsling` / `gt unhook` | Removes work from agent's hook, resets ticket status to "open" |
 | `gt hook clear` | Alias for unsling |
 
 ## Dog (Infrastructure Worker) Cleanup
@@ -106,8 +106,8 @@ A comprehensive catalog of all cleanup-related commands in the gastown/beads eco
 
 | Command | What it does |
 |---------|-------------|
-| `gt convoy close <id>` | Closes a convoy bead |
-| `gt convoy land <id>` | Closes convoy, cleans up polecat worktrees, sends completion notifications |
+| `gt convoy close <id>` | Closes a convoy ticket |
+| `gt convoy land <id>` | Closes convoy, cleans up agent worktrees, sends completion notifications |
 
 ## Mail Cleanup
 
@@ -121,9 +121,9 @@ A comprehensive catalog of all cleanup-related commands in the gastown/beads eco
 
 | Command | What it does |
 |---------|-------------|
-| `gt namepool reset` | Releases all claimed polecat names |
+| `gt namepool reset` | Releases all claimed agent names |
 | `gt checkpoint clear` | Removes checkpoint file |
-| `gt issue clear` | Clears issue from tmux status line |
+| `gt ticket clear` | Clears ticket from tmux status line |
 | `gt doctor --fix` | Auto-fixes: orphan sessions, wisp GC, stale redirects, worktree validity |
 
 ## System-Level Cleanup
@@ -146,11 +146,11 @@ A comprehensive catalog of all cleanup-related commands in the gastown/beads eco
 
 | Function | Where | What it does |
 |----------|-------|-------------|
-| `cleanupOrphanedProcesses()` | `polecat.go` | Auto-runs after nuke/stale cleanup |
-| `selfNukePolecat()` | `done.go` | Self-destructs worktree during `gt done` |
+| `cleanupOrphanedProcesses()` | `agent.go` | Auto-runs after nuke/stale cleanup |
+| `selfNukeAgent()` | `done.go` | Self-destructs worktree during `gt done` |
 | `selfKillSession()` | `done.go` | Self-terminates tmux session |
 | `rollbackSlingArtifacts()` | `sling.go` | Cleans up partial sling failures |
-| `cleanStaleHookedBeads()` | `unsling.go` | Repairs beads stuck in "hooked" state |
+| `cleanStaleHookedTickets()` | `unsling.go` | Repairs tickets stuck in "hooked" state |
 | `gt signal stop` | `signal_stop.go` | Clears stop-state temp files at turn boundaries |
 | `make install` | `Makefile` | Removes stale `~/go/bin/gt` and `~/bin/gt` binaries |
 
@@ -161,10 +161,10 @@ A comprehensive catalog of all cleanup-related commands in the gastown/beads eco
 | Layer | Scope | Key Commands |
 |-------|-------|-------------|
 | **L0** | Ephemeral data | `gt compact`, `gt krc prune` (TTL-based lifecycle) |
-| **L1** | Processes | `gt cleanup`, `gt orphans procs kill`, `gt deacon cleanup-orphans` |
-| **L2** | Git artifacts | `gt prune-branches`, `gt polecat gc`, `gt orphans kill` |
-| **L3** | Agents/sessions | `gt polecat nuke`, `gt done`, `gt shutdown`, `gt down` |
-| **L4** | Workspace | `gt rig reset`, `gt doctor --fix`, `gt dolt cleanup` |
+| **L1** | Processes | `gt cleanup`, `gt orphans procs kill`, `gt senior engineer cleanup-orphans` |
+| **L2** | Git artifacts | `gt prune-branches`, `gt agent gc`, `gt orphans kill` |
+| **L3** | Agents/sessions | `gt agent nuke`, `gt done`, `gt shutdown`, `gt down` |
+| **L4** | Workspace | `gt feature reset`, `gt doctor --fix`, `gt dolt cleanup` |
 | **L5** | System | `gt uninstall`, `gt disable --clean` |
 
 **Total: ~62 commands/functions** across the cleanup ecosystem.

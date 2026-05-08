@@ -7,7 +7,7 @@ Complete schema of all telemetry events emitted by Gas Town. Each event consists
 
 > **`run.id` correlation**: automatic `run.id` injection into all log records is implemented in
 > PR #2199 (`otel-p0-work-context`), not yet on main. On main, correlation is possible only via
-> resource attributes (`gt.role`, `gt.rig`, `gt.agent`, `gt.actor`).
+> resource attributes (`gt.role`, `gt.feature`, `gt.agent`, `gt.actor`).
 
 ---
 
@@ -28,8 +28,8 @@ Complete schema of all telemetry events emitted by Gas Town. Each event consists
 | `nudge` | Workflow | ✅ Main |
 | `sling` | Workflow | ✅ Main |
 | `done` | Workflow | ✅ Main |
-| `polecat.spawn` | Lifecycle | ✅ Main |
-| `polecat.remove` | Lifecycle | ✅ Main |
+| `agent.spawn` | Lifecycle | ✅ Main |
+| `agent.remove` | Lifecycle | ✅ Main |
 | `daemon.restart` | Lifecycle | ✅ Main |
 | `pane.read` | Internal | ✅ Main |
 | `pane.output` | Internal | ✅ Main |
@@ -40,7 +40,7 @@ Complete schema of all telemetry events emitted by Gas Town. Each event consists
 | `mol.wisp` | Molecule | ❌ Roadmap |
 | `mol.squash` | Molecule | ❌ Roadmap |
 | `mol.burn` | Molecule | ❌ Roadmap |
-| `bead.create` | Molecule | ❌ Roadmap |
+| `ticket.create` | Molecule | ❌ Roadmap |
 
 ---
 
@@ -63,18 +63,18 @@ Resource attributes set at process start via `OTEL_RESOURCE_ATTRIBUTES` (populat
 
 | Attribute | Type | Source | Notes |
 |---|---|---|---|
-| `gt.role` | string | `GT_ROLE` env var | e.g. `"gastown/polecats/Toast"` |
-| `gt.rig` | string | `GT_RIG` env var | e.g. `"gastown"` |
+| `gt.role` | string | `GT_ROLE` env var | e.g. `"gastown/agents/Toast"` |
+| `gt.feature` | string | `GT_RIG` env var | e.g. `"gastown"` |
 | `gt.actor` | string | `BD_ACTOR` env var | bd actor identity |
 | `gt.agent` | string | `GT_POLECAT` or `GT_CREW` env var | agent name |
 | `gt.session` | string | `GT_SESSION` env var | tmux session name — **PR #2199** |
 | `gt.run_id` | string | `GT_RUN` env var | correlation key — **PR #2199** |
-| `gt.work_rig` | string | `GT_WORK_RIG` env var | work rig at last `gt prime` — **PR #2199** |
-| `gt.work_bead` | string | `GT_WORK_BEAD` env var | hooked bead at last `gt prime` — **PR #2199** |
+| `gt.work_feature` | string | `GT_WORK_RIG` env var | work feature at last `gt prime` — **PR #2199** |
+| `gt.work_ticket` | string | `GT_WORK_BEAD` env var | hooked ticket at last `gt prime` — **PR #2199** |
 | `gt.work_mol` | string | `GT_WORK_MOL` env var | molecule step at last `gt prime` — **PR #2199** |
 
 > Attributes marked **PR #2199** are only set after `otel-p0-work-context` merges.
-> On main, only `gt.role`, `gt.rig`, `gt.actor`, `gt.agent` are set.
+> On main, only `gt.role`, `gt.feature`, `gt.actor`, `gt.agent` are set.
 
 ---
 
@@ -104,9 +104,9 @@ separately as `prime.context` (same attributes plus `formula`).
 | `hook_mode` | bool | true when invoked from a hook |
 | `status` | string | `"ok"` · `"error"` |
 | `error` | string | error message; empty when `"ok"` |
-| `work_rig` | string | ⚠️ **PR #2199** — rig whose bead is on the hook |
-| `work_bead` | string | ⚠️ **PR #2199** — bead ID currently hooked |
-| `work_mol` | string | ⚠️ **PR #2199** — molecule ID if the bead is a molecule step; empty otherwise |
+| `work_feature` | string | ⚠️ **PR #2199** — feature whose ticket is on the hook |
+| `work_ticket` | string | ⚠️ **PR #2199** — ticket ID currently hooked |
+| `work_mol` | string | ⚠️ **PR #2199** — molecule ID if the ticket is a molecule step; empty otherwise |
 
 ---
 
@@ -216,12 +216,12 @@ Emitted whenever an agent transitions to a new state (idle → working, etc.).
 |---|---|---|
 | `agent_id` | string | agent identifier |
 | `new_state` | string | new state (`"idle"`, `"working"`, `"done"`, …) |
-| `has_hook_bead` | bool | `true` when the agent has a non-empty bead on its hook |
+| `has_hook_ticket` | bool | `true` when the agent has a non-empty ticket on its hook |
 | `status` | string | `"ok"` · `"error"` |
 | `error` | string | error message; empty when `"ok"` |
 
-> Note: the attribute is `has_hook_bead` (bool), not `hook_bead` (string).
-> The bead ID itself is not recorded in the state change event.
+> Note: the attribute is `has_hook_ticket` (bool), not `hook_ticket` (string).
+> The ticket ID itself is not recorded in the state change event.
 
 ---
 
@@ -256,13 +256,13 @@ All carry `status` and `error` fields.
 
 | Event body | Key attributes | Metric |
 |---|---|---|
-| `sling` | `bead`, `target`, `status`, `error` | `gastown.sling.dispatches.total` |
+| `sling` | `ticket`, `target`, `status`, `error` | `gastown.sling.dispatches.total` |
 | `nudge` | `target`, `status`, `error` | `gastown.nudge.total` |
 | `done` | `exit_type` (`COMPLETED` · `ESCALATED` · `DEFERRED`), `status`, `error` | `gastown.done.total` |
-| `polecat.spawn` | `name`, `status`, `error` | `gastown.polecat.spawns.total` |
-| `polecat.remove` | `name`, `status`, `error` | `gastown.polecat.removes.total` |
-| `formula.instantiate` | `formula_name`, `bead_id`, `status`, `error` | `gastown.formula.instantiations.total` |
-| `convoy.create` | `bead_id`, `status`, `error` | `gastown.convoy.creates.total` |
+| `agent.spawn` | `name`, `status`, `error` | `gastown.agent.spawns.total` |
+| `agent.remove` | `name`, `status`, `error` | `gastown.agent.removes.total` |
+| `formula.instantiate` | `formula_name`, `ticket_id`, `status`, `error` | `gastown.formula.instantiations.total` |
+| `convoy.create` | `ticket_id`, `status`, `error` | `gastown.convoy.creates.total` |
 | `daemon.restart` | `agent_type` | `gastown.daemon.agent_restarts.total` |
 
 ---
@@ -282,8 +282,8 @@ Intended to anchor all subsequent events for a run. One span per agent spawn.
 | `role` | string | Gastown role |
 | `agent_name` | string | agent name |
 | `session_id` | string | tmux pane name |
-| `rig` | string | allocation rig (empty for generic polecats) |
-| `issue_id` | string | bead ID passed at spawn via `--issue`; empty if none |
+| `feature` | string | allocation feature (empty for generic agents) |
+| `ticket_id` | string | ticket ID passed at spawn via `--ticket`; empty if none |
 | `git_branch` | string | git branch of the working directory at spawn time |
 | `git_commit` | string | HEAD SHA of the working directory at spawn time |
 
@@ -291,9 +291,9 @@ Intended to anchor all subsequent events for a run. One span per agent spawn.
 
 Molecule lifecycle events. No `RecordMol*` functions exist yet.
 
-### `bead.create` *(roadmap)*
+### `ticket.create` *(roadmap)*
 
-Per-child-bead event during molecule instantiation. No `RecordBeadCreate` function exists yet.
+Per-child-ticket event during molecule instantiation. No `RecordTicketCreate` function exists yet.
 
 ---
 
@@ -314,8 +314,8 @@ Per-child-bead event during molecule instantiation. No `RecordBeadCreate` functi
 | `gastown.nudge.total` | Counter | `status` | ✅ Main |
 | `gastown.sling.dispatches.total` | Counter | `status` | ✅ Main |
 | `gastown.done.total` | Counter | `status`, `exit_type` | ✅ Main |
-| `gastown.polecat.spawns.total` | Counter | `status` | ✅ Main |
-| `gastown.polecat.removes.total` | Counter | `status` | ✅ Main |
+| `gastown.agent.spawns.total` | Counter | `status` | ✅ Main |
+| `gastown.agent.removes.total` | Counter | `status` | ✅ Main |
 | `gastown.daemon.agent_restarts.total` | Counter | `agent_type` | ✅ Main |
 | `gastown.formula.instantiations.total` | Counter | `status`, `formula` | ✅ Main |
 | `gastown.convoy.creates.total` | Counter | `status` | ✅ Main |
@@ -326,7 +326,7 @@ Per-child-bead event during molecule instantiation. No `RecordBeadCreate` functi
 ## 5. Recommended indexed attributes
 
 ```
-gt.role, gt.rig, gt.actor, gt.agent, session_id, event_type, subcommand,
+gt.role, gt.feature, gt.actor, gt.agent, session_id, event_type, subcommand,
 operation, new_state, exit_type
 ```
 
@@ -372,7 +372,7 @@ The schema uses standard OpenTelemetry Protocol (OTLP) with protobuf encoding, w
 
 ## Appendix: Source Reference Audit
 
-Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
+Audited against `ofeaturein/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 
 ### Metrics (`internal/telemetry/recorder.go`)
 
@@ -387,8 +387,8 @@ Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 | `gastown.pane.output.total` Counter | `recorder.go:79` |
 | `gastown.prime.total` Counter | `recorder.go:82` |
 | `gastown.agent.state_changes.total` Counter | `recorder.go:85` |
-| `gastown.polecat.spawns.total` Counter | `recorder.go:88` |
-| `gastown.polecat.removes.total` Counter | `recorder.go:91` |
+| `gastown.agent.spawns.total` Counter | `recorder.go:88` |
+| `gastown.agent.removes.total` Counter | `recorder.go:91` |
 | `gastown.sling.dispatches.total` Counter | `recorder.go:94` |
 | `gastown.mail.operations.total` Counter | `recorder.go:97` |
 | `gastown.nudge.total` Counter | `recorder.go:100` |
@@ -409,25 +409,25 @@ Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 | `pane.read` | `RecordPaneRead` | `session`, `lines_requested`, `content_len`, `status`, `error` | `recorder.go:266`, emit at `recorder.go:272` |
 | `prime` | `RecordPrime` | `role`, `hook_mode`, `status`, `error` | `recorder.go:282`, emit at `recorder.go:292` |
 | `prime.context` | `RecordPrimeContext` | `role`, `hook_mode`, `formula` | `recorder.go:305`, emit at `recorder.go:310` |
-| `agent.state_change` | `RecordAgentStateChange` | `agent_id`, `new_state`, `has_hook_bead` (bool), `status`, `error` | `recorder.go:318`, emit at `recorder.go:328` |
-| `polecat.spawn` | `RecordPolecatSpawn` | `name`, `status`, `error` | `recorder.go:338`, emit at `recorder.go:344` |
-| `polecat.remove` | `RecordPolecatRemove` | `name`, `status`, `error` | `recorder.go:352`, emit at `recorder.go:358` |
-| `sling` | `RecordSling` | `bead`, `target`, `status`, `error` | `recorder.go:366`, emit at `recorder.go:372` |
+| `agent.state_change` | `RecordAgentStateChange` | `agent_id`, `new_state`, `has_hook_ticket` (bool), `status`, `error` | `recorder.go:318`, emit at `recorder.go:328` |
+| `agent.spawn` | `RecordAgentSpawn` | `name`, `status`, `error` | `recorder.go:338`, emit at `recorder.go:344` |
+| `agent.remove` | `RecordAgentRemove` | `name`, `status`, `error` | `recorder.go:352`, emit at `recorder.go:358` |
+| `sling` | `RecordSling` | `ticket`, `target`, `status`, `error` | `recorder.go:366`, emit at `recorder.go:372` |
 | `mail` | `RecordMail` | `operation`, `status`, `error` | `recorder.go:381`, emit at `recorder.go:390` |
 | `nudge` | `RecordNudge` | `target`, `status`, `error` | `recorder.go:398`, emit at `recorder.go:404` |
 | `done` | `RecordDone` | `exit_type`, `status`, `error` | `recorder.go:413`, emit at `recorder.go:422` |
 | `daemon.restart` | `RecordDaemonRestart` | `agent_type` | `recorder.go:431`, emit at `recorder.go:436` |
-| `formula.instantiate` | `RecordFormulaInstantiate` | `formula_name`, `bead_id`, `status`, `error` | `recorder.go:442`, emit at `recorder.go:451` |
-| `convoy.create` | `RecordConvoyCreate` | `bead_id`, `status`, `error` | `recorder.go:460`, emit at `recorder.go:466` |
+| `formula.instantiate` | `RecordFormulaInstantiate` | `formula_name`, `ticket_id`, `status`, `error` | `recorder.go:442`, emit at `recorder.go:451` |
+| `convoy.create` | `RecordConvoyCreate` | `ticket_id`, `status`, `error` | `recorder.go:460`, emit at `recorder.go:466` |
 | `pane.output` | `RecordPaneOutput` | `session`, `content` | `recorder.go:477`, emit at `recorder.go:482` |
 
 ### `prompt.send`: `keys` attribute absent (confirmed)
 
 `RecordPromptSend` passes `keys string` but only emits `keys_len` (`int64(len(keys))`). The prompt content is deliberately not logged. `recorder.go:256–263`.
 
-### `agent.state_change`: `has_hook_bead` is bool, not string
+### `agent.state_change`: `has_hook_ticket` is bool, not string
 
-`hookBead *string` pointer is converted to bool: `hasHookBead := hookBead != nil && *hookBead != ""`. Emitted as `has_hook_bead` bool at `recorder.go:321,328`.
+`hookTicket *string` pointer is converted to bool: `hasHookTicket := hookTicket != nil && *hookTicket != ""`. Emitted as `has_hook_ticket` bool at `recorder.go:321,328`.
 
 ### `mail`: no `msg.*` attributes
 
@@ -444,11 +444,11 @@ Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 | `agent.instantiate` — does not exist | `grep -r "agent.instantiate" internal/ → zero matches` |
 | `RecordAgentInstantiate` — does not exist | `grep -r "RecordAgentInstantiate" internal/ → zero matches` |
 | `mol.cook/wisp/squash/burn` — do not exist | `grep -r "mol\.cook\|mol\.wisp\|mol\.squash\|mol\.burn" internal/ → zero matches` |
-| `bead.create` — does not exist | `grep -r "bead\.create\|RecordBeadCreate" internal/ → zero matches` |
+| `ticket.create` — does not exist | `grep -r "ticket\.create\|RecordTicketCreate" internal/ → zero matches` |
 | `RecordMailMessage` — does not exist | `grep -r "RecordMailMessage\|MailMessageInfo" internal/ → zero matches` |
 | `gastown.agent.instantiations.total` — not in `initInstruments()` | `grep -r "agent.instantiations" internal/ → zero matches` |
 | `gastown.mol.cooks.total` etc. — not in `initInstruments()` | `grep -r "mol\.cooks\|mol\.wisps\|mol\.squashes\|mol\.burns" internal/ → zero matches` |
-| `gastown.bead.creates.total` — not in `initInstruments()` | `grep -r "bead\.creates" internal/ → zero matches` |
+| `gastown.ticket.creates.total` — not in `initInstruments()` | `grep -r "ticket\.creates" internal/ → zero matches` |
 
 ### PR #2199 additions (in `otel-p0-work-context`, not yet on main)
 
@@ -461,9 +461,9 @@ Audited against `origin/main` @ `2d8d71ee35fafda3bbdf353683692bfcc9165476`
 | `addRunID(ctx, *record)` — injects `run.id` into all emit calls | `recorder.go` (added in `8b88de15`) |
 | `gt.session` in `OTEL_RESOURCE_ATTRIBUTES` | `subprocess.go` (updated in `8b88de15`) |
 | `gt.run_id` in `OTEL_RESOURCE_ATTRIBUTES` | `subprocess.go` (updated in `8b88de15`) |
-| `gt.work_rig/bead/mol` in `OTEL_RESOURCE_ATTRIBUTES` | `subprocess.go` (updated in `8b88de15`) |
+| `gt.work_feature/ticket/mol` in `OTEL_RESOURCE_ATTRIBUTES` | `subprocess.go` (updated in `8b88de15`) |
 | `GT_RUN` propagation to subprocesses | `subprocess.go` (updated in `8b88de15`) |
-| `work_rig`, `work_bead`, `work_mol` on `prime` event | `recorder.go` (updated in `8b88de15`) |
+| `work_feature`, `work_ticket`, `work_mol` on `prime` event | `recorder.go` (updated in `8b88de15`) |
 | `internal/agentlog/` package | new package in `8b88de15` |
 | `internal/cmd/agent_log.go` | new file in `8b88de15` |
 | `internal/session/agent_logging_unix.go` | new file in `8b88de15` |

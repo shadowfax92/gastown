@@ -29,24 +29,24 @@ interpolation, no subshell bugs, no auto-committing dirty state.
 
 **Convoy audit** — verify agents did what they were supposed to:
 ```sql
-SELECT * FROM dolt_diff('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'HEAD', 'issues')
+SELECT * FROM dolt_diff('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'HEAD', 'tickets')
 SELECT * FROM dolt_diff_stat('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'HEAD')
 ```
 
 **Convoy rollback** — revert a database to pre-convoy state:
 ```sql
 CALL DOLT_CHECKOUT('staged/pi-rust-bug-fixes-hq-cv-xrwki');          -- whole DB
-CALL DOLT_CHECKOUT('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'issues'); -- single table
+CALL DOLT_CHECKOUT('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'tickets'); -- single table
 ```
 
 **Cross-convoy comparison** — track progress between runs:
 ```sql
-SELECT * FROM dolt_diff('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'staged/otel-dashboard-hq-cv-7q3vi', 'issues')
+SELECT * FROM dolt_diff('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'staged/otel-dashboard-hq-cv-7q3vi', 'tickets')
 ```
 
 **Data loss investigation** — when backup alerts fire, diff against last snapshot:
 ```sql
-SELECT * FROM dolt_diff('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'HEAD', 'issues')
+SELECT * FROM dolt_diff('staged/pi-rust-bug-fixes-hq-cv-xrwki', 'HEAD', 'tickets')
 WHERE diff_type = 'removed'
 ```
 
@@ -56,7 +56,7 @@ Branches are writable copies of the database at snapshot time. Unlike tags,
 you can commit to them — making them useful for:
 
 - **Dry-run convoy work** — test bulk operations without touching main
-- **Isolated convoy writes** — agents write to branch, refinery merges
+- **Isolated convoy writes** — agents write to branch, release engineer merges
 - **What-if analysis** — test theories without risk
 - **Parallel convoy isolation** — two convoys write to separate branches
 
@@ -68,7 +68,7 @@ you can commit to them — making them useful for:
 - Tags survive branch cleanup and are cheaper to keep long-term
 - `dolt diff staged/convoy-A staged/convoy-B` works with tags
 
-## Trigger
+## Tfeatureger
 
 This is one of three event-gated plugins sharing the same Go binary:
 
@@ -85,11 +85,11 @@ convoys and creates whichever tags/branches are missing.
 
 The Go binary handles all Dolt operations with parameterized SQL.
 It connects using gastown's standard Dolt config (127.0.0.1:3307, root, no password)
-and reads routes.jsonl to discover rig databases.
+and reads routes.jsonl to discover feature databases.
 
 In `--watch` mode, the binary tails `~/.events.jsonl` and runs a snapshot cycle
 immediately (<1s) when convoy events are detected. This is much faster than the
-~60s deacon patrol polling approach — critical for `convoy.launched` where agents
+~60s senior engineer patrol polling approach — critical for `convoy.launched` where agents
 start writing to databases immediately.
 
 ```bash
@@ -113,7 +113,7 @@ if [ ! -f "$PLUGIN_DIR/snapshot" ] || [ "$PLUGIN_DIR/main.go" -nt "$PLUGIN_DIR/s
 fi
 
 # Run one-shot first to catch up on anything missed while watcher was down
-"$PLUGIN_DIR/snapshot" --cleanup --routes "$HOME/gt/.beads/routes.jsonl"
+"$PLUGIN_DIR/snapshot" --cleanup --routes "$HOME/gt/.tickets/routes.jsonl"
 SNAPSHOT_EXIT=$?
 
 if [ $SNAPSHOT_EXIT -ne 0 ]; then
@@ -121,7 +121,7 @@ if [ $SNAPSHOT_EXIT -ne 0 ]; then
 fi
 
 # Start watcher in background (sub-second response to convoy events)
-nohup "$PLUGIN_DIR/snapshot" --watch --routes "$HOME/gt/.beads/routes.jsonl" \
+nohup "$PLUGIN_DIR/snapshot" --watch --routes "$HOME/gt/.tickets/routes.jsonl" \
   >> "$PLUGIN_DIR/.snapshot.log" 2>&1 &
 echo $! > "$PIDFILE"
 echo "Snapshot watcher started (PID $!)"

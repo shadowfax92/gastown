@@ -22,40 +22,40 @@ Gas Town manages context injection for all supported agents. The mechanism varie
 Gas Town manages `.claude/settings.json` files in gastown-managed parent directories
 and passes them to Claude Code via the `--settings` flag. This keeps customer repos
 clean while providing role-specific hook configuration. The hooks system provides
-a single source of truth with a base config and per-role/per-rig overrides.
+a single source of truth with a base config and per-role/per-feature overrides.
 
 ## Architecture
 
 ```
 ~/.gt/hooks-base.json              ← Shared base config (all agents)
 ~/.gt/hooks-overrides/
-  ├── crew.json                    ← Override for all crew workers
-  ├── witness.json                 ← Override for all witnesses
-  ├── gastown__crew.json           ← Override for gastown crew specifically
+  ├── engineers.json                    ← Override for all engineers workers
+  ├── QA engineer.json                 ← Override for all QA engineeres
+  ├── gastown__engineers.json           ← Override for gastown engineers specifically
   └── ...
 ```
 
-**Merge strategy:** `base → role → rig+role` (more specific wins)
+**Merge strategy:** `base → role → feature+role` (more specific wins)
 
-For a target like `gastown/crew`:
+For a target like `gastown/engineers`:
 1. Start with base config
-2. Apply `crew` override (if exists)
-3. Apply `gastown/crew` override (if exists)
+2. Apply `engineers` override (if exists)
+3. Apply `gastown/engineers` override (if exists)
 
 ## Generated targets
 
-Each rig generates settings in shared parent directories (not per-worktree):
+Each feature generates settings in shared parent directories (not per-worktree):
 
 | Target | Path | Override Key |
 |--------|------|--------------|
-| Crew (shared) | `<rig>/crew/.claude/settings.json` | `<rig>/crew` |
-| Witness | `<rig>/witness/.claude/settings.json` | `<rig>/witness` |
-| Refinery | `<rig>/refinery/.claude/settings.json` | `<rig>/refinery` |
-| Polecats (shared) | `<rig>/polecats/.claude/settings.json` | `<rig>/polecats` |
+| Engineers (shared) | `<feature>/engineers/.claude/settings.json` | `<feature>/engineers` |
+| QA Engineer | `<feature>/QA engineer/.claude/settings.json` | `<feature>/QA engineer` |
+| Release Engineer | `<feature>/release engineer/.claude/settings.json` | `<feature>/release engineer` |
+| Agents (shared) | `<feature>/agents/.claude/settings.json` | `<feature>/agents` |
 
 Town-level targets:
-- `mayor/.claude/settings.json` (key: `mayor`)
-- `deacon/.claude/settings.json` (key: `deacon`)
+- `product manager/.claude/settings.json` (key: `product manager`)
+- `senior engineer/.claude/settings.json` (key: `senior engineer`)
 
 Settings are passed to Claude Code via `--settings <path>`, which loads them as
 a separate priority tier that merges additively with project settings.
@@ -92,12 +92,12 @@ gt hooks base --show      # Print current base config
 
 ### `gt hooks override <target>`
 
-Edit overrides for a specific role or rig+role.
+Edit overrides for a specific role or feature+role.
 
 ```bash
-gt hooks override crew              # Edit crew override
-gt hooks override gastown/witness   # Edit gastown witness override
-gt hooks override crew --show       # Print current override
+gt hooks override engineers              # Edit engineers override
+gt hooks override gastown/QA engineer   # Edit gastown QA engineer override
+gt hooks override engineers --show       # Print current override
 ```
 
 ### `gt hooks list`
@@ -148,20 +148,20 @@ The registry (`~/gt/hooks/registry.toml`) defines 7 hooks, 5 enabled by default:
 
 | Hook | Event | Enabled | Roles |
 |---|---|---|---|
-| pr-workflow-guard | PreToolUse | Yes | crew, polecat |
+| pr-workflow-guard | PreToolUse | Yes | engineers, agent |
 | session-prime | SessionStart | Yes | all |
 | pre-compact-prime | PreCompact | Yes | all |
 | mail-check | UserPromptSubmit | Yes | all |
-| costs-record | Stop | Yes | crew, polecat, witness, refinery |
-| clone-guard | PreToolUse | No | crew, polecat |
-| dangerous-command-guard | PreToolUse | Yes | crew, polecat |
+| costs-record | Stop | Yes | engineers, agent, QA engineer, release engineer |
+| clone-guard | PreToolUse | No | engineers, agent |
+| dangerous-command-guard | PreToolUse | Yes | engineers, agent |
 
 Additional hooks exist in settings.json files but are not yet in the registry:
 
-- **bd init guard** (gastown/crew, beads/crew) - blocks `bd init*` inside `.beads/`
+- **bd init guard** (gastown/engineers, tickets/engineers) - blocks `bd init*` inside `.tickets/`
 - **mol patrol guards** (gastown roles) - blocks persistent patrol molecules
 - **tmux clear-history** (gastown root) - clears terminal history on session start
-- **SessionStart .beads/ validation** (gastown/crew, beads/crew) - validates CWD
+- **SessionStart .tickets/ validation** (gastown/engineers, tickets/engineers) - validates CWD
 
 ## Design Decision: Registry as Catalog vs Source of Truth
 
@@ -203,10 +203,10 @@ Additional hooks exist in settings.json files but are not yet in the registry:
 
 ## Integration
 
-### `gt rig add`
+### `gt feature add`
 
-When a new rig is created, hooks are automatically synced for all the
-new rig's targets (crew, witness, refinery, polecats).
+When a new feature is created, hooks are automatically synced for all the
+new feature's targets (engineers, QA engineer, release engineer, agents).
 
 ### `gt doctor`
 
@@ -229,16 +229,16 @@ Example base:
 }
 ```
 
-Override for witness:
+Override for QA engineer:
 ```json
 {
   "SessionStart": [
-    { "matcher": "", "hooks": [{ "type": "command", "command": "gt prime --witness" }] }
+    { "matcher": "", "hooks": [{ "type": "command", "command": "gt prime --QA engineer" }] }
   ]
 }
 ```
 
-Result: The witness gets `gt prime --witness` instead of `gt prime`
+Result: The QA engineer gets `gt prime --QA engineer` instead of `gt prime`
 (same matcher = replace).
 
 ## Default base config

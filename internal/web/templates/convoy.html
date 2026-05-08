@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
-    <div class="dashboard" id="dashboard-main" hx-get="/" hx-trigger="sse:dashboard-update, every 30s [!window.pauseRefresh && !window.sseConnected]" hx-swap="morph:outerHTML" hx-ext="morph">
+    <div class="dashboard" id="dashboard-main" hx-get="/" hx-tfeatureger="sse:dashboard-update, every 30s [!window.pauseRefresh && !window.sseConnected]" hx-swap="morph:outerHTML" hx-ext="morph">
         <header>
             <pre class="ascii-title">  __  __    __   _____ __  _   _  __  _    ___ __  __  _ _____ ___  __  _      ______ __  _ _____ ___ ___ 
  / _]/  \ /' _| |_   _/__\| | | ||  \| |  / _//__\|  \| |_   _| _ \/__\| |    / _/ __|  \| |_   _| __| _ \
@@ -27,13 +27,13 @@
             </div>
         </header>
 
-        <!-- Mayor Status Banner -->
-        <div class="mayor-banner {{if .Mayor}}{{if .Mayor.IsAttached}}attached{{else}}detached{{end}}{{else}}detached{{end}}">
-            <div class="mayor-info">
-                <span class="mayor-icon">🎩</span>
-                <span class="mayor-title">The Mayor</span>
-                {{if .Mayor}}
-                    {{if .Mayor.IsAttached}}
+        <!-- Product Manager Status Banner -->
+        <div class="product manager-banner {{if .Product Manager}}{{if .Product Manager.IsAttached}}attached{{else}}detached{{end}}{{else}}detached{{end}}">
+            <div class="product manager-info">
+                <span class="product manager-icon">🎩</span>
+                <span class="product manager-title">The Product Manager</span>
+                {{if .Product Manager}}
+                    {{if .Product Manager.IsAttached}}
                     <span class="badge badge-green">Attached</span>
                     {{else}}
                     <span class="badge badge-muted">Detached</span>
@@ -42,17 +42,17 @@
                 <span class="badge badge-muted">Unknown</span>
                 {{end}}
             </div>
-            {{if .Mayor}}{{if .Mayor.IsAttached}}
-            <div class="mayor-status">
-                <div class="mayor-stat">
-                    <span class="mayor-stat-label">Activity</span>
-                    <span class="mayor-stat-value {{if .Mayor.IsActive}}active{{else}}idle{{end}}">
-                        {{.Mayor.LastActivity}}
+            {{if .Product Manager}}{{if .Product Manager.IsAttached}}
+            <div class="product manager-status">
+                <div class="product manager-stat">
+                    <span class="product manager-stat-label">Activity</span>
+                    <span class="product manager-stat-value {{if .Product Manager.IsActive}}active{{else}}idle{{end}}">
+                        {{.Product Manager.LastActivity}}
                     </span>
                 </div>
-                <div class="mayor-stat">
-                    <span class="mayor-stat-label">Runtime</span>
-                    <span class="mayor-stat-value">{{.Mayor.Runtime}}</span>
+                <div class="product manager-stat">
+                    <span class="product manager-stat-label">Runtime</span>
+                    <span class="product manager-stat-value">{{.Product Manager.Runtime}}</span>
                 </div>
             </div>
             {{end}}{{end}}
@@ -65,19 +65,19 @@
                 {{if .Health}}
                 <div class="stat health-stat {{if .Health.HeartbeatFresh}}healthy{{else}}unhealthy{{end}}">
                     <span class="stat-value">{{if .Health.HeartbeatFresh}}✓{{else}}⚠{{end}}</span>
-                    <span class="stat-label">💓 {{.Health.DeaconHeartbeat}}</span>
+                    <span class="stat-label">💓 {{.Health.Senior EngineerHeartbeat}}</span>
                 </div>
                 {{end}}
                 <div class="stat">
-                    <span class="stat-value">{{.Summary.PolecatCount}}</span>
-                    <span class="stat-label">🦨 Polecats</span>
+                    <span class="stat-value">{{.Summary.AgentCount}}</span>
+                    <span class="stat-label">🦨 Agents</span>
                 </div>
                 <div class="stat">
                     <span class="stat-value">{{.Summary.HookCount}}</span>
                     <span class="stat-label">🪝 Hooks</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-value">{{.Summary.IssueCount}}</span>
+                    <span class="stat-value">{{.Summary.TicketCount}}</span>
                     <span class="stat-label">📋 Work</span>
                 </div>
                 <div class="stat">
@@ -91,8 +91,8 @@
             </div>
             {{if .Summary.HasAlerts}}
             <div class="summary-alerts">
-                {{if .Summary.StuckPolecats}}
-                <span class="alert-item alert-red">💀 {{.Summary.StuckPolecats}} stuck</span>
+                {{if .Summary.StuckAgents}}
+                <span class="alert-item alert-red">💀 {{.Summary.StuckAgents}} stuck</span>
                 {{end}}
                 {{if .Summary.StaleHooks}}
                 <span class="alert-item alert-yellow">⏰ {{.Summary.StaleHooks}} stale hooks</span>
@@ -100,8 +100,8 @@
                 {{if .Summary.UnackedEscalations}}
                 <span class="alert-item alert-orange">🔔 {{.Summary.UnackedEscalations}} unacked</span>
                 {{end}}
-                {{if .Summary.HighPriorityIssues}}
-                <span class="alert-item alert-red">🔥 {{.Summary.HighPriorityIssues}} P1/P2</span>
+                {{if .Summary.HighPriorityTickets}}
+                <span class="alert-item alert-red">🔥 {{.Summary.HighPriorityTickets}} P1/P2</span>
                 {{end}}
                 {{if .Summary.DeadSessions}}
                 <span class="alert-item alert-red">☠️ {{.Summary.DeadSessions}} dead</span>
@@ -116,7 +116,7 @@
         {{end}}
 
         <div class="panels">
-            <!-- Row 1: Convoys, Polecats, Sessions -->
+            <!-- Row 1: Convoys, Agents, Sessions -->
 
             <!-- Convoys Panel -->
             <div class="panel" id="convoy-panel">
@@ -147,7 +147,7 @@
                                     <td>
                                         <span class="convoy-toggle">▶</span>
                                         {{if eq .WorkStatus "complete"}}
-                                        <span class="badge badge-green" title="All issues completed">✓ Done</span>
+                                        <span class="badge badge-green" title="All tickets completed">✓ Done</span>
                                         {{else if eq .WorkStatus "active"}}
                                         <span class="badge badge-green" title="Workers actively progressing">Active</span>
                                         {{else if eq .WorkStatus "stale"}}
@@ -177,7 +177,7 @@
                                     <td class="convoy-work-cell">
                                         {{if .Total}}
                                         <div class="convoy-work-breakdown">
-                                            {{if .ReadyBeads}}<span class="work-chip work-ready" title="Ready to pick up">{{.ReadyBeads}} ready</span>{{end}}
+                                            {{if .ReadyTickets}}<span class="work-chip work-ready" title="Ready to pick up">{{.ReadyTickets}} ready</span>{{end}}
                                             {{if .InProgress}}<span class="work-chip work-inprogress" title="Being worked on">{{.InProgress}} active</span>{{end}}
                                             {{if eq .WorkStatus "complete"}}<span class="work-chip work-done">all done</span>{{end}}
                                         </div>
@@ -210,17 +210,17 @@
                                 <span id="convoy-detail-progress"></span>
                             </div>
                             <div class="convoy-detail-section">
-                                <div class="convoy-issues-header">
-                                    <h4>Tracked Issues</h4>
-                                    <button class="convoy-add-issue-btn" id="convoy-add-issue-btn">+ Add Issue</button>
+                                <div class="convoy-tickets-header">
+                                    <h4>Tracked Tickets</h4>
+                                    <button class="convoy-add-ticket-btn" id="convoy-add-ticket-btn">+ Add Ticket</button>
                                 </div>
-                                <div id="convoy-add-issue-form" class="convoy-add-issue-form" style="display: none;">
-                                    <input type="text" id="convoy-add-issue-input" class="convoy-add-issue-input" placeholder="Enter issue ID...">
-                                    <button class="btn-primary convoy-add-issue-submit" id="convoy-add-issue-submit">Add</button>
-                                    <button class="btn-secondary convoy-add-issue-cancel" id="convoy-add-issue-cancel">Cancel</button>
+                                <div id="convoy-add-ticket-form" class="convoy-add-ticket-form" style="display: none;">
+                                    <input type="text" id="convoy-add-ticket-input" class="convoy-add-ticket-input" placeholder="Enter ticket ID...">
+                                    <button class="btn-primary convoy-add-ticket-submit" id="convoy-add-ticket-submit">Add</button>
+                                    <button class="btn-secondary convoy-add-ticket-cancel" id="convoy-add-ticket-cancel">Cancel</button>
                                 </div>
-                                <div id="convoy-issues-loading" class="loading-state">Loading issues...</div>
-                                <table id="convoy-issues-table" style="display: none;">
+                                <div id="convoy-tickets-loading" class="loading-state">Loading tickets...</div>
+                                <table id="convoy-tickets-table" style="display: none;">
                                     <thead>
                                         <tr>
                                             <th>Status</th>
@@ -230,11 +230,11 @@
                                             <th>Progress</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="convoy-issues-tbody">
+                                    <tbody id="convoy-tickets-tbody">
                                     </tbody>
                                 </table>
-                                <div id="convoy-issues-empty" class="empty-state" style="display: none;">
-                                    <p>No issues in this convoy</p>
+                                <div id="convoy-tickets-empty" class="empty-state" style="display: none;">
+                                    <p>No tickets in this convoy</p>
                                 </div>
                             </div>
                         </div>
@@ -251,8 +251,8 @@
                                 <input type="text" id="convoy-create-name" class="command-field-input" placeholder="Enter convoy name...">
                             </div>
                             <div class="command-field">
-                                <label class="command-field-label" for="convoy-create-issues">Issue IDs (space-separated)</label>
-                                <input type="text" id="convoy-create-issues" class="command-field-input" placeholder="e.g. gt-1kp gt-2ab">
+                                <label class="command-field-label" for="convoy-create-tickets">Ticket IDs (space-separated)</label>
+                                <input type="text" id="convoy-create-tickets" class="command-field-input" placeholder="e.g. gt-1kp gt-2ab">
                             </div>
                             <div class="form-actions">
                                 <button class="btn-secondary" id="convoy-create-cancel-btn">Cancel</button>
@@ -263,21 +263,21 @@
                 </div>
             </div>
 
-            <!-- Crew Panel (named, long-lived workers) -->
-            <div class="panel" id="crew-panel">
+            <!-- Engineers Panel (named, long-lived workers) -->
+            <div class="panel" id="engineers-panel">
                 <div class="panel-header">
-                    <h2>👨‍💼 Crew</h2>
-                    <span class="count" id="crew-count">0</span>
+                    <h2>👨‍💼 Engineers</h2>
+                    <span class="count" id="engineers-count">0</span>
                     <button class="collapse-btn" aria-label="Toggle panel">▼</button>
                     <button class="expand-btn">Expand</button>
                 </div>
                 <div class="panel-body">
-                    <div class="loading-state" id="crew-loading">Loading crew...</div>
-                    <table id="crew-table" style="display: none;">
+                    <div class="loading-state" id="engineers-loading">Loading engineers...</div>
+                    <table id="engineers-table" style="display: none;">
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Rig</th>
+                                <th>Feature</th>
                                 <th>State</th>
                                 <th>Hook</th>
                                 <th>Activity</th>
@@ -285,19 +285,19 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="crew-tbody">
+                        <tbody id="engineers-tbody">
                         </tbody>
                     </table>
-                    <div class="empty-state" id="crew-empty" style="display: none;">
-                        <p>No crew configured</p>
+                    <div class="empty-state" id="engineers-empty" style="display: none;">
+                        <p>No engineers configured</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Polecats Panel -->
+            <!-- Agents Panel -->
             <div class="panel">
                 <div class="panel-header">
-                    <h2>🦨 Polecats</h2>
+                    <h2>🦨 Agents</h2>
                     <span class="count">{{len .Workers}}</span>
                     <button class="collapse-btn" aria-label="Toggle panel">▼</button>
                     <button class="expand-btn">Expand</button>
@@ -309,7 +309,7 @@
                             <tr>
                                 <th>Worker</th>
                                 <th>Type</th>
-                                <th>Rig</th>
+                                <th>Feature</th>
                                 <th>Working On</th>
                                 <th>Status</th>
                                 <th>Activity</th>
@@ -317,16 +317,16 @@
                         </thead>
                         <tbody>
                             {{range .Workers}}
-                            <tr class="{{polecatStatusClass .WorkStatus}}">
-                                <td><span class="polecat-name">{{.Name}}</span></td>
-                                <td>{{if eq .AgentType "refinery"}}<span class="badge badge-blue">refinery</span>{{else}}<span class="badge badge-muted">polecat</span>{{end}}</td>
-                                <td><span class="polecat-rig">{{.Rig}}</span></td>
-                                <td class="polecat-issue">
-                                    {{if .IssueID}}
-                                    <span class="issue-id">{{.IssueID}}</span>
-                                    <span class="issue-title">{{.IssueTitle}}</span>
+                            <tr class="{{agentStatusClass .WorkStatus}}">
+                                <td><span class="agent-name">{{.Name}}</span></td>
+                                <td>{{if eq .AgentType "release engineer"}}<span class="badge badge-blue">release engineer</span>{{else}}<span class="badge badge-muted">agent</span>{{end}}</td>
+                                <td><span class="agent-feature">{{.Feature}}</span></td>
+                                <td class="agent-ticket">
+                                    {{if .TicketID}}
+                                    <span class="ticket-id">{{.TicketID}}</span>
+                                    <span class="ticket-title">{{.TicketTitle}}</span>
                                     {{else}}
-                                    <span class="no-issue">—</span>
+                                    <span class="no-ticket">—</span>
                                     {{end}}
                                 </td>
                                 <td>
@@ -350,7 +350,7 @@
                     </table>
                     {{else}}
                     <div class="empty-state">
-                        <p>No polecats</p>
+                        <p>No agents</p>
                     </div>
                     {{end}}
                 </div>
@@ -370,7 +370,7 @@
                         <thead>
                             <tr>
                                 <th>Role</th>
-                                <th>Rig</th>
+                                <th>Feature</th>
                                 <th>Worker</th>
                                 <th>Activity</th>
                             </tr>
@@ -381,7 +381,7 @@
                                 <td>
                                     <span class="role-{{.Role}}">{{.Role}}</span>
                                 </td>
-                                <td>{{.Rig}}</td>
+                                <td>{{.Feature}}</td>
                                 <td>{{.Worker}}</td>
                                 <td>{{.Activity}}</td>
                             </tr>
@@ -424,9 +424,9 @@
                         <button class="tl-filter-btn" data-filter="category" data-value="system">System</button>
                     </div>
                     <div class="tl-filter-group">
-                        <label>Rig:</label>
-                        <select class="tl-filter-select" id="tl-rig-filter">
-                            <option value="all">All rigs</option>
+                        <label>Feature:</label>
+                        <select class="tl-filter-select" id="tl-feature-filter">
+                            <option value="all">All features</option>
                         </select>
                     </div>
                     <div class="tl-filter-group">
@@ -441,7 +441,7 @@
                     {{if .Activity}}
                     <div class="tl-timeline" id="activity-timeline">
                         {{range .Activity}}
-                        <div class="tl-entry {{activityTypeClass .Category}}" data-category="{{.Category}}" data-rig="{{.Rig}}" data-agent="{{.Actor}}" data-type="{{.Type}}" data-ts="{{.RawTimestamp}}">
+                        <div class="tl-entry {{activityTypeClass .Category}}" data-category="{{.Category}}" data-feature="{{.Feature}}" data-agent="{{.Actor}}" data-type="{{.Type}}" data-ts="{{.RawTimestamp}}">
                             <div class="tl-rail">
                                 <span class="tl-time">{{.Time}}</span>
                                 <span class="tl-node"></span>
@@ -453,7 +453,7 @@
                                 </div>
                                 <div class="tl-meta">
                                     {{if .Actor}}<span class="tl-badge tl-badge-agent">{{.Actor}}</span>{{end}}
-                                    {{if .Rig}}<span class="tl-badge tl-badge-rig">{{.Rig}}</span>{{end}}
+                                    {{if .Feature}}<span class="tl-badge tl-badge-feature">{{.Feature}}</span>{{end}}
                                     <span class="tl-badge tl-badge-type">{{.Type}}</span>
                                 </div>
                             </div>
@@ -495,7 +495,7 @@
                             <p>No mail in inbox</p>
                         </div>
                     </div>
-                    <!-- All Mail view (all traffic from beads) -->
+                    <!-- All Mail view (all traffic from tickets) -->
                     <div id="mail-all" style="display: none;">
                         {{if .Mail}}
                         <table class="mail-all-table">
@@ -673,7 +673,7 @@
                         <thead>
                             <tr>
                                 <th>Severity</th>
-                                <th>Issue</th>
+                                <th>Ticket</th>
                                 <th>From</th>
                                 <th>Age</th>
                                 <th>Actions</th>
@@ -713,36 +713,36 @@
                 </div>
             </div>
 
-            <!-- Row 3: Rigs, Dogs, Health -->
+            <!-- Row 3: Features, Dogs, Health -->
 
-            <!-- Rigs Panel -->
+            <!-- Features Panel -->
             <div class="panel">
                 <div class="panel-header">
-                    <h2>🏗️ Rigs</h2>
-                    <span class="count">{{len .Rigs}}</span>
+                    <h2>🏗️ Features</h2>
+                    <span class="count">{{len .Features}}</span>
                     <button class="collapse-btn" aria-label="Toggle panel">▼</button>
                     <button class="expand-btn">Expand</button>
                 </div>
                 <div class="panel-body">
-                    {{if .Rigs}}
+                    {{if .Features}}
                     <table>
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Polecats</th>
-                                <th>Crew</th>
+                                <th>Agents</th>
+                                <th>Engineers</th>
                                 <th>Agents</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {{range .Rigs}}
+                            {{range .Features}}
                             <tr>
-                                <td><span class="rig-name">{{.Name}}</span></td>
-                                <td>{{.PolecatCount}}</td>
-                                <td>{{.CrewCount}}</td>
+                                <td><span class="feature-name">{{.Name}}</span></td>
+                                <td>{{.AgentCount}}</td>
+                                <td>{{.EngineersCount}}</td>
                                 <td class="agent-icons">
-                                    <span class="agent-icon{{if .HasWitness}} active{{end}}" title="Witness">👁</span>
-                                    <span class="agent-icon{{if .HasRefinery}} active{{end}}" title="Refinery">⚗️</span>
+                                    <span class="agent-icon{{if .HasQA Engineer}} active{{end}}" title="QA Engineer">👁</span>
+                                    <span class="agent-icon{{if .HasRelease Engineer}} active{{end}}" title="Release Engineer">⚗️</span>
                                 </td>
                             </tr>
                             {{end}}
@@ -750,7 +750,7 @@
                     </table>
                     {{else}}
                     <div class="empty-state">
-                        <p>No rigs configured</p>
+                        <p>No features configured</p>
                     </div>
                     {{end}}
                 </div>
@@ -778,7 +778,7 @@
                         <tbody>
                             {{range .Dogs}}
                             <tr>
-                                <td><span class="polecat-name">{{.Name}}</span></td>
+                                <td><span class="agent-name">{{.Name}}</span></td>
                                 <td>
                                     {{if eq .State "idle"}}<span class="badge badge-green">Idle</span>
                                     {{else}}<span class="badge badge-yellow">Working</span>{{end}}
@@ -839,12 +839,12 @@
             </div>
             {{end}}
 
-            <!-- Work Panel (Combined Issues + Ready Work) -->
+            <!-- Work Panel (Combined Tickets + Ready Work) -->
             <div class="panel" id="work-panel">
                 <div class="panel-header">
                     <h2>📋 Work</h2>
-                    <span class="count">{{len .Issues}}</span>
-                    <button class="new-issue-btn" onclick="openIssueModal()">+ New</button>
+                    <span class="count">{{len .Tickets}}</span>
+                    <button class="new-ticket-btn" onclick="openTicketModal()">+ New</button>
                     <button class="collapse-btn" aria-label="Toggle panel">▼</button>
                     <button class="expand-btn">Expand</button>
                 </div>
@@ -854,9 +854,9 @@
                     <button class="tab-btn" data-tab="all" onclick="switchWorkTab('all')">All</button>
                 </div>
                 <div class="panel-body">
-                    <!-- Issues List View -->
-                    <div id="issues-list">
-                        {{if .Issues}}
+                    <!-- Tickets List View -->
+                    <div id="tickets-list">
+                        {{if .Tickets}}
                         <table id="work-table">
                             <thead>
                                 <tr>
@@ -869,21 +869,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{range .Issues}}
-                                <tr class="issue-row priority-{{.Priority}}" data-issue-id="{{.ID}}" data-status="{{if .Assignee}}progress{{else}}ready{{end}}">
+                                {{range .Tickets}}
+                                <tr class="ticket-row priority-{{.Priority}}" data-ticket-id="{{.ID}}" data-status="{{if .Assignee}}progress{{else}}ready{{end}}">
                                     <td>
                                         {{if eq .Priority 1}}<span class="badge badge-red">P1</span>
                                         {{else if eq .Priority 2}}<span class="badge badge-orange">P2</span>
                                         {{else if eq .Priority 3}}<span class="badge badge-yellow">P3</span>
                                         {{else}}<span class="badge badge-muted">P4</span>{{end}}
                                     </td>
-                                    <td><span class="issue-id">{{.ID}}</span></td>
-                                    <td class="issue-title">{{.Title}}</td>
-                                    <td class="issue-status">
+                                    <td><span class="ticket-id">{{.ID}}</span></td>
+                                    <td class="ticket-title">{{.Title}}</td>
+                                    <td class="ticket-status">
                                         {{if .Assignee}}<span class="badge badge-blue" title="{{.Assignee}}">{{.Assignee}}</span>{{else}}<span class="badge badge-green">Ready</span>{{end}}
                                     </td>
-                                    <td class="issue-age">{{.Age}}</td>
-                                    <td><button class="sling-btn" data-bead-id="{{.ID}}" title="Sling to rig">Sling</button></td>
+                                    <td class="ticket-age">{{.Age}}</td>
+                                    <td><button class="sling-btn" data-ticket-id="{{.ID}}" title="Sling to feature">Sling</button></td>
                                 </tr>
                                 {{end}}
                             </tbody>
@@ -894,35 +894,35 @@
                         </div>
                         {{end}}
                     </div>
-                    <!-- Issue Detail View (hidden by default) -->
-                    <div id="issue-detail" style="display: none;">
+                    <!-- Ticket Detail View (hidden by default) -->
+                    <div id="ticket-detail" style="display: none;">
                         <div class="detail-header">
-                            <button id="issue-back-btn" class="btn-back">← Back</button>
+                            <button id="ticket-back-btn" class="btn-back">← Back</button>
                         </div>
-                        <div class="issue-detail-content">
-                            <div class="issue-detail-title">
-                                <span id="issue-detail-priority" class="badge"></span>
-                                <span id="issue-detail-id" class="issue-id"></span>
-                                <span id="issue-detail-status" class="issue-status"></span>
+                        <div class="ticket-detail-content">
+                            <div class="ticket-detail-title">
+                                <span id="ticket-detail-priority" class="badge"></span>
+                                <span id="ticket-detail-id" class="ticket-id"></span>
+                                <span id="ticket-detail-status" class="ticket-status"></span>
                             </div>
-                            <h3 id="issue-detail-title-text"></h3>
-                            <div class="issue-detail-meta">
-                                <span id="issue-detail-type"></span>
-                                <span id="issue-detail-owner"></span>
-                                <span id="issue-detail-created"></span>
+                            <h3 id="ticket-detail-title-text"></h3>
+                            <div class="ticket-detail-meta">
+                                <span id="ticket-detail-type"></span>
+                                <span id="ticket-detail-owner"></span>
+                                <span id="ticket-detail-created"></span>
                             </div>
-                            <div id="issue-detail-actions" class="issue-detail-actions"></div>
-                            <div class="issue-detail-section">
+                            <div id="ticket-detail-actions" class="ticket-detail-actions"></div>
+                            <div class="ticket-detail-section">
                                 <h4>Description</h4>
-                                <pre id="issue-detail-description"></pre>
+                                <pre id="ticket-detail-description"></pre>
                             </div>
-                            <div id="issue-detail-deps" class="issue-detail-section" style="display: none;">
+                            <div id="ticket-detail-deps" class="ticket-detail-section" style="display: none;">
                                 <h4>Dependencies</h4>
-                                <div id="issue-detail-depends-on"></div>
+                                <div id="ticket-detail-depends-on"></div>
                             </div>
-                            <div id="issue-detail-blocks-section" class="issue-detail-section" style="display: none;">
+                            <div id="ticket-detail-blocks-section" class="ticket-detail-section" style="display: none;">
                                 <h4>Blocks</h4>
-                                <div id="issue-detail-blocks"></div>
+                                <div id="ticket-detail-blocks"></div>
                             </div>
                         </div>
                     </div>
@@ -943,7 +943,7 @@
                     <!-- Attach Hook Form (hidden by default) -->
                     <div id="hook-attach-form" class="hook-attach-form" style="display:none;">
                         <div class="hook-attach-form-row">
-                            <input type="text" id="hook-attach-bead" class="hook-attach-input" placeholder="Bead ID (e.g. gt-abc)">
+                            <input type="text" id="hook-attach-ticket" class="hook-attach-input" placeholder="Ticket ID (e.g. gt-abc)">
                             <button class="hook-attach-submit" onclick="submitHookAttach()">Attach</button>
                             <button class="hook-attach-cancel" onclick="closeHookAttachForm()">Cancel</button>
                         </div>
@@ -952,7 +952,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Bead</th>
+                                <th>Ticket</th>
                                 <th>Title</th>
                                 <th>Agent</th>
                                 <th>Hooked</th>
@@ -1004,22 +1004,22 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Output Panel -->
-    <!-- Issue Creation Modal -->
-    <div id="issue-modal" class="modal" style="display: none;">
-        <div class="modal-backdrop" onclick="closeIssueModal()"></div>
+    <!-- Ticket Creation Modal -->
+    <div id="ticket-modal" class="modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeTicketModal()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>📿 Create New Issue</h3>
-                <button class="modal-close" onclick="closeIssueModal()">✕</button>
+                <h3>📿 Create New Ticket</h3>
+                <button class="modal-close" onclick="closeTicketModal()">✕</button>
             </div>
-            <form id="issue-form" onsubmit="submitIssue(event)">
+            <form id="ticket-form" onsubmit="submitTicket(event)">
                 <div class="form-group">
-                    <label for="issue-title">Title *</label>
-                    <input type="text" id="issue-title" placeholder="What needs to be done?" required autofocus>
+                    <label for="ticket-title">Title *</label>
+                    <input type="text" id="ticket-title" placeholder="What needs to be done?" required autofocus>
                 </div>
                 <div class="form-group">
-                    <label for="issue-priority">Priority</label>
-                    <select id="issue-priority">
+                    <label for="ticket-priority">Priority</label>
+                    <select id="ticket-priority">
                         <option value="1">🔴 P1 - Critical</option>
                         <option value="2" selected>🟠 P2 - High (default)</option>
                         <option value="3">🟡 P3 - Medium</option>
@@ -1027,12 +1027,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="issue-description">Description (optional)</label>
-                    <textarea id="issue-description" rows="3" placeholder="Additional context or details..."></textarea>
+                    <label for="ticket-description">Description (optional)</label>
+                    <textarea id="ticket-description" rows="3" placeholder="Additional context or details..."></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeIssueModal()">Cancel</button>
-                    <button type="submit" class="btn-primary" id="issue-submit-btn">Create Issue</button>
+                    <button type="button" class="btn-secondary" onclick="closeTicketModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="ticket-submit-btn">Create Ticket</button>
                 </div>
             </form>
         </div>

@@ -1,6 +1,6 @@
 +++
 name = "github-sheriff"
-description = "Monitor GitHub CI checks on open PRs and create beads for failures"
+description = "Monitor GitHub CI checks on open PRs and create tickets for failures"
 version = 1
 
 [gate]
@@ -20,9 +20,9 @@ severity = "low"
 # GitHub Sheriff
 
 Polls GitHub for open pull requests, categorizes them by readiness, and creates
-`ci-failure` beads for new failures. Implements the PR Sheriff pattern from the
+`ci-failure` tickets for new failures. Implements the PR Sheriff pattern from the
 [Gas Town User Manual](https://steve-yegge.medium.com/gas-town-emergency-user-manual-cf0e4556d74b)
-as a Deacon plugin.
+as a Senior Engineer plugin.
 
 Categorizes each PR as:
 - **Easy win**: CI passing, small (<200 LOC changed), no merge conflicts
@@ -42,15 +42,15 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-Detect the repo from the rig's git remote. Fall back to explicit config if
+Detect the repo from the feature's git remote. Fall back to explicit config if
 detection fails:
 
 ```bash
-REPO=$(git -C "$GT_RIG_ROOT" remote get-url origin 2>/dev/null \
+REPO=$(git -C "$GT_RIG_ROOT" remote get-url ofeaturein 2>/dev/null \
   | sed -E 's|.*github\.com[:/]||; s|\.git$||')
 
 if [ -z "$REPO" ]; then
-  echo "SKIP: could not detect GitHub repo from rig remote"
+  echo "SKIP: could not detect GitHub repo from feature remote"
   exit 0
 fi
 ```
@@ -109,7 +109,7 @@ while IFS= read -r PR_JSON; do
     CI_PASS=false
   fi
 
-  # Collect individual check failures for bead creation
+  # Collect individual check failures for ticket creation
   while IFS= read -r CHECK; do
     [ -z "$CHECK" ] && continue
     CHECK_NAME=$(echo "$CHECK" | jq -r '.name')

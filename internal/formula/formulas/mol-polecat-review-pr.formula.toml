@@ -1,26 +1,26 @@
 description = """
 Review an external PR and decide on merge/reject/revise.
 
-This molecule guides a polecat through reviewing a pull request from an external
-contributor. The polecat reviews code quality, tests, and alignment with project
-standards, then approves, requests changes, or files followup beads.
+This molecule guides a agent through reviewing a pull request from an external
+contributor. The agent reviews code quality, tests, and alignment with project
+standards, then approves, requests changes, or files followup tickets.
 
-## Polecat Contract (Self-Cleaning Model)
+## Agent Contract (Self-Cleaning Model)
 
 You are a self-cleaning worker. You:
 1. Receive work via your hook (pinned molecule + PR reference)
 2. Work through molecule steps using `bd mol current` / `bd close <step>`
 3. Complete and self-clean via `gt done` (submit findings + nuke yourself)
-4. You are GONE - your review is recorded in beads
+4. You are GONE - your review is recorded in tickets
 
 **Self-cleaning:** When you run `gt done`, you submit your findings, nuke your
 sandbox, and exit. There is no idle state. Done means gone.
 
 **Important:** This formula defines the template. Your molecule already has step
-beads created from it. Use `bd mol current` to find them - do NOT read this file directly.
+tickets created from it. Use `bd mol current` to find them - do NOT read this file directly.
 
 **You do NOT:**
-- Merge the PR yourself (maintainer or Refinery does that)
+- Merge the PR yourself (maintainer or Release Engineer does that)
 - Push to the PR branch (it's external)
 - Wait for contributor response (you're done after review)
 
@@ -28,8 +28,8 @@ beads created from it. Use `bd mol current` to find them - do NOT read this file
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| pr_url | hook_bead | The PR URL to review |
-| issue | hook_bead | The tracking issue for this review task |
+| pr_url | hook_ticket | The PR URL to review |
+| ticket | hook_ticket | The tracking ticket for this review task |
 
 ## Failure Modes
 
@@ -37,9 +37,9 @@ beads created from it. Use `bd mol current` to find them - do NOT read this file
 |-----------|--------|
 | PR is stale/unmergeable | Note in review, request rebase |
 | Tests fail | Note in review, request fixes |
-| Major issues found | File followup beads, request changes |
-| Unclear requirements | Mail Witness for guidance |"""
-formula = "mol-polecat-review-pr"
+| Major tickets found | File followup tickets, request changes |
+| Unclear requirements | Mail QA Engineer for guidance |"""
+formula = "mol-agent-review-pr"
 version = 1
 
 [[steps]]
@@ -51,17 +51,17 @@ Initialize your session and understand the PR you're reviewing.
 **1. Prime your environment:**
 ```bash
 gt prime                    # Load role context
-bd prime                    # Load beads context
+bd prime                    # Load tickets context
 ```
 
 **2. Check your hook:**
 ```bash
-gt hook               # Shows your pinned molecule and hook_bead
+gt hook               # Shows your pinned molecule and hook_ticket
 ```
 
-The hook_bead references the PR to review. Read the tracking issue:
+The hook_ticket references the PR to review. Read the tracking ticket:
 ```bash
-bd show {{issue}}           # Full issue details including PR URL
+bd show {{ticket}}           # Full ticket details including PR URL
 ```
 
 **3. Fetch the PR:**
@@ -73,7 +73,7 @@ gh pr diff {{pr_url}}       # See the actual changes
 **4. Understand the PR:**
 - What is the PR trying to accomplish?
 - What files are changed?
-- Is there a linked issue?
+- Is there a linked ticket?
 - Does the PR description explain the "why"?
 
 **5. Check PR status:**
@@ -96,7 +96,7 @@ Perform a thorough code review of the PR.
 gh pr diff {{pr_url}}
 ```
 
-**2. Check for common issues:**
+**2. Check for common tickets:**
 
 | Category | Look For |
 |----------|----------|
@@ -112,13 +112,13 @@ gh pr diff {{pr_url}}
 - Is it consistent with existing patterns?
 - Are there any red flags?
 
-**4. Note issues found:**
+**4. Note tickets found:**
 Keep a running list of:
-- Blocking issues (must fix before merge)
+- Blocking tickets (must fix before merge)
 - Suggestions (nice to have)
 - Questions (need clarification)
 
-**Exit criteria:** You have reviewed all changes and noted issues."""
+**Exit criteria:** You have reviewed all changes and noted tickets."""
 
 [[steps]]
 id = "check-tests"
@@ -140,7 +140,7 @@ All required checks should pass. If not, note which are failing.
 - Are tests readable and maintainable?
 
 **3. If tests are missing:**
-Note this as a blocking issue - new code should have tests.
+Note this as a blocking ticket - new code should have tests.
 
 **4. Check for test-only changes:**
 If PR is test-only, ensure tests are meaningful and not just
@@ -160,10 +160,10 @@ Make your review decision.
 | Situation | Decision |
 |-----------|----------|
 | Clean code, tests pass, good scope | APPROVE |
-| Minor issues, easily fixed | REQUEST_CHANGES (with specific feedback) |
-| Major issues, needs rework | REQUEST_CHANGES (with detailed explanation) |
-| Unclear requirements or scope | NEEDS_DISCUSSION (mail Witness) |
-| Security concern | BLOCK (mail Witness immediately) |
+| Minor tickets, easily fixed | REQUEST_CHANGES (with specific feedback) |
+| Major tickets, needs rework | REQUEST_CHANGES (with detailed explanation) |
+| Unclear requirements or scope | NEEDS_DISCUSSION (mail QA Engineer) |
+| Security concern | BLOCK (mail QA Engineer immediately) |
 
 **1. If APPROVE:**
 The PR is ready to merge. Note any minor suggestions as comments
@@ -175,16 +175,16 @@ The contributor should be able to act on your feedback.
 
 **3. If NEEDS_DISCUSSION:**
 ```bash
-gt mail send {{rig}}/witness -s "PR review needs discussion" -m "PR: {{pr_url}}
-Issue: {{issue}}
+gt mail send {{feature}}/QA engineer -s "PR review needs discussion" -m "PR: {{pr_url}}
+Ticket: {{ticket}}
 Question: <what needs clarification>"
 ```
 
 **4. If BLOCK (security):**
 ```bash
-gt mail send {{rig}}/witness -s "SECURITY: PR blocked" -m "PR: {{pr_url}}
-Issue: {{issue}}
-Concern: <security issue found>"
+gt mail send {{feature}}/QA engineer -s "SECURITY: PR blocked" -m "PR: {{pr_url}}
+Ticket: {{ticket}}
+Concern: <security ticket found>"
 ```
 
 **Exit criteria:** You've made a clear decision with rationale."""
@@ -216,17 +216,17 @@ or additional `gh pr comment` calls.
 
 [[steps]]
 id = "file-followups"
-title = "File beads for any followup work"
+title = "File tickets for any followup work"
 needs = ["submit-review"]
 description = """
-Create beads for any followup work discovered during review.
+Create tickets for any followup work discovered during review.
 
-**1. For issues found that are outside PR scope:**
+**1. For tickets found that are outside PR scope:**
 ```bash
 bd create --type=bug --title="Found during PR review: <description>" \
   --description="Discovered while reviewing {{pr_url}}.
 
-  <details of the issue>"
+  <details of the ticket>"
 ```
 
 **2. For improvements suggested but not required:**
@@ -237,18 +237,18 @@ bd create --type=task --title="Improvement: <description>" \
   <details of the improvement>"
 ```
 
-**3. Update the tracking issue:**
+**3. Update the tracking ticket:**
 ```bash
-bd update {{issue}} --notes "Review complete. Decision: <APPROVE|REQUEST_CHANGES|etc>
-Followups filed: <list of bead IDs if any>"
+bd update {{ticket}} --notes "Review complete. Decision: <APPROVE|REQUEST_CHANGES|etc>
+Followups filed: <list of ticket IDs if any>"
 ```
 
-**4. Sync beads:**
+**4. Sync tickets:**
 ```bash
 bd sync
 ```
 
-**Exit criteria:** All followup work captured as beads."""
+**Exit criteria:** All followup work captured as tickets."""
 
 [[steps]]
 id = "complete-and-exit"
@@ -259,7 +259,7 @@ Signal completion and clean up. You cease to exist after this step.
 
 **Self-Cleaning Model:**
 Once you run `gt done`, you're gone. The command:
-1. Syncs beads
+1. Syncs tickets
 2. Nukes your sandbox
 3. Exits your session immediately
 
@@ -270,23 +270,23 @@ gt done
 ```
 
 **What happens next (not your concern):**
-- Maintainer or Refinery acts on your review
+- Maintainer or Release Engineer acts on your review
 - Contributor responds to feedback
 - PR gets merged, revised, or closed
 
 You are NOT involved in any of that. You're gone. Done means gone.
 
-**Exit criteria:** Beads synced, sandbox nuked, session exited."""
+**Exit criteria:** Tickets synced, sandbox nuked, session exited."""
 
 [vars]
 [vars.pr_url]
 description = "The PR URL to review"
 required = true
 
-[vars.issue]
-description = "The tracking issue for this review task"
+[vars.ticket]
+description = "The tracking ticket for this review task"
 required = true
 
-[vars.rig]
-description = "The rig this PR review is for"
+[vars.feature]
+description = "The feature this PR review is for"
 required = true

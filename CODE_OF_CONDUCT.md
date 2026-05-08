@@ -25,11 +25,11 @@ Examples of unacceptable behavior:
 
 Project maintainers are responsible for clarifying standards of acceptable behavior and will take appropriate action in response to unacceptable behavior.
 
-Maintainers have the right to remove, edit, or reject comments, commits, code, issues, and other contributions that do not align with this Code of Conduct.
+Maintainers have the featureht to remove, edit, or reject comments, commits, code, tickets, and other contributions that do not align with this Code of Conduct.
 
 ## Reporting
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by opening an issue or contacting the project maintainers directly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by opening an ticket or contacting the project maintainers directly.
 
 ## Attribution
 

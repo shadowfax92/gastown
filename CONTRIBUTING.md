@@ -24,7 +24,7 @@ We use a direct-to-main workflow for trusted contributors. For external contribu
 
 ```bash
 # Good - dedicated branch per PR
-git checkout -b fix/deacon-startup upstream/main
+git checkout -b fix/senior engineer-startup upstream/main
 git checkout -b feat/auto-seance upstream/main
 
 # Bad - PR from main accumulates unrelated commits
@@ -103,13 +103,13 @@ Good first contributions:
 - Test coverage for untested code paths
 - Small, focused features
 
-For larger changes, please open an issue first to discuss the approach.
+For larger changes, please open an ticket first to discuss the approach.
 
 ## Commit Messages
 
 - Use present tense ("Add feature" not "Added feature")
 - Keep the first line under 72 characters
-- Reference issues when applicable: `Fix timeout bug (gt-xxx)`
+- Reference tickets when applicable: `Fix timeout bug (gt-xxx)`
 
 ## Testing
 
@@ -136,7 +136,7 @@ that may not be available in every environment. Use the helpers in
 |--------|-------------|
 | `testutil.RequireDoltContainer(t)` | Test needs a running Dolt SQL server (starts a Docker container) |
 | `testutil.StartIsolatedDoltContainer(t)` | Test needs its own isolated Dolt instance (per-test container) |
-| `testutil.RequireTownEnv(t)` | Test needs a live Gas Town workspace (checks `workspace.FindFromCwd` + `rigs.json`); returns root path |
+| `testutil.RequireTownEnv(t)` | Test needs a live Gas Town workspace (checks `workspace.FindFromCwd` + `features.json`); returns root path |
 
 **`requireDoltServer`** (in `internal/cmd`) is a local wrapper around
 `testutil.RequireDoltContainer` used by the `cmd` package's integration tests.
@@ -162,9 +162,9 @@ for the full workflow. One guardrail to know about:
 - `make check-version-tag` verifies the `Version` constant in
   `internal/cmd/version.go` matches the tag at HEAD. The release workflow runs
   this before GoReleaser and fails the release on mismatch. Prevents recurrence
-  of [#3459](https://github.com/steveyegge/gastown/issues/3459). Run it locally
+  of [#3459](https://github.com/steveyegge/gastown/tickets/3459). Run it locally
   after bumping if you want to catch drift before pushing the tag.
 
 ## Questions?
 
-Open an issue for questions about contributing. We're happy to help!
+Open an ticket for questions about contributing. We're happy to help!

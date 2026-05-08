@@ -44,7 +44,7 @@ POST /lifecycle
 {
   "event": "started" | "ready" | "busy" | "idle" | "stopping" | "stopped",
   "run_id": "uuid",
-  "session_id": "gt-crew-max",
+  "session_id": "gt-engineers-max",
   "timestamp": "2026-03-01T15:00:00Z",
   "metadata": {}           // event-specific (e.g., exit_code for "stopped")
 }
@@ -77,8 +77,8 @@ POST /prompt
   "priority": "normal" | "urgent" | "system",
   "source": "nudge" | "mail" | "sling" | "prime",
   "metadata": {
-    "from": "gastown/crew/tom",
-    "bead_id": "gt-abc12"
+    "from": "gastown/engineers/tom",
+    "ticket_id": "gt-abc12"
   }
 }
 
@@ -108,7 +108,7 @@ POST /context
 {
   "run_id": "uuid",
   "sections": [
-    {"type": "role", "content": "You are a polecat worker..."},
+    {"type": "role", "content": "You are a agent worker..."},
     {"type": "work", "content": "AUTONOMOUS WORK MODE: gt-abc12..."},
     {"type": "mail", "content": "2 unread messages..."},
     {"type": "checkpoint", "content": "Previous session state..."},
@@ -133,9 +133,9 @@ POST /authorize
   "tool": "Bash",
   "input": {"command": "git push --force"},
   "context": {
-    "role": "polecat",
-    "rig": "gastown",
-    "bead_id": "gt-abc12"
+    "role": "agent",
+    "feature": "gastown",
+    "ticket_id": "gt-abc12"
   }
 }
 
@@ -150,7 +150,7 @@ Replaces: `PreToolUse` hook with exit code 2, PR-workflow guard, dangerous-comma
 guard, patrol-formula guard, per-agent `--dangerously-*` flags.
 
 **Permission model:**
-- Per-role permission sets (polecat: full, witness: read-only, crew: configurable)
+- Per-role permission sets (agent: full, QA engineer: read-only, engineers: configurable)
 - Guard rules as data, not shell scripts
 - Fail-closed: if GT is unreachable, block the tool call
 
@@ -201,8 +201,8 @@ GT assigns identity; the runtime authenticates.
 POST /identity
 {
   "run_id": "uuid",
-  "role": "polecat",
-  "rig": "gastown",
+  "role": "agent",
+  "feature": "gastown",
   "agent_name": "alpha",
   "session_id": "gt-gastown-alpha",
   "credentials": {
@@ -211,8 +211,8 @@ POST /identity
     "expires_at": "2026-03-02T00:00:00Z"
   },
   "env": {
-    "GT_ROLE": "gastown/polecats/alpha",
-    "BD_ACTOR": "gastown/polecats/alpha",
+    "GT_ROLE": "gastown/agents/alpha",
+    "BD_ACTOR": "gastown/agents/alpha",
     "GT_ROOT": "/Users/stevey/gt"
   }
 }
@@ -250,7 +250,7 @@ tree walking), `GetSessionActivity()` (tmux activity timestamp), heartbeat files
 `TouchSessionHeartbeat()`, zombie detection heuristics, spawn storm detection.
 
 **Context window pressure** is a new signal — the runtime knows how full its context
-is. GT can use this to trigger compaction/handoff before the agent degrades.
+is. GT can use this to tfeatureger compaction/handoff before the agent degrades.
 
 ## Transport
 

@@ -5,7 +5,7 @@
     // CSRF PROTECTION
     // ============================================
     // Inject dashboard token into all POST requests to prevent cross-site request forgery.
-    var _origFetch = window.fetch;
+    var _ofeatureFetch = window.fetch;
     var _csrfMeta = document.querySelector('meta[name="dashboard-token"]');
     var _csrfToken = _csrfMeta ? _csrfMeta.getAttribute('content') : '';
     window.fetch = function(url, opts) {
@@ -14,7 +14,7 @@
             opts.headers = opts.headers || {};
             opts.headers['X-Dashboard-Token'] = _csrfToken;
         }
-        return _origFetch.call(this, url, opts);
+        return _ofeatureFetch.call(this, url, opts);
     };
 
     // ============================================
@@ -40,10 +40,10 @@
 
         evtSource.addEventListener('dashboard-update', function(e) {
             if (window.pauseRefresh) return;
-            // Trigger HTMX to re-fetch the dashboard
+            // Tfeatureger HTMX to re-fetch the dashboard
             var dashboard = document.getElementById('dashboard-main');
             if (dashboard && typeof htmx !== 'undefined') {
-                htmx.trigger(dashboard, 'sse:dashboard-update');
+                htmx.tfeatureger(dashboard, 'sse:dashboard-update');
             }
         });
 
@@ -130,14 +130,14 @@
         var hasExpanded = document.querySelector('.panel.expanded');
         var mailDetail = document.getElementById('mail-detail');
         var mailCompose = document.getElementById('mail-compose');
-        var issueDetail = document.getElementById('issue-detail');
+        var ticketDetail = document.getElementById('ticket-detail');
         var prDetail = document.getElementById('pr-detail');
         var convoyDetailView = document.getElementById('convoy-detail');
         var convoyCreateView = document.getElementById('convoy-create-form');
         var sessionPreview = document.getElementById('session-preview');
         var inDetailView = (mailDetail && mailDetail.style.display !== 'none') ||
                           (mailCompose && mailCompose.style.display !== 'none') ||
-                          (issueDetail && issueDetail.style.display !== 'none') ||
+                          (ticketDetail && ticketDetail.style.display !== 'none') ||
                           (prDetail && prDetail.style.display !== 'none') ||
                           (convoyDetailView && convoyDetailView.style.display !== 'none') ||
                           (convoyCreateView && convoyCreateView.style.display !== 'none') ||
@@ -146,7 +146,7 @@
             window.pauseRefresh = false;
         }
         // Reload dynamic panels after swap (handled via window functions)
-        if (window.refreshCrewPanel) window.refreshCrewPanel();
+        if (window.refreshEngineersPanel) window.refreshEngineersPanel();
         if (window.refreshReadyPanel) window.refreshReadyPanel();
         // Update connection status indicator after morph
         updateConnectionStatus(window.sseConnected ? 'live' : 'reconnecting');
@@ -202,8 +202,8 @@
         if (expandedPanel) {
             var panelId = expandedPanel.id || '';
             if (panelId.indexOf('mail') !== -1) return 'Mail';
-            if (panelId.indexOf('crew') !== -1) return 'Crew';
-            if (panelId.indexOf('issue') !== -1 || panelId.indexOf('work') !== -1) return 'Work';
+            if (panelId.indexOf('engineers') !== -1) return 'Engineers';
+            if (panelId.indexOf('ticket') !== -1 || panelId.indexOf('work') !== -1) return 'Work';
             if (panelId.indexOf('ready') !== -1) return 'Work';
             if (panelId.indexOf('pr') !== -1 || panelId.indexOf('merge') !== -1) return 'Status';
         }
@@ -212,8 +212,8 @@
         var mailCompose = document.getElementById('mail-compose');
         if ((mailDetail && mailDetail.style.display !== 'none') ||
             (mailCompose && mailCompose.style.display !== 'none')) return 'Mail';
-        var issueDetail = document.getElementById('issue-detail');
-        if (issueDetail && issueDetail.style.display !== 'none') return 'Work';
+        var ticketDetail = document.getElementById('ticket-detail');
+        if (ticketDetail && ticketDetail.style.display !== 'none') return 'Work';
         var prDetail = document.getElementById('pr-detail');
         if (prDetail && prDetail.style.display !== 'none') return 'Status';
         return null;
@@ -300,7 +300,7 @@
             console.error('Failed to load commands');
         });
 
-    // Fetch dynamic options (rigs, polecats, convoys, agents, hooks)
+    // Fetch dynamic options (features, agents, convoys, agents, hooks)
     function fetchOptions() {
         return fetch('/api/options')
             .then(function(r) { return r.json(); })
@@ -321,13 +321,13 @@
 
         var rawOptions;
         switch (argType) {
-            case 'rigs': rawOptions = cachedOptions.rigs || []; break;
-            case 'polecats': rawOptions = cachedOptions.polecats || []; break;
+            case 'features': rawOptions = cachedOptions.features || []; break;
+            case 'agents': rawOptions = cachedOptions.agents || []; break;
             case 'convoys': rawOptions = cachedOptions.convoys || []; break;
             case 'agents': rawOptions = cachedOptions.agents || []; break;
             case 'hooks': rawOptions = cachedOptions.hooks || []; break;
             case 'messages': rawOptions = cachedOptions.messages || []; break;
-            case 'crew': rawOptions = cachedOptions.crew || []; break;
+            case 'engineers': rawOptions = cachedOptions.engineers || []; break;
             case 'escalations': rawOptions = cachedOptions.escalations || []; break;
             default: return [];
         }
@@ -933,7 +933,7 @@
                                 '<span class="mail-subject">' + escapeHtml(thread.subject) + '</span>' +
                                 (hasMultiple ? '<span class="mail-thread-preview"> — ' + escapeHtml(last.body ? last.body.substring(0, 60) : '') + '</span>' : '') +
                             '</div>' +
-                            '<div class="mail-thread-right">' +
+                            '<div class="mail-thread-featureht">' +
                                 '<span class="mail-time">' + formatMailTime(last.timestamp) + '</span>' +
                             '</div>';
 
@@ -1022,34 +1022,34 @@
     // ============================================
     // CREW PANEL
     // ============================================
-    function loadCrew() {
-        var loading = document.getElementById('crew-loading');
-        var table = document.getElementById('crew-table');
-        var tbody = document.getElementById('crew-tbody');
-        var empty = document.getElementById('crew-empty');
-        var count = document.getElementById('crew-count');
+    function loadEngineers() {
+        var loading = document.getElementById('engineers-loading');
+        var table = document.getElementById('engineers-table');
+        var tbody = document.getElementById('engineers-tbody');
+        var empty = document.getElementById('engineers-empty');
+        var count = document.getElementById('engineers-count');
 
         if (!loading || !table || !tbody) return;
 
-        fetch('/api/crew')
+        fetch('/api/engineers')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 loading.style.display = 'none';
 
-                if (data.crew && data.crew.length > 0) {
+                if (data.engineers && data.engineers.length > 0) {
                     table.style.display = 'table';
                     empty.style.display = 'none';
                     tbody.innerHTML = '';
 
                     // Check for state changes and notify
-                    checkCrewNotifications(data.crew);
+                    checkEngineersNotifications(data.engineers);
 
-                    data.crew.forEach(function(member) {
+                    data.engineers.forEach(function(member) {
                         var tr = document.createElement('tr');
-                        var rowClass = 'crew-' + member.state;
+                        var rowClass = 'engineers-' + member.state;
                         tr.className = rowClass;
 
-                        var stateClass = 'crew-state-' + member.state;
+                        var stateClass = 'engineers-state-' + member.state;
                         var stateText = member.state.charAt(0).toUpperCase() + member.state.slice(1);
                         var stateIcon = '';
                         if (member.state === 'spinning') stateIcon = '🔄 ';
@@ -1066,22 +1066,22 @@
                             sessionBadge = '<span class="badge badge-muted">None</span>';
                         }
 
-                        // Build the attach command based on the crew member's role
-                        var attachCmd = 'gt crew at ' + member.name;
-                        if (member.name === 'mayor') {
-                            attachCmd = 'gt mayor attach';
-                        } else if (member.name === 'deacon') {
-                            attachCmd = 'gt deacon attach';
-                        } else if (member.name === 'witness' || member.name.startsWith('witness-')) {
-                            attachCmd = 'gt witness attach';
+                        // Build the attach command based on the engineers member's role
+                        var attachCmd = 'gt engineers at ' + member.name;
+                        if (member.name === 'product manager') {
+                            attachCmd = 'gt product manager attach';
+                        } else if (member.name === 'senior engineer') {
+                            attachCmd = 'gt senior engineer attach';
+                        } else if (member.name === 'QA engineer' || member.name.startsWith('QA engineer-')) {
+                            attachCmd = 'gt QA engineer attach';
                         }
 
                         tr.innerHTML =
-                            '<td><span class="crew-name">' + escapeHtml(member.name) + '</span></td>' +
-                            '<td><span class="crew-rig">' + escapeHtml(member.rig) + '</span></td>' +
+                            '<td><span class="engineers-name">' + escapeHtml(member.name) + '</span></td>' +
+                            '<td><span class="engineers-feature">' + escapeHtml(member.feature) + '</span></td>' +
                             '<td><span class="' + stateClass + '">' + stateIcon + stateText + '</span></td>' +
-                            '<td><span class="crew-hook">' + (member.hook ? escapeHtml(member.hook) : '—') + '</span></td>' +
-                            '<td class="crew-activity">' + (member.last_active || '—') + '</td>' +
+                            '<td><span class="engineers-hook">' + (member.hook ? escapeHtml(member.hook) : '—') + '</span></td>' +
+                            '<td class="engineers-activity">' + (member.last_active || '—') + '</td>' +
                             '<td>' + sessionBadge + '</td>' +
                             '<td><button class="attach-btn" data-cmd="' + escapeHtml(attachCmd) + '" title="Copy attach command">📎 Attach</button></td>';
                         tbody.appendChild(tr);
@@ -1095,30 +1095,30 @@
                 }
             })
             .catch(function(err) {
-                loading.textContent = 'Failed to load crew';
-                console.error('Crew load error:', err);
+                loading.textContent = 'Failed to load engineers';
+                console.error('Engineers load error:', err);
             });
     }
 
-    // Track previous crew states for notifications
-    var previousCrewStates = {};
-    var crewNeedsAttention = 0;
+    // Track previous engineers states for notifications
+    var previousEngineersStates = {};
+    var engineersNeedsAttention = 0;
 
-    // Load crew on page load
-    loadCrew();
+    // Load engineers on page load
+    loadEngineers();
     // Expose for refresh after HTMX swaps
-    window.refreshCrewPanel = loadCrew;
+    window.refreshEngineersPanel = loadEngineers;
 
-    // Crew notification system - check for state changes
-    function checkCrewNotifications(crewList) {
+    // Engineers notification system - check for state changes
+    function checkEngineersNotifications(engineersList) {
         var newNeedsAttention = 0;
 
-        crewList.forEach(function(member) {
-            var key = member.rig + '/' + member.name;
-            var prevState = previousCrewStates[key];
+        engineersList.forEach(function(member) {
+            var key = member.feature + '/' + member.name;
+            var prevState = previousEngineersStates[key];
             var newState = member.state;
 
-            // Count crew needing attention
+            // Count engineers needing attention
             if (newState === 'finished' || newState === 'questions') {
                 newNeedsAttention++;
             }
@@ -1126,7 +1126,7 @@
             // Notify on state transitions to finished/questions
             if (prevState && prevState !== newState) {
                 if (newState === 'finished') {
-                    showToast('success', 'Crew Finished', member.name + ' finished their work!');
+                    showToast('success', 'Engineers Finished', member.name + ' finished their work!');
                     playNotificationSound();
                 } else if (newState === 'questions') {
                     showToast('info', 'Needs Attention', member.name + ' has questions for you');
@@ -1135,22 +1135,22 @@
             }
 
             // Update stored state
-            previousCrewStates[key] = newState;
+            previousEngineersStates[key] = newState;
         });
 
-        // Update badge on crew panel
-        crewNeedsAttention = newNeedsAttention;
-        updateCrewBadge();
+        // Update badge on engineers panel
+        engineersNeedsAttention = newNeedsAttention;
+        updateEngineersBadge();
     }
 
-    function updateCrewBadge() {
-        var countEl = document.getElementById('crew-count');
+    function updateEngineersBadge() {
+        var countEl = document.getElementById('engineers-count');
         if (!countEl) return;
 
-        // Add attention indicator if crew needs attention
-        if (crewNeedsAttention > 0) {
+        // Add attention indicator if engineers needs attention
+        if (engineersNeedsAttention > 0) {
             countEl.classList.add('needs-attention');
-            countEl.setAttribute('data-attention', crewNeedsAttention);
+            countEl.setAttribute('data-attention', engineersNeedsAttention);
         } else {
             countEl.classList.remove('needs-attention');
             countEl.removeAttribute('data-attention');
@@ -1197,10 +1197,10 @@
     // ============================================
 
     function detachHook(btn) {
-        var beadId = btn.getAttribute('data-hook-id');
-        if (!beadId) return;
+        var ticketId = btn.getAttribute('data-hook-id');
+        if (!ticketId) return;
 
-        if (!confirm('Detach hook ' + beadId + '?')) return;
+        if (!confirm('Detach hook ' + ticketId + '?')) return;
 
         btn.disabled = true;
         btn.textContent = '...';
@@ -1208,15 +1208,15 @@
         fetch('/api/run', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command: 'hook detach ' + beadId, confirmed: true })
+            body: JSON.stringify({ command: 'hook detach ' + ticketId, confirmed: true })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Detached', beadId + ' detached from hook');
+                showToast('success', 'Detached', ticketId + ' detached from hook');
                 // Refresh the page to update the hooks panel
                 if (typeof htmx !== 'undefined') {
-                    htmx.trigger(document.body, 'htmx:load');
+                    htmx.tfeatureger(document.body, 'htmx:load');
                 }
             } else {
                 showToast('error', 'Failed', data.error || 'Failed to detach hook');
@@ -1236,7 +1236,7 @@
         var form = document.getElementById('hook-attach-form');
         if (form) {
             form.style.display = 'block';
-            var input = document.getElementById('hook-attach-bead');
+            var input = document.getElementById('hook-attach-ticket');
             if (input) {
                 input.value = '';
                 setTimeout(function() { input.focus(); }, 50);
@@ -1254,11 +1254,11 @@
     window.closeHookAttachForm = closeHookAttachForm;
 
     function submitHookAttach() {
-        var input = document.getElementById('hook-attach-bead');
-        var beadId = input ? input.value.trim() : '';
+        var input = document.getElementById('hook-attach-ticket');
+        var ticketId = input ? input.value.trim() : '';
 
-        if (!beadId) {
-            showToast('error', 'Missing', 'Bead ID is required');
+        if (!ticketId) {
+            showToast('error', 'Missing', 'Ticket ID is required');
             return;
         }
 
@@ -1271,15 +1271,15 @@
         fetch('/api/run', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command: 'hook attach ' + beadId, confirmed: true })
+            body: JSON.stringify({ command: 'hook attach ' + ticketId, confirmed: true })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Attached', beadId + ' attached to hook');
+                showToast('success', 'Attached', ticketId + ' attached to hook');
                 closeHookAttachForm();
                 if (typeof htmx !== 'undefined') {
-                    htmx.trigger(document.body, 'htmx:load');
+                    htmx.tfeatureger(document.body, 'htmx:load');
                 }
             } else {
                 showToast('error', 'Failed', data.error || 'Failed to attach hook');
@@ -1306,20 +1306,20 @@
             return;
         }
 
-        var beadIds = [];
+        var ticketIds = [];
         for (var i = 0; i < rows.length; i++) {
             var id = rows[i].getAttribute('data-hook-id');
-            if (id) beadIds.push(id);
+            if (id) ticketIds.push(id);
         }
 
         var completed = 0;
         var errors = 0;
 
-        beadIds.forEach(function(beadId) {
+        ticketIds.forEach(function(ticketId) {
             fetch('/api/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'hook detach ' + beadId, confirmed: true })
+                body: JSON.stringify({ command: 'hook detach ' + ticketId, confirmed: true })
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -1333,14 +1333,14 @@
                 errors++;
             })
             .finally(function() {
-                if (completed + errors === beadIds.length) {
+                if (completed + errors === ticketIds.length) {
                     if (errors > 0) {
                         showToast('error', 'Partial', completed + ' detached, ' + errors + ' failed');
                     } else {
                         showToast('success', 'Cleared', completed + ' hook(s) cleared');
                     }
                     if (typeof htmx !== 'undefined') {
-                        htmx.trigger(document.body, 'htmx:load');
+                        htmx.tfeatureger(document.body, 'htmx:load');
                     }
                 }
             });
@@ -1350,11 +1350,11 @@
 
     // Handle Enter key in hook attach input
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.target.id === 'hook-attach-bead') {
+        if (e.key === 'Enter' && e.target.id === 'hook-attach-ticket') {
             e.preventDefault();
             submitHookAttach();
         }
-        if (e.key === 'Escape' && e.target.id === 'hook-attach-bead') {
+        if (e.key === 'Escape' && e.target.id === 'hook-attach-ticket') {
             e.preventDefault();
             closeHookAttachForm();
         }
@@ -1363,39 +1363,39 @@
     // ============================================
     // ISSUE CREATION MODAL
     // ============================================
-    function openIssueModal() {
-        var modal = document.getElementById('issue-modal');
+    function openTicketModal() {
+        var modal = document.getElementById('ticket-modal');
         if (modal) {
             modal.style.display = 'flex';
             window.pauseRefresh = true;
             // Focus the title input
-            var titleInput = document.getElementById('issue-title');
+            var titleInput = document.getElementById('ticket-title');
             if (titleInput) {
                 setTimeout(function() { titleInput.focus(); }, 100);
             }
         }
     }
-    window.openIssueModal = openIssueModal;
+    window.openTicketModal = openTicketModal;
 
-    function closeIssueModal() {
-        var modal = document.getElementById('issue-modal');
+    function closeTicketModal() {
+        var modal = document.getElementById('ticket-modal');
         if (modal) {
             modal.style.display = 'none';
             window.pauseRefresh = false;
             // Reset form
-            var form = document.getElementById('issue-form');
+            var form = document.getElementById('ticket-form');
             if (form) form.reset();
         }
     }
-    window.closeIssueModal = closeIssueModal;
+    window.closeTicketModal = closeTicketModal;
 
-    function submitIssue(e) {
+    function submitTicket(e) {
         e.preventDefault();
         
-        var title = document.getElementById('issue-title').value.trim();
-        var priority = document.getElementById('issue-priority').value;
-        var description = document.getElementById('issue-description').value.trim();
-        var submitBtn = document.getElementById('issue-submit-btn');
+        var title = document.getElementById('ticket-title').value.trim();
+        var priority = document.getElementById('ticket-priority').value;
+        var description = document.getElementById('ticket-description').value.trim();
+        var submitBtn = document.getElementById('ticket-submit-btn');
 
         if (!title) {
             showToast('error', 'Missing', 'Title is required');
@@ -1414,7 +1414,7 @@
             payload.description = description;
         }
 
-        fetch('/api/issues/create', {
+        fetch('/api/tickets/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -1422,11 +1422,11 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Created', 'Issue ' + (data.id || '') + ' created');
-                closeIssueModal();
-                // Trigger a page refresh to show the new issue
+                showToast('success', 'Created', 'Ticket ' + (data.id || '') + ' created');
+                closeTicketModal();
+                // Tfeatureger a page refresh to show the new ticket
                 if (typeof htmx !== 'undefined') {
-                    htmx.trigger(document.body, 'htmx:load');
+                    htmx.tfeatureger(document.body, 'htmx:load');
                 }
             } else {
                 showToast('error', 'Failed', data.error || 'Unknown error');
@@ -1437,17 +1437,17 @@
         })
         .finally(function() {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Issue';
+            submitBtn.textContent = 'Create Ticket';
         });
     }
-    window.submitIssue = submitIssue;
+    window.submitTicket = submitTicket;
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            var modal = document.getElementById('issue-modal');
+            var modal = document.getElementById('ticket-modal');
             if (modal && modal.style.display !== 'none') {
-                closeIssueModal();
+                closeTicketModal();
             }
         }
     });
@@ -1536,7 +1536,7 @@
                             '<td><span class="ready-id">' + escapeHtml(item.id) + '</span></td>' +
                             '<td><span class="ready-title">' + escapeHtml(item.title || '') + '</span></td>' +
                             '<td><span class="' + sourceClass + '">' + escapeHtml(item.source) + '</span></td>' +
-                            '<td><button class="sling-btn" data-bead-id="' + escapeHtml(item.id) + '" title="Sling to rig">Sling</button></td>';
+                            '<td><button class="sling-btn" data-ticket-id="' + escapeHtml(item.id) + '" title="Sling to feature">Sling</button></td>';
                         tbody.appendChild(tr);
                     });
 
@@ -1587,10 +1587,10 @@
         document.getElementById('convoy-detail-title').textContent = 'Convoy: ' + convoyId;
         document.getElementById('convoy-detail-status').textContent = '';
         document.getElementById('convoy-detail-progress').textContent = '';
-        document.getElementById('convoy-issues-loading').style.display = 'block';
-        document.getElementById('convoy-issues-table').style.display = 'none';
-        document.getElementById('convoy-issues-empty').style.display = 'none';
-        document.getElementById('convoy-add-issue-form').style.display = 'none';
+        document.getElementById('convoy-tickets-loading').style.display = 'block';
+        document.getElementById('convoy-tickets-table').style.display = 'none';
+        document.getElementById('convoy-tickets-empty').style.display = 'none';
+        document.getElementById('convoy-add-ticket-form').style.display = 'none';
 
         // Show detail, hide list and create form
         convoyList.style.display = 'none';
@@ -1605,26 +1605,26 @@
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            document.getElementById('convoy-issues-loading').style.display = 'none';
+            document.getElementById('convoy-tickets-loading').style.display = 'none';
 
             if (!data.success) {
-                document.getElementById('convoy-issues-empty').style.display = 'block';
-                document.getElementById('convoy-issues-empty').querySelector('p').textContent = data.error || 'Failed to load convoy';
+                document.getElementById('convoy-tickets-empty').style.display = 'block';
+                document.getElementById('convoy-tickets-empty').querySelector('p').textContent = data.error || 'Failed to load convoy';
                 return;
             }
 
-            var issues = parseConvoyStatusOutput(data.output || '');
-            if (issues.length === 0) {
-                document.getElementById('convoy-issues-empty').style.display = 'block';
+            var tickets = parseConvoyStatusOutput(data.output || '');
+            if (tickets.length === 0) {
+                document.getElementById('convoy-tickets-empty').style.display = 'block';
                 return;
             }
 
-            var tbody = document.getElementById('convoy-issues-tbody');
+            var tbody = document.getElementById('convoy-tickets-tbody');
             tbody.innerHTML = '';
-            issues.forEach(function(issue) {
+            tickets.forEach(function(ticket) {
                 var tr = document.createElement('tr');
                 var statusBadge = '';
-                var statusLower = (issue.status || '').toLowerCase();
+                var statusLower = (ticket.status || '').toLowerCase();
                 if (statusLower === 'closed' || statusLower === 'complete' || statusLower === 'done') {
                     statusBadge = '<span class="badge badge-green">Done</span>';
                 } else if (statusLower === 'in_progress' || statusLower === 'in progress' || statusLower === 'working') {
@@ -1634,29 +1634,29 @@
                 } else if (statusLower === 'blocked') {
                     statusBadge = '<span class="badge badge-red">Blocked</span>';
                 } else {
-                    statusBadge = '<span class="badge badge-muted">' + escapeHtml(issue.status || 'Unknown') + '</span>';
+                    statusBadge = '<span class="badge badge-muted">' + escapeHtml(ticket.status || 'Unknown') + '</span>';
                 }
 
                 tr.innerHTML =
-                    '<td class="convoy-issue-status">' + statusBadge + '</td>' +
-                    '<td><span class="issue-id">' + escapeHtml(issue.id) + '</span></td>' +
-                    '<td class="issue-title">' + escapeHtml(issue.title || '') + '</td>' +
-                    '<td>' + (issue.assignee ? '<span class="badge badge-blue">' + escapeHtml(issue.assignee) + '</span>' : '<span class="badge badge-muted">Unassigned</span>') + '</td>' +
-                    '<td>' + escapeHtml(issue.progress || '') + '</td>';
+                    '<td class="convoy-ticket-status">' + statusBadge + '</td>' +
+                    '<td><span class="ticket-id">' + escapeHtml(ticket.id) + '</span></td>' +
+                    '<td class="ticket-title">' + escapeHtml(ticket.title || '') + '</td>' +
+                    '<td>' + (ticket.assignee ? '<span class="badge badge-blue">' + escapeHtml(ticket.assignee) + '</span>' : '<span class="badge badge-muted">Unassigned</span>') + '</td>' +
+                    '<td>' + escapeHtml(ticket.progress || '') + '</td>';
                 tbody.appendChild(tr);
             });
-            document.getElementById('convoy-issues-table').style.display = 'table';
+            document.getElementById('convoy-tickets-table').style.display = 'table';
         })
         .catch(function(err) {
-            document.getElementById('convoy-issues-loading').style.display = 'none';
-            document.getElementById('convoy-issues-empty').style.display = 'block';
-            document.getElementById('convoy-issues-empty').querySelector('p').textContent = 'Error: ' + err.message;
+            document.getElementById('convoy-tickets-loading').style.display = 'none';
+            document.getElementById('convoy-tickets-empty').style.display = 'block';
+            document.getElementById('convoy-tickets-empty').querySelector('p').textContent = 'Error: ' + err.message;
         });
     }
 
-    // Parse convoy status text output into issue objects
+    // Parse convoy status text output into ticket objects
     function parseConvoyStatusOutput(output) {
-        var issues = [];
+        var tickets = [];
         var lines = output.split('\n');
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
@@ -1664,7 +1664,7 @@
             // Skip header lines and convoy summary lines
             if (line.startsWith('Convoy') || line.startsWith('===') || line.startsWith('---') ||
                 line.startsWith('Status:') || line.startsWith('Progress:') || line.startsWith('Created:') ||
-                line.startsWith('Title:') || line.startsWith('Issues:') || line.startsWith('Name:')) {
+                line.startsWith('Title:') || line.startsWith('Tickets:') || line.startsWith('Name:')) {
                 // Extract convoy-level status/progress for the detail header
                 if (line.startsWith('Status:')) {
                     var statusEl = document.getElementById('convoy-detail-status');
@@ -1682,26 +1682,26 @@
                 }
                 continue;
             }
-            // Look for issue lines - typically formatted as:
-            // "○ id · title [● P2 · STATUS]" or similar bead-style output
+            // Look for ticket lines - typically formatted as:
+            // "○ id · title [● P2 · STATUS]" or similar ticket-style output
             // Or tabular: "id   title   status   assignee"
-            var issue = parseConvoyIssueLine(line);
-            if (issue) {
-                issues.push(issue);
+            var ticket = parseConvoyTicketLine(line);
+            if (ticket) {
+                tickets.push(ticket);
             }
         }
-        return issues;
+        return tickets;
     }
 
-    // Parse a single issue line from convoy status output
-    function parseConvoyIssueLine(line) {
-        // Try bead-style format: "○ id · title   [● P2 · OPEN]"
+    // Parse a single ticket line from convoy status output
+    function parseConvoyTicketLine(line) {
+        // Try ticket-style format: "○ id · title   [● P2 · OPEN]"
         // or "◐ id · title   [● P2 · IN_PROGRESS]"
-        var beadMatch = line.match(/^[○◐●✓]\s+(\S+)\s+[·:]\s+(.+?)(?:\s+\[.*?([A-Z_]+)\])?$/);
-        if (beadMatch) {
+        var ticketMatch = line.match(/^[○◐●✓]\s+(\S+)\s+[·:]\s+(.+?)(?:\s+\[.*?([A-Z_]+)\])?$/);
+        if (ticketMatch) {
             var statusFromBracket = '';
-            if (beadMatch[3]) {
-                statusFromBracket = beadMatch[3].toLowerCase().replace('_', ' ');
+            if (ticketMatch[3]) {
+                statusFromBracket = ticketMatch[3].toLowerCase().replace('_', ' ');
             } else {
                 // Infer from icon
                 if (line.startsWith('✓')) statusFromBracket = 'closed';
@@ -1709,8 +1709,8 @@
                 else statusFromBracket = 'open';
             }
             return {
-                id: beadMatch[1],
-                title: beadMatch[2].trim(),
+                id: ticketMatch[1],
+                title: ticketMatch[2].trim(),
                 status: statusFromBracket,
                 assignee: '',
                 progress: ''
@@ -1747,7 +1747,7 @@
         convoyDetail.style.display = 'none';
         convoyCreateForm.style.display = 'block';
         document.getElementById('convoy-create-name').value = '';
-        document.getElementById('convoy-create-issues').value = '';
+        document.getElementById('convoy-create-tickets').value = '';
         document.getElementById('convoy-create-name').focus();
     });
 
@@ -1764,7 +1764,7 @@
     // Submit create convoy
     document.getElementById('convoy-create-submit-btn').addEventListener('click', function() {
         var name = document.getElementById('convoy-create-name').value.trim();
-        var issuesStr = document.getElementById('convoy-create-issues').value.trim();
+        var ticketsStr = document.getElementById('convoy-create-tickets').value.trim();
 
         if (!name) {
             showToast('error', 'Missing', 'Convoy name is required');
@@ -1775,10 +1775,10 @@
         btn.disabled = true;
         btn.textContent = 'Creating...';
 
-        // Build command: convoy create <name> [issue1 issue2 ...]
+        // Build command: convoy create <name> [ticket1 ticket2 ...]
         var cmd = 'convoy create ' + name;
-        if (issuesStr) {
-            cmd += ' ' + issuesStr;
+        if (ticketsStr) {
+            cmd += ' ' + ticketsStr;
         }
 
         fetch('/api/run', {
@@ -1807,47 +1807,47 @@
         });
     });
 
-    // Add Issue button in convoy detail
-    document.getElementById('convoy-add-issue-btn').addEventListener('click', function() {
-        var form = document.getElementById('convoy-add-issue-form');
+    // Add Ticket button in convoy detail
+    document.getElementById('convoy-add-ticket-btn').addEventListener('click', function() {
+        var form = document.getElementById('convoy-add-ticket-form');
         form.style.display = form.style.display === 'none' ? 'flex' : 'none';
         if (form.style.display !== 'none') {
-            document.getElementById('convoy-add-issue-input').value = '';
-            document.getElementById('convoy-add-issue-input').focus();
+            document.getElementById('convoy-add-ticket-input').value = '';
+            document.getElementById('convoy-add-ticket-input').focus();
         }
     });
 
-    // Cancel add issue
-    document.getElementById('convoy-add-issue-cancel').addEventListener('click', function() {
-        document.getElementById('convoy-add-issue-form').style.display = 'none';
+    // Cancel add ticket
+    document.getElementById('convoy-add-ticket-cancel').addEventListener('click', function() {
+        document.getElementById('convoy-add-ticket-form').style.display = 'none';
     });
 
-    // Submit add issue to convoy
-    document.getElementById('convoy-add-issue-submit').addEventListener('click', submitAddIssueToConvoy);
+    // Submit add ticket to convoy
+    document.getElementById('convoy-add-ticket-submit').addEventListener('click', submitAddTicketToConvoy);
 
-    // Enter key in add issue input
-    document.getElementById('convoy-add-issue-input').addEventListener('keydown', function(e) {
+    // Enter key in add ticket input
+    document.getElementById('convoy-add-ticket-input').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            submitAddIssueToConvoy();
+            submitAddTicketToConvoy();
         } else if (e.key === 'Escape') {
             e.preventDefault();
-            document.getElementById('convoy-add-issue-form').style.display = 'none';
+            document.getElementById('convoy-add-ticket-form').style.display = 'none';
         }
     });
 
-    function submitAddIssueToConvoy() {
-        var issueId = document.getElementById('convoy-add-issue-input').value.trim();
-        if (!issueId || !currentConvoyId) {
-            showToast('error', 'Missing', 'Issue ID is required');
+    function submitAddTicketToConvoy() {
+        var ticketId = document.getElementById('convoy-add-ticket-input').value.trim();
+        if (!ticketId || !currentConvoyId) {
+            showToast('error', 'Missing', 'Ticket ID is required');
             return;
         }
 
-        var btn = document.getElementById('convoy-add-issue-submit');
+        var btn = document.getElementById('convoy-add-ticket-submit');
         btn.disabled = true;
         btn.textContent = 'Adding...';
 
-        var cmd = 'convoy add ' + currentConvoyId + ' ' + issueId;
+        var cmd = 'convoy add ' + currentConvoyId + ' ' + ticketId;
 
         fetch('/api/run', {
             method: 'POST',
@@ -1857,8 +1857,8 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Added', 'Issue ' + issueId + ' added to convoy');
-                document.getElementById('convoy-add-issue-form').style.display = 'none';
+                showToast('success', 'Added', 'Ticket ' + ticketId + ' added to convoy');
+                document.getElementById('convoy-add-ticket-form').style.display = 'none';
                 // Refresh the convoy detail view
                 openConvoyDetail(currentConvoyId);
             } else {
@@ -2154,73 +2154,73 @@
     // ============================================
     // ISSUE PANEL INTERACTIONS
     // ============================================
-    var issuesList = document.getElementById('issues-list');
-    var issueDetail = document.getElementById('issue-detail');
-    var currentIssueId = null;
+    var ticketsList = document.getElementById('tickets-list');
+    var ticketDetail = document.getElementById('ticket-detail');
+    var currentTicketId = null;
 
-    // Click on issue row to view details
+    // Click on ticket row to view details
     document.addEventListener('click', function(e) {
-        var issueRow = e.target.closest('.issue-row');
-        if (issueRow && issueRow.hasAttribute('data-issue-id')) {
+        var ticketRow = e.target.closest('.ticket-row');
+        if (ticketRow && ticketRow.hasAttribute('data-ticket-id')) {
             e.preventDefault();
-            var issueId = issueRow.getAttribute('data-issue-id');
-            if (issueId) {
-                openIssueDetail(issueId);
+            var ticketId = ticketRow.getAttribute('data-ticket-id');
+            if (ticketId) {
+                openTicketDetail(ticketId);
             }
         }
 
         // Click on dependency links
-        var depItem = e.target.closest('.issue-dep-item');
+        var depItem = e.target.closest('.ticket-dep-item');
         if (depItem) {
             e.preventDefault();
-            var depId = depItem.getAttribute('data-issue-id');
+            var depId = depItem.getAttribute('data-ticket-id');
             if (depId) {
-                openIssueDetail(depId);
+                openTicketDetail(depId);
             }
         }
     });
 
-    function openIssueDetail(issueId) {
-        currentIssueId = issueId;
+    function openTicketDetail(ticketId) {
+        currentTicketId = ticketId;
 
-        // Pause HTMX refresh while viewing issue
+        // Pause HTMX refresh while viewing ticket
         window.pauseRefresh = true;
 
         // Show loading state
-        document.getElementById('issue-detail-id').textContent = issueId;
-        document.getElementById('issue-detail-title-text').textContent = 'Loading...';
-        document.getElementById('issue-detail-description').textContent = '';
-        document.getElementById('issue-detail-priority').textContent = '';
-        document.getElementById('issue-detail-status').textContent = '';
-        document.getElementById('issue-detail-type').textContent = '';
-        document.getElementById('issue-detail-created').textContent = '';
-        document.getElementById('issue-detail-owner').textContent = '';
-        document.getElementById('issue-detail-actions').innerHTML = '';
-        document.getElementById('issue-detail-depends-on').innerHTML = '';
-        document.getElementById('issue-detail-blocks').innerHTML = '';
-        document.getElementById('issue-detail-deps').style.display = 'none';
-        document.getElementById('issue-detail-blocks-section').style.display = 'none';
+        document.getElementById('ticket-detail-id').textContent = ticketId;
+        document.getElementById('ticket-detail-title-text').textContent = 'Loading...';
+        document.getElementById('ticket-detail-description').textContent = '';
+        document.getElementById('ticket-detail-priority').textContent = '';
+        document.getElementById('ticket-detail-status').textContent = '';
+        document.getElementById('ticket-detail-type').textContent = '';
+        document.getElementById('ticket-detail-created').textContent = '';
+        document.getElementById('ticket-detail-owner').textContent = '';
+        document.getElementById('ticket-detail-actions').innerHTML = '';
+        document.getElementById('ticket-detail-depends-on').innerHTML = '';
+        document.getElementById('ticket-detail-blocks').innerHTML = '';
+        document.getElementById('ticket-detail-deps').style.display = 'none';
+        document.getElementById('ticket-detail-blocks-section').style.display = 'none';
 
         // Show detail view
-        issuesList.style.display = 'none';
-        issueDetail.style.display = 'block';
+        ticketsList.style.display = 'none';
+        ticketDetail.style.display = 'block';
 
-        // Fetch issue details
-        fetch('/api/issues/show?id=' + encodeURIComponent(issueId))
+        // Fetch ticket details
+        fetch('/api/tickets/show?id=' + encodeURIComponent(ticketId))
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.error) {
-                    document.getElementById('issue-detail-title-text').textContent = 'Error loading issue';
-                    document.getElementById('issue-detail-description').textContent = data.error;
+                    document.getElementById('ticket-detail-title-text').textContent = 'Error loading ticket';
+                    document.getElementById('ticket-detail-description').textContent = data.error;
                     return;
                 }
 
-                document.getElementById('issue-detail-id').textContent = data.id || issueId;
-                document.getElementById('issue-detail-title-text').textContent = data.title || '(no title)';
-                document.getElementById('issue-detail-description').textContent = data.description || data.raw_output || '(no description)';
+                document.getElementById('ticket-detail-id').textContent = data.id || ticketId;
+                document.getElementById('ticket-detail-title-text').textContent = data.title || '(no title)';
+                document.getElementById('ticket-detail-description').textContent = data.description || data.raw_output || '(no description)';
 
                 // Priority badge
-                var priorityEl = document.getElementById('issue-detail-priority');
+                var priorityEl = document.getElementById('ticket-detail-priority');
                 if (data.priority) {
                     priorityEl.textContent = data.priority;
                     priorityEl.className = 'badge';
@@ -2231,57 +2231,57 @@
                 }
 
                 // Status
-                var statusEl = document.getElementById('issue-detail-status');
+                var statusEl = document.getElementById('ticket-detail-status');
                 if (data.status) {
                     statusEl.textContent = data.status;
-                    statusEl.className = 'issue-status ' + data.status.toLowerCase().replace(' ', '_');
+                    statusEl.className = 'ticket-status ' + data.status.toLowerCase().replace(' ', '_');
                 }
 
                 // Meta info
                 if (data.type) {
-                    document.getElementById('issue-detail-type').textContent = 'Type: ' + data.type;
+                    document.getElementById('ticket-detail-type').textContent = 'Type: ' + data.type;
                 }
                 if (data.owner) {
-                    document.getElementById('issue-detail-owner').textContent = 'Owner: ' + data.owner;
+                    document.getElementById('ticket-detail-owner').textContent = 'Owner: ' + data.owner;
                 }
                 if (data.created) {
-                    document.getElementById('issue-detail-created').textContent = 'Created: ' + data.created;
+                    document.getElementById('ticket-detail-created').textContent = 'Created: ' + data.created;
                 }
 
                 // Render action buttons
-                renderIssueActions(issueId, data);
+                renderTicketActions(ticketId, data);
 
                 // Dependencies
                 if (data.depends_on && data.depends_on.length > 0) {
-                    document.getElementById('issue-detail-deps').style.display = 'block';
+                    document.getElementById('ticket-detail-deps').style.display = 'block';
                     var depsHtml = data.depends_on.map(function(dep) {
-                        return '<span class="issue-dep-item" data-issue-id="' + escapeHtml(dep) + '">→ ' + escapeHtml(dep) + '</span>';
+                        return '<span class="ticket-dep-item" data-ticket-id="' + escapeHtml(dep) + '">→ ' + escapeHtml(dep) + '</span>';
                     }).join(' ');
-                    document.getElementById('issue-detail-depends-on').innerHTML = depsHtml;
+                    document.getElementById('ticket-detail-depends-on').innerHTML = depsHtml;
                 }
 
                 // Blocks
                 if (data.blocks && data.blocks.length > 0) {
-                    document.getElementById('issue-detail-blocks-section').style.display = 'block';
+                    document.getElementById('ticket-detail-blocks-section').style.display = 'block';
                     var blocksHtml = data.blocks.map(function(dep) {
-                        return '<span class="issue-dep-item" data-issue-id="' + escapeHtml(dep) + '">← ' + escapeHtml(dep) + '</span>';
+                        return '<span class="ticket-dep-item" data-ticket-id="' + escapeHtml(dep) + '">← ' + escapeHtml(dep) + '</span>';
                     }).join(' ');
-                    document.getElementById('issue-detail-blocks').innerHTML = blocksHtml;
+                    document.getElementById('ticket-detail-blocks').innerHTML = blocksHtml;
                 }
             })
             .catch(function(err) {
-                document.getElementById('issue-detail-title-text').textContent = 'Error';
-                document.getElementById('issue-detail-description').textContent = 'Failed to load issue: ' + err.message;
+                document.getElementById('ticket-detail-title-text').textContent = 'Error';
+                document.getElementById('ticket-detail-description').textContent = 'Failed to load ticket: ' + err.message;
             });
     }
 
-    // Back button from issue detail
-    var issueBackBtn = document.getElementById('issue-back-btn');
-    if (issueBackBtn) {
-        issueBackBtn.addEventListener('click', function() {
-            issueDetail.style.display = 'none';
-            issuesList.style.display = 'block';
-            currentIssueId = null;
+    // Back button from ticket detail
+    var ticketBackBtn = document.getElementById('ticket-back-btn');
+    if (ticketBackBtn) {
+        ticketBackBtn.addEventListener('click', function() {
+            ticketDetail.style.display = 'none';
+            ticketsList.style.display = 'block';
+            currentTicketId = null;
             // Resume HTMX refresh
             window.pauseRefresh = false;
         });
@@ -2291,9 +2291,9 @@
     // ISSUE ACTION BUTTONS
     // ============================================
 
-    // Render action buttons based on current issue state
-    function renderIssueActions(issueId, data) {
-        var actionsEl = document.getElementById('issue-detail-actions');
+    // Render action buttons based on current ticket state
+    function renderTicketActions(ticketId, data) {
+        var actionsEl = document.getElementById('ticket-detail-actions');
         if (!actionsEl) return;
 
         var status = (data.status || '').toUpperCase();
@@ -2302,19 +2302,19 @@
         // Extract numeric priority (P1 -> 1, P2 -> 2, etc.)
         var priNum = currentPriority.length === 2 ? parseInt(currentPriority[1], 10) : 2;
 
-        var html = '<div class="issue-actions-bar">';
+        var html = '<div class="ticket-actions-bar">';
 
         // Close / Reopen button
         if (isClosed) {
-            html += '<button class="issue-action-btn reopen" onclick="reopenIssue(\'' + escapeHtml(issueId) + '\')">↺ Reopen</button>';
+            html += '<button class="ticket-action-btn reopen" onclick="reopenTicket(\'' + escapeHtml(ticketId) + '\')">↺ Reopen</button>';
         } else {
-            html += '<button class="issue-action-btn close" onclick="closeIssue(\'' + escapeHtml(issueId) + '\')">✓ Close</button>';
+            html += '<button class="ticket-action-btn close" onclick="closeTicket(\'' + escapeHtml(ticketId) + '\')">✓ Close</button>';
         }
 
         // Priority dropdown
-        html += '<div class="issue-action-group">';
-        html += '<label class="issue-action-label">Priority</label>';
-        html += '<select class="issue-action-select" id="issue-action-priority" onchange="updateIssuePriority(\'' + escapeHtml(issueId) + '\', this.value)">';
+        html += '<div class="ticket-action-group">';
+        html += '<label class="ticket-action-label">Priority</label>';
+        html += '<select class="ticket-action-select" id="ticket-action-priority" onchange="updateTicketPriority(\'' + escapeHtml(ticketId) + '\', this.value)">';
         for (var p = 1; p <= 4; p++) {
             var sel = p === priNum ? ' selected' : '';
             var pLabel = p === 1 ? 'P1 - Critical' : p === 2 ? 'P2 - High' : p === 3 ? 'P3 - Medium' : 'P4 - Low';
@@ -2324,9 +2324,9 @@
         html += '</div>';
 
         // Assignee dropdown
-        html += '<div class="issue-action-group">';
-        html += '<label class="issue-action-label">Assign</label>';
-        html += '<select class="issue-action-select" id="issue-action-assignee" onchange="assignIssue(\'' + escapeHtml(issueId) + '\', this.value)">';
+        html += '<div class="ticket-action-group">';
+        html += '<label class="ticket-action-label">Assign</label>';
+        html += '<select class="ticket-action-select" id="ticket-action-assignee" onchange="assignTicket(\'' + escapeHtml(ticketId) + '\', this.value)">';
         html += '<option value="">Unassigned</option>';
         html += '<option value="" disabled>Loading agents...</option>';
         html += '</select>';
@@ -2341,7 +2341,7 @@
 
     // Load agent options into the assignee dropdown
     function loadAssigneeOptions(currentOwner) {
-        var select = document.getElementById('issue-action-assignee');
+        var select = document.getElementById('ticket-action-assignee');
         if (!select) return;
 
         fetch('/api/options')
@@ -2350,9 +2350,9 @@
                 // Rebuild dropdown
                 var html = '<option value="">Unassigned</option>';
                 var agents = data.agents || [];
-                var polecats = data.polecats || [];
+                var agents = data.agents || [];
 
-                // Combine agents and polecats for assignee options
+                // Combine agents and agents for assignee options
                 var seen = {};
                 var allOptions = [];
 
@@ -2364,10 +2364,10 @@
                     }
                 });
 
-                polecats.forEach(function(polecat) {
-                    if (!seen[polecat]) {
-                        seen[polecat] = true;
-                        allOptions.push(polecat);
+                agents.forEach(function(agent) {
+                    if (!seen[agent]) {
+                        seen[agent] = true;
+                        allOptions.push(agent);
                     }
                 });
 
@@ -2383,23 +2383,23 @@
             });
     }
 
-    // Close an issue
-    function closeIssue(issueId) {
-        if (!confirm('Close issue ' + issueId + '?')) return;
+    // Close an ticket
+    function closeTicket(ticketId) {
+        if (!confirm('Close ticket ' + ticketId + '?')) return;
 
-        showToast('info', 'Closing...', issueId);
+        showToast('info', 'Closing...', ticketId);
 
-        fetch('/api/issues/close', {
+        fetch('/api/tickets/close', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: issueId })
+            body: JSON.stringify({ id: ticketId })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Closed', issueId + ' closed');
+                showToast('success', 'Closed', ticketId + ' closed');
                 // Re-fetch to update the detail view
-                openIssueDetail(issueId);
+                openTicketDetail(ticketId);
             } else {
                 showToast('error', 'Failed', data.error || 'Unknown error');
             }
@@ -2408,22 +2408,22 @@
             showToast('error', 'Error', err.message);
         });
     }
-    window.closeIssue = closeIssue;
+    window.closeTicket = closeTicket;
 
-    // Reopen an issue
-    function reopenIssue(issueId) {
-        showToast('info', 'Reopening...', issueId);
+    // Reopen an ticket
+    function reopenTicket(ticketId) {
+        showToast('info', 'Reopening...', ticketId);
 
-        fetch('/api/issues/update', {
+        fetch('/api/tickets/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: issueId, status: 'open' })
+            body: JSON.stringify({ id: ticketId, status: 'open' })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Reopened', issueId + ' reopened');
-                openIssueDetail(issueId);
+                showToast('success', 'Reopened', ticketId + ' reopened');
+                openTicketDetail(ticketId);
             } else {
                 showToast('error', 'Failed', data.error || 'Unknown error');
             }
@@ -2432,25 +2432,25 @@
             showToast('error', 'Error', err.message);
         });
     }
-    window.reopenIssue = reopenIssue;
+    window.reopenTicket = reopenTicket;
 
-    // Update issue priority
-    function updateIssuePriority(issueId, priority) {
+    // Update ticket priority
+    function updateTicketPriority(ticketId, priority) {
         var priNum = parseInt(priority, 10);
         if (priNum < 1 || priNum > 4) return;
 
         showToast('info', 'Updating...', 'Setting priority to P' + priNum);
 
-        fetch('/api/issues/update', {
+        fetch('/api/tickets/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: issueId, priority: priNum })
+            body: JSON.stringify({ id: ticketId, priority: priNum })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
                 showToast('success', 'Updated', 'Priority set to P' + priNum);
-                openIssueDetail(issueId);
+                openTicketDetail(ticketId);
             } else {
                 showToast('error', 'Failed', data.error || 'Unknown error');
             }
@@ -2459,24 +2459,24 @@
             showToast('error', 'Error', err.message);
         });
     }
-    window.updateIssuePriority = updateIssuePriority;
+    window.updateTicketPriority = updateTicketPriority;
 
-    // Assign issue to agent
-    function assignIssue(issueId, assignee) {
+    // Assign ticket to agent
+    function assignTicket(ticketId, assignee) {
         if (!assignee) return; // Unassigned selected, no-op for now
 
         showToast('info', 'Assigning...', 'Assigning to ' + assignee);
 
-        fetch('/api/issues/update', {
+        fetch('/api/tickets/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: issueId, assignee: assignee })
+            body: JSON.stringify({ id: ticketId, assignee: assignee })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
                 showToast('success', 'Assigned', 'Assigned to ' + assignee);
-                openIssueDetail(issueId);
+                openTicketDetail(ticketId);
             } else {
                 showToast('error', 'Failed', data.error || 'Unknown error');
             }
@@ -2485,7 +2485,7 @@
             showToast('error', 'Error', err.message);
         });
     }
-    window.assignIssue = assignIssue;
+    window.assignTicket = assignTicket;
 
     // ============================================
     // PR/MERGE QUEUE PANEL INTERACTIONS
@@ -2632,12 +2632,12 @@
     function openSlingDropdown(btn) {
         closeSlingDropdown();
 
-        var beadId = btn.getAttribute('data-bead-id');
-        if (!beadId) return;
+        var ticketId = btn.getAttribute('data-ticket-id');
+        if (!ticketId) return;
 
         var dropdown = document.createElement('div');
         dropdown.className = 'sling-dropdown';
-        dropdown.innerHTML = '<div class="sling-dropdown-loading">Loading rigs...</div>';
+        dropdown.innerHTML = '<div class="sling-dropdown-loading">Loading features...</div>';
 
         // Position dropdown below the button
         var rect = btn.getBoundingClientRect();
@@ -2648,38 +2648,38 @@
         document.body.appendChild(dropdown);
         activeSlingDropdown = dropdown;
 
-        // Fetch rig options
-        fetch('/api/options?type=rigs')
+        // Fetch feature options
+        fetch('/api/options?type=features')
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                var rigs = data.rigs || [];
-                if (rigs.length === 0) {
-                    dropdown.innerHTML = '<div class="sling-dropdown-empty">No rigs available</div>';
+                var features = data.features || [];
+                if (features.length === 0) {
+                    dropdown.innerHTML = '<div class="sling-dropdown-empty">No features available</div>';
                     return;
                 }
-                var html = '<div class="sling-dropdown-header">Sling ' + escapeHtml(beadId) + ' to:</div>';
-                for (var i = 0; i < rigs.length; i++) {
-                    html += '<button class="sling-dropdown-item" data-rig="' + escapeHtml(rigs[i]) + '">' + escapeHtml(rigs[i]) + '</button>';
+                var html = '<div class="sling-dropdown-header">Sling ' + escapeHtml(ticketId) + ' to:</div>';
+                for (var i = 0; i < features.length; i++) {
+                    html += '<button class="sling-dropdown-item" data-feature="' + escapeHtml(features[i]) + '">' + escapeHtml(features[i]) + '</button>';
                 }
                 dropdown.innerHTML = html;
 
-                // Handle rig selection
+                // Handle feature selection
                 dropdown.addEventListener('click', function(e) {
                     var item = e.target.closest('.sling-dropdown-item');
                     if (!item) return;
-                    var rig = item.getAttribute('data-rig');
+                    var feature = item.getAttribute('data-feature');
                     closeSlingDropdown();
-                    executeSling(beadId, rig);
+                    executeSling(ticketId, feature);
                 });
             })
             .catch(function() {
-                dropdown.innerHTML = '<div class="sling-dropdown-empty">Failed to load rigs</div>';
+                dropdown.innerHTML = '<div class="sling-dropdown-empty">Failed to load features</div>';
             });
     }
 
-    function executeSling(beadId, rig) {
-        var cmd = 'sling ' + beadId + ' ' + rig;
-        showToast('info', 'Slinging...', beadId + ' → ' + rig);
+    function executeSling(ticketId, feature) {
+        var cmd = 'sling ' + ticketId + ' ' + feature;
+        showToast('info', 'Slinging...', ticketId + ' → ' + feature);
 
         fetch('/api/run', {
             method: 'POST',
@@ -2689,7 +2689,7 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showToast('success', 'Slung', beadId + ' → ' + rig);
+                showToast('success', 'Slung', ticketId + ' → ' + feature);
                 if (data.output && data.output.trim()) {
                     showOutput(cmd, data.output);
                 }
@@ -2884,27 +2884,27 @@
         if (!timeline) return;
 
         var entries = timeline.querySelectorAll('.tl-entry');
-        var rigFilter = document.getElementById('tl-rig-filter');
+        var featureFilter = document.getElementById('tl-feature-filter');
         var agentFilter = document.getElementById('tl-agent-filter');
         var emptyMsg = document.getElementById('tl-empty-filtered');
 
-        // Collect unique rigs and agents for dropdowns
-        var rigs = {};
+        // Collect unique features and agents for dropdowns
+        var features = {};
         var agents = {};
         entries.forEach(function(entry) {
-            var rig = entry.getAttribute('data-rig');
+            var feature = entry.getAttribute('data-feature');
             var agent = entry.getAttribute('data-agent');
-            if (rig) rigs[rig] = true;
+            if (feature) features[feature] = true;
             if (agent) agents[agent] = true;
         });
 
-        // Populate rig dropdown
-        if (rigFilter) {
-            Object.keys(rigs).sort().forEach(function(rig) {
+        // Populate feature dropdown
+        if (featureFilter) {
+            Object.keys(features).sort().forEach(function(feature) {
                 var opt = document.createElement('option');
-                opt.value = rig;
-                opt.textContent = rig;
-                rigFilter.appendChild(opt);
+                opt.value = feature;
+                opt.textContent = feature;
+                featureFilter.appendChild(opt);
             });
         }
 
@@ -2922,7 +2922,7 @@
         var activeCategory = 'all';
 
         function applyFilters() {
-            var selectedRig = rigFilter ? rigFilter.value : 'all';
+            var selectedFeature = featureFilter ? featureFilter.value : 'all';
             var selectedAgent = agentFilter ? agentFilter.value : 'all';
             var visibleCount = 0;
 
@@ -2932,7 +2932,7 @@
                 if (activeCategory !== 'all' && entry.getAttribute('data-category') !== activeCategory) {
                     show = false;
                 }
-                if (selectedRig !== 'all' && entry.getAttribute('data-rig') !== selectedRig) {
+                if (selectedFeature !== 'all' && entry.getAttribute('data-feature') !== selectedFeature) {
                     show = false;
                 }
                 if (selectedAgent !== 'all' && entry.getAttribute('data-agent') !== selectedAgent) {
@@ -2971,8 +2971,8 @@
         });
 
         // Dropdown filters
-        if (rigFilter) {
-            rigFilter.addEventListener('change', applyFilters);
+        if (featureFilter) {
+            featureFilter.addEventListener('change', applyFilters);
         }
         if (agentFilter) {
             agentFilter.addEventListener('change', applyFilters);
@@ -3079,7 +3079,7 @@
     }
 
     // ============================================
-    // CONVOY DRILL-DOWN (expand rows to show tracked issues)
+    // CONVOY DRILL-DOWN (expand rows to show tracked tickets)
     // ============================================
     var convoyCache = {}; // Cache fetched convoy data by ID
 
@@ -3120,13 +3120,13 @@
         detailRow.className = 'convoy-detail-row';
         var detailCell = document.createElement('td');
         detailCell.colSpan = 4;
-        detailCell.innerHTML = '<div class="tracked-issues"><div class="tracked-issues-loading">Loading tracked issues...</div></div>';
+        detailCell.innerHTML = '<div class="tracked-tickets"><div class="tracked-tickets-loading">Loading tracked tickets...</div></div>';
         detailRow.appendChild(detailCell);
         row.parentNode.insertBefore(detailRow, row.nextSibling);
 
         // Check cache first
         if (convoyCache[convoyId]) {
-            renderConvoyIssues(detailCell, convoyCache[convoyId]);
+            renderConvoyTickets(detailCell, convoyCache[convoyId]);
             return;
         }
 
@@ -3139,40 +3139,40 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (!data.success) {
-                detailCell.innerHTML = '<div class="tracked-issues"><div class="tracked-issues-error">Failed to load: ' + escapeHtml(data.error || 'Unknown error') + '</div></div>';
+                detailCell.innerHTML = '<div class="tracked-tickets"><div class="tracked-tickets-error">Failed to load: ' + escapeHtml(data.error || 'Unknown error') + '</div></div>';
                 return;
             }
             try {
                 var parsed = JSON.parse(data.output);
                 convoyCache[convoyId] = parsed;
-                renderConvoyIssues(detailCell, parsed);
+                renderConvoyTickets(detailCell, parsed);
             } catch (err) {
-                detailCell.innerHTML = '<div class="tracked-issues"><div class="tracked-issues-error">Failed to parse response</div></div>';
+                detailCell.innerHTML = '<div class="tracked-tickets"><div class="tracked-tickets-error">Failed to parse response</div></div>';
             }
         })
         .catch(function(err) {
-            detailCell.innerHTML = '<div class="tracked-issues"><div class="tracked-issues-error">Request failed: ' + escapeHtml(err.message) + '</div></div>';
+            detailCell.innerHTML = '<div class="tracked-tickets"><div class="tracked-tickets-error">Request failed: ' + escapeHtml(err.message) + '</div></div>';
         });
     });
 
-    function renderConvoyIssues(cell, data) {
-        var issues = data.tracked || [];
-        if (issues.length === 0) {
-            cell.innerHTML = '<div class="tracked-issues"><div class="tracked-issues-empty">No tracked issues</div></div>';
+    function renderConvoyTickets(cell, data) {
+        var tickets = data.tracked || [];
+        if (tickets.length === 0) {
+            cell.innerHTML = '<div class="tracked-tickets"><div class="tracked-tickets-empty">No tracked tickets</div></div>';
             return;
         }
 
-        var html = '<div class="tracked-issues">';
-        html += '<table class="tracked-issues-table">';
+        var html = '<div class="tracked-tickets">';
+        html += '<table class="tracked-tickets-table">';
         html += '<thead><tr><th>Status</th><th>ID</th><th>Title</th><th>Assignee</th><th>Progress</th></tr></thead>';
         html += '<tbody>';
 
-        for (var i = 0; i < issues.length; i++) {
-            var issue = issues[i];
+        for (var i = 0; i < tickets.length; i++) {
+            var ticket = tickets[i];
 
             // Status badge
             var statusBadge = '';
-            switch (issue.status) {
+            switch (ticket.status) {
                 case 'closed':
                     statusBadge = '<span class="badge badge-green">Done</span>';
                     break;
@@ -3188,29 +3188,29 @@
 
             // Assignee - extract short name
             var assignee = '—';
-            if (issue.assignee) {
-                var parts = issue.assignee.split('/');
+            if (ticket.assignee) {
+                var parts = ticket.assignee.split('/');
                 assignee = parts[parts.length - 1];
             }
 
             // Worker info as progress indicator
             var progress = '';
-            if (issue.status === 'closed') {
+            if (ticket.status === 'closed') {
                 progress = '<span class="convoy-progress-done">✓</span>';
-            } else if (issue.worker) {
-                var workerName = issue.worker.split('/').pop();
+            } else if (ticket.worker) {
+                var workerName = ticket.worker.split('/').pop();
                 progress = '<span class="convoy-progress-active">@' + escapeHtml(workerName) + '</span>';
-                if (issue.worker_age) {
-                    progress += ' <span class="convoy-progress-age">' + escapeHtml(issue.worker_age) + '</span>';
+                if (ticket.worker_age) {
+                    progress += ' <span class="convoy-progress-age">' + escapeHtml(ticket.worker_age) + '</span>';
                 }
             }
 
-            html += '<tr class="tracked-issue-row tracked-issue-' + escapeHtml(issue.status) + '">' +
+            html += '<tr class="tracked-ticket-row tracked-ticket-' + escapeHtml(ticket.status) + '">' +
                 '<td>' + statusBadge + '</td>' +
-                '<td><span class="issue-id">' + escapeHtml(issue.id) + '</span></td>' +
-                '<td class="tracked-issue-title">' + escapeHtml(issue.title) + '</td>' +
-                '<td class="tracked-issue-assignee">' + escapeHtml(assignee) + '</td>' +
-                '<td class="tracked-issue-progress">' + progress + '</td>' +
+                '<td><span class="ticket-id">' + escapeHtml(ticket.id) + '</span></td>' +
+                '<td class="tracked-ticket-title">' + escapeHtml(ticket.title) + '</td>' +
+                '<td class="tracked-ticket-assignee">' + escapeHtml(assignee) + '</td>' +
+                '<td class="tracked-ticket-progress">' + progress + '</td>' +
                 '</tr>';
         }
 
@@ -3218,11 +3218,11 @@
 
         // Progress summary
         var completed = data.completed || 0;
-        var total = data.total || issues.length;
+        var total = data.total || tickets.length;
         var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-        html += '<div class="tracked-issues-summary">';
-        html += '<div class="tracked-issues-progress-bar"><div class="tracked-issues-progress-fill" style="width: ' + pct + '%;"></div></div>';
-        html += '<span class="tracked-issues-progress-text">' + completed + '/' + total + ' completed (' + pct + '%)</span>';
+        html += '<div class="tracked-tickets-summary">';
+        html += '<div class="tracked-tickets-progress-bar"><div class="tracked-tickets-progress-fill" style="width: ' + pct + '%;"></div></div>';
+        html += '<span class="tracked-tickets-progress-text">' + completed + '/' + total + ' completed (' + pct + '%)</span>';
         html += '</div>';
 
         html += '</div>';

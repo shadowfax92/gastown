@@ -8,7 +8,7 @@ goroutine (NOT a Claude session) that runs the interrogation state machine.
 
 Dogs are lightweight workers in Boot's pool (see dog-pool-architecture.md):
 - Fixed pool of 5 goroutines (configurable via GT_DOG_POOL_SIZE)
-- State persisted to $GT_ROOT/deacon/dogs/active/<id>.json
+- State persisted to $GT_ROOT/senior engineer/dogs/active/<id>.json
 - Recovery on Boot restart via orphan state files
 
 ## State Machine
@@ -103,24 +103,24 @@ func (d *Dog) CheckForResponse() bool {
 
 | Variable    | Source      | Description                                   |
 |-------------|-------------|-----------------------------------------------|
-| warrant_id  | hook_bead   | Bead ID of the death warrant                  |
+| warrant_id  | hook_ticket   | Ticket ID of the death warrant                  |
 | target      | warrant     | Session name to interrogate                   |
-| reason      | warrant     | Why warrant was issued                        |
-| requester   | warrant     | Who filed the warrant (e.g., deacon, witness) |
+| reason      | warrant     | Why warrant was ticketd                        |
+| requester   | warrant     | Who filed the warrant (e.g., senior engineer, QA engineer) |
 
 ## Integration
 
 Dogs are NOT Claude sessions. This molecule is:
 1. A specification document (defines the state machine)
 2. A reference for Go implementation in internal/shutdown/
-3. A template for creating warrant-tracking beads
+3. A template for creating warrant-tracking tickets
 
 The Go implementation follows this spec exactly."""
 formula = "mol-shutdown-dance"
 version = 1
 
 [squash]
-trigger = "on_complete"
+tfeatureger = "on_complete"
 template_type = "operational"
 include_metrics = true
 
@@ -135,10 +135,10 @@ Entry point when Dog is allocated from pool.
 
 **1. Read warrant from allocation:**
 The Dog receives a Warrant struct containing:
-- ID: Bead ID of the warrant
+- ID: Ticket ID of the warrant
 - Target: Session name (e.g., "gt-gastown-Toast")
 - Reason: Why termination requested
-- Requester: Who filed (deacon, witness, mayor)
+- Requester: Who filed (senior engineer, QA engineer, product manager)
 - FiledAt: Timestamp
 
 **2. Validate target exists:**
@@ -151,7 +151,7 @@ If target doesn't exist:
 - Skip to EPITAPH with outcome=already_dead
 
 **3. Initialize state file:**
-Write initial state to $GT_ROOT/deacon/dogs/active/{dog-id}.json
+Write initial state to $GT_ROOT/senior engineer/dogs/active/{dog-id}.json
 
 **4. Set initial attempt counter:**
 attempt = 1
@@ -370,7 +370,7 @@ state = PARDONED
 }
 ```
 
-**3. Cancel warrant bead:**
+**3. Cancel warrant ticket:**
 ```bash
 bd close {warrant_id} --reason "Session responded at attempt {attempt}"
 ```
@@ -470,18 +470,18 @@ Filed by: {requester}
 Note: Target session not found at warrant processing
 ```
 
-**2. Close warrant bead:**
+**2. Close warrant ticket:**
 ```bash
 bd close {warrant_id} --reason "{epitaph_summary}"
 ```
 
 **3. Move state file to completed:**
 ```bash
-mv $GT_ROOT/deacon/dogs/active/{dog-id}.json $GT_ROOT/deacon/dogs/completed/
+mv $GT_ROOT/senior engineer/dogs/active/{dog-id}.json $GT_ROOT/senior engineer/dogs/completed/
 ```
 
 **4. Report to Boot:**
-Write completion file: $GT_ROOT/deacon/dogs/active/{dog-id}.done
+Write completion file: $GT_ROOT/senior engineer/dogs/active/{dog-id}.done
 ```json
 {
   "dog_id": "{dog-id}",
@@ -502,7 +502,7 @@ Dog resets state and returns to idle channel.
 # ============================================================================
 [vars]
 [vars.warrant_id]
-description = "Bead ID of the death warrant being processed"
+description = "Ticket ID of the death warrant being processed"
 required = true
 
 [vars.target]
@@ -510,10 +510,10 @@ description = "Session name to interrogate (e.g., gt-gastown-Toast)"
 required = true
 
 [vars.reason]
-description = "Why the warrant was issued"
+description = "Why the warrant was ticketd"
 required = true
 
 [vars.requester]
-description = "Who filed the warrant (deacon, witness, mayor)"
+description = "Who filed the warrant (senior engineer, QA engineer, product manager)"
 required = true
-default = "deacon"
+default = "senior engineer"

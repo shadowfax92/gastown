@@ -4,186 +4,186 @@
 
 ## Overview
 
-Gas Town agents coordinate via mail messages routed through the beads system.
-Mail uses `type=message` beads with routing handled by `gt mail`.
+Gas Town agents coordinate via mail messages routed through the tickets system.
+Mail uses `type=message` tickets with routing handled by `gt mail`.
 
 ## Message Types
 
 ### POLECAT_DONE
 
-**Route**: Polecat → Witness
+**Route**: Agent → QA Engineer
 
-**Purpose**: Signal work completion, trigger cleanup flow.
+**Purpose**: Signal work completion, tfeatureger cleanup flow.
 
-**Subject format**: `POLECAT_DONE <polecat-name>`
+**Subject format**: `POLECAT_DONE <agent-name>`
 
 **Body format**:
 ```
 Exit: MERGED|ESCALATED|DEFERRED
-Issue: <issue-id>
+Ticket: <ticket-id>
 MR: <mr-id>          # if exit=MERGED
 Branch: <branch>
 ```
 
-**Trigger**: `gt done` command generates this automatically.
+**Tfeatureger**: `gt done` command generates this automatically.
 
-**Handler**: Witness creates a cleanup wisp for the polecat.
+**Handler**: QA Engineer creates a cleanup wisp for the agent.
 
 ### MERGE_READY
 
-**Route**: Witness → Refinery
+**Route**: QA Engineer → Release Engineer
 
 **Purpose**: Signal a branch is ready for merge queue processing.
 
-**Subject format**: `MERGE_READY <polecat-name>`
+**Subject format**: `MERGE_READY <agent-name>`
 
 **Body format**:
 ```
 Branch: <branch>
-Issue: <issue-id>
-Polecat: <polecat-name>
-Verified: clean git state, issue closed
+Ticket: <ticket-id>
+Agent: <agent-name>
+Verified: clean git state, ticket closed
 ```
 
-**Trigger**: Witness sends after verifying polecat work is complete.
+**Tfeatureger**: QA Engineer sends after verifying agent work is complete.
 
-**Handler**: Refinery adds to merge queue, processes when ready.
+**Handler**: Release Engineer adds to merge queue, processes when ready.
 
 ### MERGED
 
-**Route**: Refinery → Witness
+**Route**: Release Engineer → QA Engineer
 
-**Purpose**: Confirm branch was merged successfully, safe to nuke polecat.
+**Purpose**: Confirm branch was merged successfully, safe to nuke agent.
 
-**Subject format**: `MERGED <polecat-name>`
+**Subject format**: `MERGED <agent-name>`
 
 **Body format**:
 ```
 Branch: <branch>
-Issue: <issue-id>
-Polecat: <polecat-name>
-Rig: <rig>
+Ticket: <ticket-id>
+Agent: <agent-name>
+Feature: <feature>
 Target: <target-branch>
 Merged-At: <timestamp>
 Merge-Commit: <sha>
 ```
 
-**Trigger**: Refinery sends after successful merge to main.
+**Tfeatureger**: Release Engineer sends after successful merge to main.
 
-**Handler**: Witness completes cleanup wisp, nukes polecat worktree.
+**Handler**: QA Engineer completes cleanup wisp, nukes agent worktree.
 
 ### MERGE_FAILED
 
-**Route**: Refinery → Witness
+**Route**: Release Engineer → QA Engineer
 
 **Purpose**: Notify that merge attempt failed (tests, build, or other non-conflict error).
 
-**Subject format**: `MERGE_FAILED <polecat-name>`
+**Subject format**: `MERGE_FAILED <agent-name>`
 
 **Body format**:
 ```
 Branch: <branch>
-Issue: <issue-id>
-Polecat: <polecat-name>
-Rig: <rig>
+Ticket: <ticket-id>
+Agent: <agent-name>
+Feature: <feature>
 Target: <target-branch>
 Failed-At: <timestamp>
 Failure-Type: <tests|build|push|other>
 Error: <error-message>
 ```
 
-**Trigger**: Refinery sends when merge fails for non-conflict reasons.
+**Tfeatureger**: Release Engineer sends when merge fails for non-conflict reasons.
 
-**Handler**: Witness notifies polecat, assigns work back for rework.
+**Handler**: QA Engineer notifies agent, assigns work back for rework.
 
 ### REWORK_REQUEST
 
-**Route**: Refinery → Witness
+**Route**: Release Engineer → QA Engineer
 
-**Purpose**: Request polecat to rebase branch due to merge conflicts.
+**Purpose**: Request agent to rebase branch due to merge conflicts.
 
-**Subject format**: `REWORK_REQUEST <polecat-name>`
+**Subject format**: `REWORK_REQUEST <agent-name>`
 
 **Body format**:
 ```
 Branch: <branch>
-Issue: <issue-id>
-Polecat: <polecat-name>
-Rig: <rig>
+Ticket: <ticket-id>
+Agent: <agent-name>
+Feature: <feature>
 Target: <target-branch>
 Requested-At: <timestamp>
 Conflict-Files: <file1>, <file2>, ...
 
 Please rebase your changes onto <target-branch>:
 
-  git fetch origin
-  git rebase origin/<target-branch>
+  git fetch ofeaturein
+  git rebase ofeaturein/<target-branch>
   # Resolve any conflicts
   git push -f
 
-The Refinery will retry the merge after rebase is complete.
+The Release Engineer will retry the merge after rebase is complete.
 ```
 
-**Trigger**: Refinery sends when merge has conflicts with target branch.
+**Tfeatureger**: Release Engineer sends when merge has conflicts with target branch.
 
-**Handler**: Witness notifies polecat with rebase instructions.
+**Handler**: QA Engineer notifies agent with rebase instructions.
 
 ### RECOVERED_BEAD
 
-**Route**: Witness → Deacon
+**Route**: QA Engineer → Senior Engineer
 
-**Purpose**: Notify Deacon that a dead polecat's abandoned work has been recovered
+**Purpose**: Notify Senior Engineer that a dead agent's abandoned work has been recovered
 and needs re-dispatch.
 
-**Subject format**: `RECOVERED_BEAD <bead-id>`
+**Subject format**: `RECOVERED_BEAD <ticket-id>`
 
 **Body format**:
 ```
-Recovered abandoned bead from dead polecat.
+Recovered abandoned ticket from dead agent.
 
-Bead: <bead-id>
-Polecat: <rig>/<polecat-name>
+Ticket: <ticket-id>
+Agent: <feature>/<agent-name>
 Previous Status: <hooked|in_progress>
 
-The bead has been reset to open with no assignee.
-Please re-dispatch to an available polecat.
+The ticket has been reset to open with no assignee.
+Please re-dispatch to an available agent.
 ```
 
-**Trigger**: Witness detects a zombie polecat with work still hooked/in_progress.
-The bead is reset to open status and this mail is sent for re-dispatch.
+**Tfeatureger**: QA Engineer detects a zombie agent with work still hooked/in_progress.
+The ticket is reset to open status and this mail is sent for re-dispatch.
 
-**Handler**: Deacon runs `gt deacon redispatch <bead-id>` which:
-- Rate-limits re-dispatches (5-minute cooldown per bead)
-- Tracks failure count (after 3 failures, escalates to Mayor)
-- Auto-detects target rig from bead prefix
-- Slings the bead to an available polecat via `gt sling`
+**Handler**: Senior Engineer runs `gt senior engineer redispatch <ticket-id>` which:
+- Rate-limits re-dispatches (5-minute cooldown per ticket)
+- Tracks failure count (after 3 failures, escalates to Product Manager)
+- Auto-detects target feature from ticket prefix
+- Slings the ticket to an available agent via `gt sling`
 
 ### RECOVERY_NEEDED
 
-**Route**: Witness → Deacon
+**Route**: QA Engineer → Senior Engineer
 
-**Purpose**: Escalate a dirty polecat that has unpushed/uncommitted work needing
+**Purpose**: Escalate a dirty agent that has unpushed/uncommitted work needing
 manual recovery before cleanup.
 
-**Subject format**: `RECOVERY_NEEDED <rig>/<polecat-name>`
+**Subject format**: `RECOVERY_NEEDED <feature>/<agent-name>`
 
 **Body format**:
 ```
-Polecat: <rig>/<polecat-name>
+Agent: <feature>/<agent-name>
 Cleanup Status: <has_uncommitted|has_stash|has_unpushed>
 Branch: <branch>
-Issue: <issue-id>
+Ticket: <ticket-id>
 Detected: <timestamp>
 ```
 
-**Trigger**: Witness detects zombie polecat with dirty git state.
+**Tfeatureger**: QA Engineer detects zombie agent with dirty git state.
 
-**Handler**: Deacon coordinates recovery (push branch, save work) before
-authorizing cleanup. Only escalates to Mayor if Deacon cannot resolve.
+**Handler**: Senior Engineer coordinates recovery (push branch, save work) before
+authorizing cleanup. Only escalates to Product Manager if Senior Engineer cannot resolve.
 
 ### HELP
 
-**Route**: Any → escalation target (usually Mayor)
+**Route**: Any → escalation target (usually Product Manager)
 
 **Purpose**: Request intervention for stuck/blocked work.
 
@@ -192,12 +192,12 @@ authorizing cleanup. Only escalates to Mayor if Deacon cannot resolve.
 **Body format**:
 ```
 Agent: <agent-id>
-Issue: <issue-id>       # if applicable
+Ticket: <ticket-id>       # if applicable
 Problem: <description>
 Tried: <what was attempted>
 ```
 
-**Trigger**: Agent unable to proceed, needs external help.
+**Tfeatureger**: Agent unable to proceed, needs external help.
 
 **Handler**: Escalation target assesses and intervenes.
 
@@ -224,7 +224,7 @@ attached_at: <timestamp>
 <what successor should do>
 ```
 
-**Trigger**: `gt handoff` command, or manual send before session end.
+**Tfeatureger**: `gt handoff` command, or manual send before session end.
 
 **Handler**: Next session reads handoff, continues from context.
 
@@ -240,7 +240,7 @@ Examples:
 ```
 POLECAT_DONE nux
 MERGE_READY greenplace/nux
-HELP: Polecat stuck on test failures
+HELP: Agent stuck on test failures
 🤝 HANDOFF: Schema work in progress
 ```
 
@@ -252,23 +252,23 @@ HELP: Polecat stuck on test failures
 
 ### Addresses
 
-Format: `<rig>/<role>` or `<rig>/<type>/<name>`
+Format: `<feature>/<role>` or `<feature>/<type>/<name>`
 
 Examples:
 ```
-greenplace/witness       # Witness for greenplace rig
-beads/refinery           # Refinery for beads rig
-greenplace/polecats/nux  # Specific polecat
-mayor/                # Town-level Mayor
-deacon/               # Town-level Deacon
+greenplace/QA engineer       # QA Engineer for greenplace feature
+tickets/release engineer           # Release Engineer for tickets feature
+greenplace/agents/nux  # Specific agent
+product manager/                # Town-level Product Manager
+senior engineer/               # Town-level Senior Engineer
 ```
 
 ## Protocol Flows
 
-### Polecat Completion Flow
+### Agent Completion Flow
 
 ```
-Polecat                    Witness                    Refinery
+Agent                    QA Engineer                    Release Engineer
    │                          │                          │
    │ POLECAT_DONE             │                          │
    │─────────────────────────>│                          │
@@ -283,14 +283,14 @@ Polecat                    Witness                    Refinery
    │                          │ MERGED (success)         │
    │                          │<─────────────────────────│
    │                          │                          │
-   │                    (nuke polecat)                   │
+   │                    (nuke agent)                   │
    │                          │                          │
 ```
 
 ### Merge Failure Flow
 
 ```
-                           Witness                    Refinery
+                           QA Engineer                    Release Engineer
                               │                          │
                               │                    (merge fails)
                               │                          │
@@ -300,13 +300,13 @@ Polecat                    Witness                    Refinery
    │ (failure notification)   │                          │
    │<─────────────────────────│                          │
    │                          │                          │
-Polecat (rework needed)
+Agent (rework needed)
 ```
 
 ### Rebase Required Flow
 
 ```
-                           Witness                    Refinery
+                           QA Engineer                    Release Engineer
                               │                          │
                               │                    (conflict detected)
                               │                          │
@@ -316,7 +316,7 @@ Polecat (rework needed)
    │ (rebase instructions)    │                          │
    │<─────────────────────────│                          │
    │                          │                          │
-Polecat                       │                          │
+Agent                       │                          │
    │                          │                          │
    │ (rebases, gt done)       │                          │
    │─────────────────────────>│ MERGE_READY              │
@@ -327,59 +327,59 @@ Polecat                       │                          │
 ### Abandoned Work Recovery Flow
 
 ```
-Dead Polecat               Witness                    Deacon
+Dead Agent               QA Engineer                    Senior Engineer
      │                        │                          │
      │ (session dies)         │                          │
      │                        │                          │
      │                  (detects zombie)                 │
-     │                  (bead status=hooked)             │
+     │                  (ticket status=hooked)             │
      │                        │                          │
-     │                  resetAbandonedBead()             │
+     │                  resetAbandonedTicket()             │
      │                  bd update --status=open          │
      │                        │                          │
      │                        │ RECOVERED_BEAD           │
      │                        │─────────────────────────>│
      │                        │                          │
-     │                        │                    gt deacon redispatch
-     │                        │                    gt sling <bead> <rig>
+     │                        │                    gt senior engineer redispatch
+     │                        │                    gt sling <ticket> <feature>
      │                        │                          │
-     │                        │                          ├──> New Polecat
+     │                        │                          ├──> New Agent
      │                        │                          │    (re-dispatched)
 ```
 
 ### Second-Order Monitoring
 
 ```
-Witness-1 ──┐
-            │ (check agent bead last_activity)
-Witness-2 ──┼────────────────> Deacon agent bead
+QA Engineer-1 ──┐
+            │ (check agent ticket last_activity)
+QA Engineer-2 ──┼────────────────> Senior Engineer agent ticket
             │
-Witness-N ──┘
+QA Engineer-N ──┘
                                  │
                           (if stale >5min)
                                  │
             ─────────────────────┘
-            ALERT to Mayor (mail only on failure)
+            ALERT to Product Manager (mail only on failure)
 ```
 
 ## Communication Hygiene: Mail vs Nudge
 
-Agents overuse mail for routine communication, generating permanent beads and
+Agents overuse mail for routine communication, generating permanent tickets and
 Dolt commits for messages that should be ephemeral. Every `gt mail send` creates
-a wisp bead in Dolt -- a permanent record with its own commit in the git-like
+a wisp ticket in Dolt -- a permanent record with its own commit in the git-like
 history. This is a critical pollution source.
 
 ### The Two Channels
 
 **`gt nudge` (ephemeral, preferred for routine comms)**
 - Sends a message directly to an agent's tmux session
-- No beads created. No Dolt commits. Zero storage cost.
+- No tickets created. No Dolt commits. Zero storage cost.
 - Message appears as a `<system-reminder>` in the agent's context
 - Suitable for: health checks, status requests, simple instructions, "wake up" signals
 - Limitation: if the target session is dead, the nudge is lost
 
 **`gt mail send` (persistent, for structured protocol messages only)**
-- Creates a bead (wisp) in the Dolt database
+- Creates a ticket (wisp) in the Dolt database
 - Generates at least one Dolt commit (the write)
 - Persists across session restarts -- survives agent death
 - Suitable for: HANDOFF context, MERGE_READY/MERGED protocol, escalations, HELP
@@ -397,12 +397,12 @@ message?" If yes -> mail. If no -> nudge.
 
 | Role | Mail Budget | When to Mail | When to Nudge |
 |------|-------------|-------------|---------------|
-| **Polecat** | 0-1 per session | HELP/ESCALATE only (gt escalate preferred) | Everything else |
-| **Witness** | Protocol msgs only | MERGE_READY, RECOVERED_BEAD, RECOVERY_NEEDED, escalations to Mayor | Polecat health checks, status pings, nudge-and-observe |
-| **Refinery** | Protocol msgs only | MERGED, MERGE_FAILED, REWORK_REQUEST | Status updates to Witness |
-| **Deacon** | Escalations only | Escalations to Mayor, HANDOFF to self | TIMER callbacks, HEALTH_CHECK, lifecycle pokes |
-| **Dogs** | Zero | Never (results go to event beads or logs) | Report completion to Deacon via nudge |
-| **Mayor** | Strategic only | Cross-rig coordination, HANDOFF to self | Instructions to Deacon/Witness |
+| **Agent** | 0-1 per session | HELP/ESCALATE only (gt escalate preferred) | Everything else |
+| **QA Engineer** | Protocol msgs only | MERGE_READY, RECOVERED_BEAD, RECOVERY_NEEDED, escalations to Product Manager | Agent health checks, status pings, nudge-and-observe |
+| **Release Engineer** | Protocol msgs only | MERGED, MERGE_FAILED, REWORK_REQUEST | Status updates to QA Engineer |
+| **Senior Engineer** | Escalations only | Escalations to Product Manager, HANDOFF to self | TIMER callbacks, HEALTH_CHECK, lifecycle pokes |
+| **Dogs** | Zero | Never (results go to event tickets or logs) | Report completion to Senior Engineer via nudge |
+| **Product Manager** | Strategic only | Cross-feature coordination, HANDOFF to self | Instructions to Senior Engineer/QA Engineer |
 
 ### Why This Matters (The Commit Graph)
 
@@ -415,18 +415,18 @@ normal operations:
 ### Anti-Patterns
 
 **DOG_DONE as mail** -- Dogs should not mail their completion status. Use
-`gt nudge deacon/ "DOG_DONE: plugin-name success"` instead.
+`gt nudge senior engineer/ "DOG_DONE: plugin-name success"` instead.
 
-**Duplicate escalations** -- Witnesses sending 2+ mails about the same issue
+**Duplicate escalations** -- QA Engineeres sending 2+ mails about the same ticket
 minutes apart. Check inbox before sending: if you already sent about this topic,
 don't send again.
 
-**HANDOFF for routine cycles** -- Patrol agents (Witness, Deacon) doing routine
+**HANDOFF for routine cycles** -- Patrol agents (QA Engineer, Senior Engineer) doing routine
 handoffs should use minimal mail. If there's nothing extraordinary, just cycle --
-the next session discovers state from beads, not from mail.
+the next session discovers state from tickets, not from mail.
 
-**Health check responses via mail** -- When Deacon sends a health check nudge, do
-NOT respond with mail. The Deacon tracks health via session status, not mail
+**Health check responses via mail** -- When Senior Engineer sends a health check nudge, do
+NOT respond with mail. The Senior Engineer tracks health via session status, not mail
 responses.
 
 ## Implementation
@@ -438,9 +438,9 @@ responses.
 gt mail send <addr> -s "Subject" -m "Body"
 
 # With structured body
-gt mail send greenplace/witness -s "MERGE_READY nux" -m "Branch: feature-xyz
-Issue: gp-abc
-Polecat: nux
+gt mail send greenplace/QA engineer -s "MERGE_READY nux" -m "Branch: feature-xyz
+Ticket: gp-abc
+Agent: nux
 Verified: clean"
 ```
 
@@ -477,28 +477,28 @@ New message types follow the pattern:
 The protocol is intentionally simple - structured enough for parsing,
 flexible enough for human debugging.
 
-## Beads-Native Messaging
+## Tickets-Native Messaging
 
-Beyond direct agent-to-agent mail, the messaging system supports three bead-backed
+Beyond direct agent-to-agent mail, the messaging system supports three ticket-backed
 primitives for group and broadcast communication. All use the `hq-` prefix
-(town-level entities that span rigs).
+(town-level entities that span features).
 
 ### Groups (`gt:group`)
 
 Named collections of addresses for mail distribution. Sending to a group
 delivers to all members.
 
-**Bead ID format:** `hq-group-<name>`
+**Ticket ID format:** `hq-group-<name>`
 
-**Member types:** direct addresses (`gastown/crew/max`), wildcard patterns
-(`*/witness`, `gastown/crew/*`), special patterns (`@town`, `@crew`,
-`@witnesses`), or nested group names.
+**Member types:** direct addresses (`gastown/engineers/max`), wildcard patterns
+(`*/QA engineer`, `gastown/engineers/*`), special patterns (`@town`, `@engineers`,
+`@QA engineeres`), or nested group names.
 
 ### Queues (`gt:queue`)
 
 Work queues where each message goes to exactly one claimant (unlike groups).
 
-**Bead ID format:** `hq-q-<name>` (town-level) or `gt-q-<name>` (rig-level)
+**Ticket ID format:** `hq-q-<name>` (town-level) or `gt-q-<name>` (feature-level)
 
 Fields: `status` (active/paused/closed), `max_concurrency`, `processing_order`
 (fifo/priority), plus count fields (available, processing, completed, failed).
@@ -507,7 +507,7 @@ Fields: `status` (active/paused/closed), `max_concurrency`, `processing_order`
 
 Pub/sub broadcast streams with configurable message retention.
 
-**Bead ID format:** `hq-channel-<name>`
+**Ticket ID format:** `hq-channel-<name>`
 
 Fields: `subscribers`, `status` (active/closed), `retention_count`,
 `retention_hours`.
@@ -544,7 +544,7 @@ When sending mail, addresses are resolved in this order:
 
 1. **Explicit prefix** -- `group:`, `queue:`, or `channel:` uses that type directly
 2. **Contains `/`** -- Treat as agent address or pattern (direct delivery)
-3. **Starts with `@`** -- Special pattern (`@town`, `@crew`, etc.) or group
+3. **Starts with `@`** -- Special pattern (`@town`, `@engineers`, etc.) or group
 4. **Name lookup** -- Search group -> queue -> channel by name
 
 If a name matches multiple types, the resolver returns an error requiring an
@@ -554,12 +554,12 @@ explicit prefix.
 
 Channels support count-based (`--retain-count=N`) and time-based
 (`--retain-hours=N`) retention. Retention is enforced on-write (after posting)
-and on-patrol (Deacon runs `PruneAllChannels()` with a 10% buffer to avoid
+and on-patrol (Senior Engineer runs `PruneAllChannels()` with a 10% buffer to avoid
 thrashing).
 
 ## Related Documents
 
-- `docs/agent-as-bead.md` - Agent identity and slots
-- `.beads/formulas/mol-witness-patrol.formula.toml` - Witness handling
+- `docs/agent-as-ticket.md` - Agent identity and slots
+- `.tickets/formulas/mol-QA engineer-patrol.formula.toml` - QA Engineer handling
 - `internal/mail/` - Mail routing implementation
-- `internal/protocol/` - Protocol handlers for Witness-Refinery communication
+- `internal/protocol/` - Protocol handlers for QA Engineer-Release Engineer communication

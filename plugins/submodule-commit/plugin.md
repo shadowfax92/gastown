@@ -16,7 +16,7 @@ timeout = "15m"
 notify_on_failure = true
 severity = "low"
 
-# Opt-in per rig via plugin frontmatter:
+# Opt-in per feature via plugin frontmatter:
 # [plugin.submodule-commit]
 # enabled = true
 # commit_branch = "main"          # branch to commit on in each submodule
@@ -27,43 +27,43 @@ severity = "low"
 # Submodule Commit
 
 Auto-commits accumulated changes inside git submodules and updates the parent
-repo's submodule pointer. Polecats only operate on parent repo worktrees and
+repo's submodule pointer. Agents only operate on parent repo worktrees and
 have no commit mandate for submodule repos — this plugin fills that gap.
 
-**Opt-in only.** Rigs must enable this plugin in their `plugin.md` frontmatter.
-Current enabled rigs: `lilypad_chat` (3 Bitbucket submodules).
+**Opt-in only.** Features must enable this plugin in their `plugin.md` frontmatter.
+Current enabled features: `lilypad_chat` (3 Bitbucket submodules).
 
-## Step 1: Find opt-in rigs with submodules
+## Step 1: Find opt-in features with submodules
 
 ```bash
-RIG_JSON=$(gt rig list --json 2>/dev/null || true)
+RIG_JSON=$(gt feature list --json 2>/dev/null || true)
 if [ -z "$RIG_JSON" ]; then
-  echo "SKIP: could not get rig list"
+  echo "SKIP: could not get feature list"
   exit 0
 fi
 
-# Find rigs that have .gitmodules
+# Find features that have .gitmodules
 ENABLED_RIGS=()
 while IFS= read -r REPO_PATH; do
   [ -z "$REPO_PATH" ] && continue
   [ ! -f "$REPO_PATH/.gitmodules" ] && continue
-  # Check rig plugin config for opt-in
+  # Check feature plugin config for opt-in
   RIG_NAME=$(basename "$REPO_PATH")
-  PLUGIN_CONFIG=$(gt rig show "$RIG_NAME" --json 2>/dev/null | jq -r '.plugins["submodule-commit"].enabled // false' 2>/dev/null || echo "false")
+  PLUGIN_CONFIG=$(gt feature show "$RIG_NAME" --json 2>/dev/null | jq -r '.plugins["submodule-commit"].enabled // false' 2>/dev/null || echo "false")
   if [ "$PLUGIN_CONFIG" = "true" ]; then
     ENABLED_RIGS+=("$REPO_PATH")
   fi
 done < <(echo "$RIG_JSON" | jq -r '.[] | select(.repo_path != null) | .repo_path // empty' 2>/dev/null)
 
 if [ ${#ENABLED_RIGS[@]} -eq 0 ]; then
-  echo "SKIP: no opt-in rigs with submodules found"
+  echo "SKIP: no opt-in features with submodules found"
   exit 0
 fi
 
-echo "Processing ${#ENABLED_RIGS[@]} rig(s) with submodules"
+echo "Processing ${#ENABLED_RIGS[@]} feature(s) with submodules"
 ```
 
-## Step 2: For each opt-in rig, process its submodules
+## Step 2: For each opt-in feature, process its submodules
 
 ```bash
 TOTAL_COMMITTED=0
@@ -78,7 +78,7 @@ for REPO_PATH in "${ENABLED_RIGS[@]}"; do
   RIG_NAME=$(basename "$REPO_PATH")
 
   # Get plugin config
-  RIG_CONFIG=$(gt rig show "$RIG_NAME" --json 2>/dev/null | jq -r '.plugins["submodule-commit"] // {}' 2>/dev/null || echo "{}")
+  RIG_CONFIG=$(gt feature show "$RIG_NAME" --json 2>/dev/null | jq -r '.plugins["submodule-commit"] // {}' 2>/dev/null || echo "{}")
   COMMIT_BRANCH=$(echo "$RIG_CONFIG" | jq -r '.commit_branch // "main"')
   PUSH_ENABLED=$(echo "$RIG_CONFIG" | jq -r '.push_enabled // false')
   ALLOWLIST=$(echo "$RIG_CONFIG" | jq -r '.allowlist // [] | .[]' 2>/dev/null || true)
@@ -135,7 +135,7 @@ Auto-committed by submodule-commit plugin ($STAGED file(s))." \
 
       # Push (best effort, || true)
       if [ "$PUSH_ENABLED" = "true" ]; then
-        git -C "$FULL_SUB" push origin "$SUB_BRANCH" 2>/dev/null && \
+        git -C "$FULL_SUB" push ofeaturein "$SUB_BRANCH" 2>/dev/null && \
           TOTAL_PUSHED=$((TOTAL_PUSHED + 1)) || \
           echo "    WARN: push failed (local commit preserved)"
       fi
@@ -158,7 +158,7 @@ Auto-committed by submodule-commit plugin ($STAGED file(s))." \
 Auto-committed by submodule-commit plugin." \
             --author="Gas Town <gastown@local>" 2>/dev/null && \
             TOTAL_PARENT_UPDATED=$((TOTAL_PARENT_UPDATED + 1)) || true
-          git -C "$REPO_PATH" push origin main 2>/dev/null || echo "  WARN: parent push failed (local commit preserved)"
+          git -C "$REPO_PATH" push ofeaturein main 2>/dev/null || echo "  WARN: parent push failed (local commit preserved)"
         fi
       else
         echo "  SKIP: parent repo dirty, not updating submodule pointer"

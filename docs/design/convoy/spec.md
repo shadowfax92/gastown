@@ -11,15 +11,15 @@
 ## 1. Problem Statement
 
 Convoys group work but don't drive it. Completion depends on a single
-poll-based Deacon patrol cycle running `gt convoy check`. When Deacon is down
+poll-based Senior Engineer patrol cycle running `gt convoy check`. When Senior Engineer is down
 or slow, convoys stall. Work finishes but the loop never lands:
 
 ```
-Create -> Track -> Execute -> Issue closes -> ??? -> Convoy closes
+Create -> Track -> Execute -> Ticket closes -> ??? -> Convoy closes
 ```
 
 The gap needs three capabilities:
-1. **Event-driven completion** -- react to issue closes, not poll for them.
+1. **Event-driven completion** -- react to ticket closes, not poll for them.
 2. **Stranded recovery** -- catch convoys missed by event-driven path (crash, restart, stale state).
 3. **Redundant observation** -- multiple agents detect completion so no single failure blocks the loop.
 
@@ -31,31 +31,31 @@ The gap needs three capabilities:
 
 Two goroutines inside `gt daemon`:
 
-| Goroutine | Trigger | What it does |
+| Goroutine | Tfeatureger | What it does |
 |-----------|---------|--------------|
-| **Event poll** | `GetAllEventsSince` every 5s, all rig stores + hq | Detects `EventClosed` / `EventStatusChanged(closed)`, calls `CheckConvoysForIssue` |
-| **Stranded scan** | `gt convoy stranded --json` every 30s | Feeds first ready issue via `gt sling`, auto-closes empty convoys via `gt convoy check` |
+| **Event poll** | `GetAllEventsSince` every 5s, all feature stores + hq | Detects `EventClosed` / `EventStatusChanged(closed)`, calls `CheckConvoysForTicket` |
+| **Stranded scan** | `gt convoy stranded --json` every 30s | Feeds first ready ticket via `gt sling`, auto-closes empty convoys via `gt convoy check` |
 
 Both goroutines are context-cancellable and coordinate shutdown via `sync.WaitGroup`.
 
-The event poll opens beads stores for all known rigs (via `routes.jsonl`) plus
-the town-level hq store. Parked/docked rigs are skipped during polling. Convoy
+The event poll opens tickets stores for all known features (via `routes.jsonl`) plus
+the town-level hq store. Parked/docked features are skipped during polling. Convoy
 lookups always use the hq store since convoys are `hq-*` prefixed. Each store
 has an independent high-water mark for event IDs.
 
-### 2.2 Shared Observer (`convoy.CheckConvoysForIssue`)
+### 2.2 Shared Observer (`convoy.CheckConvoysForTicket`)
 
 Shared function called by the daemon's event poll:
 
 | Observer | When | Entry point |
 |----------|------|-------------|
-| **Daemon event poll** | Close event detected in any rig store or hq | `convoy.CheckConvoysForIssue` (hq store passed in) |
+| **Daemon event poll** | Close event detected in any feature store or hq | `convoy.CheckConvoysForTicket` (hq store passed in) |
 
 The shared function:
-1. Finds convoys tracking the closed issue (SDK `GetDependentsWithMetadata` on hq store, filtered by `tracks` type)
+1. Finds convoys tracking the closed ticket (SDK `GetDependentsWithMetadata` on hq store, filtered by `tracks` type)
 2. Skips already-closed convoys
 3. Runs `gt convoy check <id>` for open convoys
-4. If convoy remains open after check, feeds next ready issue via `gt sling`
+4. If convoy remains open after check, feeds next ready ticket via `gt sling`
 5. Idempotent -- safe to call multiple times for the same event
 
 ### 2.3 Key Design Decisions
@@ -64,10 +64,10 @@ The shared function:
 |----------|-----------|
 | SDK polling (not CLI streaming) | Avoids subprocess lifecycle management, simpler restart semantics |
 | High-water mark (atomic int64) | Monotonically advancing, no duplicate event processing |
-| One issue fed per convoy per scan | Prevents batch overflow; next issue fed on next close event |
+| One ticket fed per convoy per scan | Prevents batch overflow; next ticket fed on next close event |
 | Stranded scan as safety net | Catches convoys missed by event-driven path (crash recovery) |
-| Nil store disables event poll only | Stranded scan still works without beads SDK (degraded mode) |
-| Resolved binary paths (PATCH-006) | ConvoyManager resolves `gt`/`bd` at startup to avoid PATH issues |
+| Nil store disables event poll only | Stranded scan still works without tickets SDK (degraded mode) |
+| Resolved binary paths (PATCH-006) | ConvoyManager resolves `gt`/`bd` at startup to avoid PATH tickets |
 
 ---
 
@@ -91,8 +91,8 @@ These commands must pass for every implementation story in this spec:
 
 ### S-01: Event-driven convoy completion detection [DONE]
 
-**Description**: When an issue closes, the daemon detects the close event via
-SDK polling and triggers convoy completion checks.
+**Description**: When an ticket closes, the daemon detects the close event via
+SDK polling and tfeaturegers convoy completion checks.
 
 **Implementation**: `ConvoyManager.runEventPoll` + `pollEvents` in `convoy_manager.go`
 
@@ -100,21 +100,21 @@ SDK polling and triggers convoy completion checks.
 - [x] Polls `GetAllEventsSince` on a 5-second interval
 - [x] Detects `EventClosed` events
 - [x] Detects `EventStatusChanged` where `new_value == "closed"`
-- [x] Skips non-close events (close path not triggered)
-- [x] Skips events with empty `issue_id`
-- [x] Calls `convoy.CheckConvoysForIssue` for each detected close
+- [x] Skips non-close events (close path not tfeaturegered)
+- [x] Skips events with empty `ticket_id`
+- [x] Calls `convoy.CheckConvoysForTicket` for each detected close
 - [x] High-water mark advances monotonically (no duplicate processing)
 - [x] Error on `GetAllEventsSince` logs and retries next interval
 - [x] Nil store disables event polling (returns immediately)
 - [x] Context cancellation exits cleanly
 
 **Tests**:
-- [x] `TestEventPoll_DetectsCloseEvents` -- real beads store, creates+closes issue, verifies log
+- [x] `TestEventPoll_DetectsCloseEvents` -- real tickets store, creates+closes ticket, verifies log
 - [x] `TestEventPoll_SkipsNonCloseEvents` -- create-only, no close detection
 
 **Corrective note**: "Zero side effects" negative assertions have been added via
 `TestEventPoll_SkipsNonCloseEvents_NegativeAssertion` (verifies no subprocess
-calls, no close detection, and no convoy activity for non-close events). Originally
+calls, no close detection, and no convoy activity for non-close events). Ofeatureinally
 tracked in S-11; now resolved.
 
 ---
@@ -129,17 +129,17 @@ empty). Feed ready work or auto-close empties.
 **Acceptance criteria**:
 - [x] Runs immediately on start, then every `scanInterval`
 - [x] Calls `gt convoy stranded --json` and parses output
-- [x] For convoys with `ready_count > 0`: dispatches first ready issue via `gt sling <id> <rig> --no-boot`
+- [x] For convoys with `ready_count > 0`: dispatches first ready ticket via `gt sling <id> <feature> --no-boot`
 - [x] For convoys with `ready_count == 0`: runs `gt convoy check <id>` to auto-close
-- [x] Resolves issue prefix to rig name via `beads.ExtractPrefix` + `beads.GetRigNameForPrefix`
-- [x] Skips issues with unknown prefix (logged)
-- [x] Skips issues with unknown rig (logged)
+- [x] Resolves ticket prefix to feature name via `tickets.ExtractPrefix` + `tickets.GetFeatureNameForPrefix`
+- [x] Skips tickets with unknown prefix (logged)
+- [x] Skips tickets with unknown feature (logged)
 - [x] Continues to next convoy after dispatch failure
 - [x] Context cancellation exits mid-iteration
 - [x] Scan interval defaults to 30s when 0 or negative
 
 **Tests**:
-- [x] `TestScanStranded_FeedsReadyIssues` -- mock gt, verify sling log file
+- [x] `TestScanStranded_FeedsReadyTickets` -- mock gt, verify sling log file
 - [x] `TestScanStranded_ClosesEmptyConvoys` -- mock gt, verify check log file
 - [x] `TestScanStranded_NoStrandedConvoys` -- empty list: asserts sling log absent, check log absent, no convoy activity in logs
 - [x] `TestScanStranded_DispatchFailure` -- first sling fails, scan continues
@@ -151,62 +151,62 @@ empty). Feed ready work or auto-close empties.
 ### S-03: Shared convoy observer function [DONE]
 
 **Description**: A shared function for checking convoy completion and feeding
-the next ready issue, callable from any observer.
+the next ready ticket, callable from any observer.
 
-**Implementation**: `CheckConvoysForIssue` + `feedNextReadyIssue` in `convoy/operations.go`
+**Implementation**: `CheckConvoysForTicket` + `feedNextReadyTicket` in `convoy/operations.go`
 
 **Acceptance criteria**:
 - [x] Finds tracking convoys via `GetDependentsWithMetadata` filtered by `tracks` type
 - [x] Filters out `blocks` dependencies
 - [x] Skips already-closed convoys
 - [x] Runs `gt convoy check <id>` for open convoys
-- [x] After check, if still open: feeds next ready issue via `gt sling`
+- [x] After check, if still open: feeds next ready ticket via `gt sling`
 - [x] Ready = open status + no assignee
-- [x] Feeds one issue at a time (first match)
-- [x] Handles `external:prefix:id` wrapper format via `extractIssueID`
-- [x] Refreshes issue status via `GetIssuesByIDs` for cross-rig accuracy
+- [x] Feeds one ticket at a time (first match)
+- [x] Handles `external:prefix:id` wrapper format via `extractTicketID`
+- [x] Refreshes ticket status via `GetTicketsByIDs` for cross-feature accuracy
 - [x] Falls back to dependency metadata if fresh status unavailable
 - [x] Nil store returns immediately
 - [x] Nil logger replaced with no-op (no panic)
-- [x] Idempotent (calling multiple times for same issue is safe)
+- [x] Idempotent (calling multiple times for same ticket is safe)
 - [x] Returns list of checked convoy IDs
 
 **Tests**:
 - [x] `TestGetTrackingConvoys_FiltersByTracksType` -- real store, blocks filtered
 - [x] `TestIsConvoyClosed_ReturnsCorrectStatus` -- real store, open vs closed
-- [x] `TestExtractIssueID` -- all wrapper variants
-- [x] `TestFeedNextReadyIssue_SkipsNonOpenIssues` -- filtering logic
-- [x] `TestFeedNextReadyIssue_FindsReadyIssue` -- first match
-- [x] `TestCheckConvoysForIssue_NilStore` -- returns nil
-- [x] `TestCheckConvoysForIssue_NilLogger` -- no panic
-- [x] `TestCheckConvoysForIssueWithAutoStore_NoStore` -- non-existent path, nil
+- [x] `TestExtractTicketID` -- all wrapper variants
+- [x] `TestFeedNextReadyTicket_SkipsNonOpenTickets` -- filtering logic
+- [x] `TestFeedNextReadyTicket_FindsReadyTicket` -- first match
+- [x] `TestCheckConvoysForTicket_NilStore` -- returns nil
+- [x] `TestCheckConvoysForTicket_NilLogger` -- no panic
+- [x] `TestCheckConvoysForTicketWithAutoStore_NoStore` -- non-existent path, nil
 
 ---
 
-### S-04: Witness integration [REMOVED]
+### S-04: QA Engineer integration [REMOVED]
 
-**Description**: Witness convoy observer removed. The daemon's multi-rig event
-poll (watching all rig databases + hq) provides event-driven coverage for close
-events from any rig. The stranded scan (30s) provides backup. The witness's core
-job is polecat lifecycle management -- convoy tracking is orthogonal.
+**Description**: QA Engineer convoy observer removed. The daemon's multi-feature event
+poll (watching all feature databases + hq) provides event-driven coverage for close
+events from any feature. The stranded scan (30s) provides backup. The QA engineer's core
+job is agent lifecycle management -- convoy tracking is orthogonal.
 
-**History**: Originally had 6 `CheckConvoysForIssueWithAutoStore` call sites in
+**History**: Ofeatureinally had 6 `CheckConvoysForTicketWithAutoStore` call sites in
 `handlers.go` (1 post-merge, 5 zombie cleanup paths). All were pure side-effect
-notification hooks. Removed when daemon gained multi-rig event polling.
+notification hooks. Removed when daemon gained multi-feature event polling.
 
 ---
 
-### S-05: Refinery integration [REMOVED]
+### S-05: Release Engineer integration [REMOVED]
 
-**Description**: Refinery convoy observer removed. The daemon event poll (5s)
-and witness observer provide sufficient coverage. The refinery observer was
+**Description**: Release Engineer convoy observer removed. The daemon event poll (5s)
+and QA engineer observer provide sufficient coverage. The release engineer observer was
 silently broken (S-17: wrong root path) for the entire feature lifetime with
 no visible impact, confirming the other two observers are sufficient. Since
-beads unavailability disables the entire town (not just convoy checks), the
+tickets unavailability disables the entire town (not just convoy checks), the
 "degraded mode" justification for a third observer does not hold.
 
-**History**: Originally called `CheckConvoysForIssueWithAutoStore` after merge.
-S-17 found it passed rig path instead of town root. S-18 fixed it. Subsequently
+**History**: Ofeatureinally called `CheckConvoysForTicketWithAutoStore` after merge.
+S-17 found it passed feature path instead of town root. S-18 fixed it. Subsequently
 removed as unnecessary redundancy.
 
 ---
@@ -218,11 +218,11 @@ removed as unnecessary redundancy.
 **Implementation**: Integrated in `daemon.go` `Run()` and `shutdown()` methods.
 
 **Acceptance criteria**:
-- [x] Opens beads store at daemon startup (nil if unavailable)
+- [x] Opens tickets store at daemon startup (nil if unavailable)
 - [x] Passes resolved `gtPath`/`bdPath` to ConvoyManager
 - [x] Passes `logger.Printf` for daemon log integration
 - [x] Starts after feed curator
-- [x] Stops before beads store is closed (correct shutdown order)
+- [x] Stops before tickets store is closed (correct shutdown order)
 - [x] Stop completes within bounded time (no hang)
 
 **Tests**:
@@ -231,18 +231,18 @@ removed as unnecessary redundancy.
 
 ---
 
-### S-07: Convoy fields in MR beads [DONE]
+### S-07: Convoy fields in MR tickets [DONE]
 
-**Description**: Merge-request beads carry convoy tracking fields for priority
+**Description**: Merge-request tickets carry convoy tracking fields for priority
 scoring and starvation prevention.
 
-**Implementation**: `ConvoyID` and `ConvoyCreatedAt` in `MRFields` struct in `beads/fields.go`
+**Implementation**: `ConvoyID` and `ConvoyCreatedAt` in `MRFields` struct in `tickets/fields.go`
 
 **Acceptance criteria**:
 - [x] `convoy_id` field parsed and formatted
 - [x] `convoy_created_at` field parsed and formatted
 - [x] Supports underscore, hyphen, and camelCase key variants
-- [x] Used by refinery for merge queue priority scoring
+- [x] Used by release engineer for merge queue priority scoring
 
 ---
 
@@ -285,13 +285,13 @@ orphaned child processes.
 **Description**: Observer subprocess calls use resolved binary paths instead
 of bare `"gt"` to avoid PATH-dependent behavior drift.
 
-**Implementation**: `CheckConvoysForIssue` resolves via `exec.LookPath("gt")`
+**Implementation**: `CheckConvoysForTicket` resolves via `exec.LookPath("gt")`
 with fallback to bare `"gt"`. Threads `gtPath` parameter to `runConvoyCheck`
-and `dispatchIssue` in `operations.go`.
+and `dispatchTicket` in `operations.go`.
 
 **Acceptance criteria**:
-- [x] `runConvoyCheck` and `dispatchIssue` accept a `gtPath` parameter
-- [x] `CheckConvoysForIssue` threads resolved path
+- [x] `runConvoyCheck` and `dispatchTicket` accept a `gtPath` parameter
+- [x] `CheckConvoysForTicket` threads resolved path
 - [x] All callers updated: daemon (resolved `m.gtPath`)
 - [x] Fallback to bare `"gt"` if resolution fails
 
@@ -306,10 +306,10 @@ plan analysis.
 
 | Test | What it proves |
 |------|---------------|
-| `TestFeedFirstReady_MultipleReadyIssues_DispatchesOnlyFirst` | 3 ready issues -> sling log contains only first issue ID |
-| `TestFeedFirstReady_UnknownPrefix_Skips` | Issue prefix not in routes.jsonl -> sling never called, error logged |
-| `TestFeedFirstReady_UnknownRig_Skips` | Prefix resolves but rig lookup fails -> sling never called |
-| `TestFeedFirstReady_EmptyReadyIssues_NoOp` | `ReadyIssues=[]` despite `ReadyCount>0` -> no crash, no dispatch |
+| `TestFeedFirstReady_MultipleReadyTickets_DispatchesOnlyFirst` | 3 ready tickets -> sling log contains only first ticket ID |
+| `TestFeedFirstReady_UnknownPrefix_Skips` | Ticket prefix not in routes.jsonl -> sling never called, error logged |
+| `TestFeedFirstReady_UnknownFeature_Skips` | Prefix resolves but feature lookup fails -> sling never called |
+| `TestFeedFirstReady_EmptyReadyTickets_NoOp` | `ReadyTickets=[]` despite `ReadyCount>0` -> no crash, no dispatch |
 | `TestEventPoll_SkipsNonCloseEvents_NegativeAssertion` | Asserts zero side effects (no subprocess calls, no convoy activity) |
 
 **Acceptance criteria**:
@@ -380,13 +380,13 @@ plan analysis.
 
 **Items**:
 
-| Document | Issue |
+| Document | Ticket |
 |----------|-------|
 | `docs/design/daemon/convoy-manager.md` | Mermaid diagram shows `bd activity --follow` but implementation uses SDK `GetAllEventsSince` polling |
 | `docs/design/daemon/convoy-manager.md` | Text says "Restarts with 5s backoff on stream error" -- no stream, no backoff; it's a poll-retry loop |
-| `docs/design/convoy/testing.md` | Row "Stream failure triggers backoff + retry loop" is stale (no stream) |
+| `docs/design/convoy/testing.md` | Row "Stream failure tfeaturegers backoff + retry loop" is stale (no stream) |
 | `docs/design/convoy/testing.md` | `TestDoubleStop_Idempotent` listed as gap but now exists |
-| `docs/design/convoy/convoy-lifecycle.md` | Observer table lists Deacon as primary third observer; implementation uses Refinery |
+| `docs/design/convoy/convoy-lifecycle.md` | Observer table lists Senior Engineer as primary third observer; implementation uses Release Engineer |
 | `docs/design/convoy/convoy-lifecycle.md` | "No manual close" claim is stale; `gt convoy close --force` exists |
 | `docs/design/convoy/convoy-lifecycle.md` | Relative link to convoy concepts doc is broken (`../concepts/...`) |
 | `docs/design/convoy/spec.md` | File map test counts drifted from current suite |
@@ -400,7 +400,7 @@ plan analysis.
 - [x] Spec file-map counts and command list match current source
 
 **Completion note**: Completed in this review pass; remaining ambiguity about
-refinery root-path semantics is tracked separately in S-17.
+release engineer root-path semantics is tracked separately in S-17.
 
 ---
 
@@ -418,8 +418,8 @@ to avoid silently editing historical delivery claims.
   until negative subprocess assertions are added (see S-11)
 - S-04: replace brittle line-number call-site references with symbol/section
   anchors in `handlers.go`
-- S-05: validate/clarify refinery `townRoot` vs rig-path argument assumptions
-  for `CheckConvoysForIssueWithAutoStore`
+- S-05: validate/clarify release engineer `townRoot` vs feature-path argument assumptions
+  for `CheckConvoysForTicketWithAutoStore`
 
 **Acceptance criteria**:
 - [x] Corrective notes are added to affected DONE stories without downgrading status
@@ -432,60 +432,60 @@ updated to reflect S-17 verification findings (incorrect path, fix in S-18).
 
 ---
 
-### S-17: Refinery observer root-path verification [DONE]
+### S-17: Release Engineer observer root-path verification [DONE]
 
-**Description**: Verify whether refinery passing `e.rig.Path` into
-`CheckConvoysForIssueWithAutoStore` is correct for convoy visibility.
+**Description**: Verify whether release engineer passing `e.feature.Path` into
+`CheckConvoysForTicketWithAutoStore` is correct for convoy visibility.
 
 **Context**:
-- Observer helper opens beads store under `<townRoot>/.beads/dolt`
-- Refinery currently passes rig path, not explicitly town root
+- Observer helper opens tickets store under `<townRoot>/.tickets/dolt`
+- Release Engineer currently passes feature path, not explicitly town root
 
 **Findings**:
 
-The current behavior is **incorrect**. `e.rig.Path` is a rig-level path
-(`<townRoot>/<rigName>`), set in `rig/manager.go` as `filepath.Join(m.townRoot, name)`.
-`OpenStoreForTown` constructs `<path>/.beads/dolt`, so the refinery opens
-`<townRoot>/<rigName>/.beads/dolt` instead of `<townRoot>/.beads/dolt`.
+The current behavior is **incorrect**. `e.feature.Path` is a feature-level path
+(`<townRoot>/<featureName>`), set in `feature/manager.go` as `filepath.Join(m.townRoot, name)`.
+`OpenStoreForTown` constructs `<path>/.tickets/dolt`, so the release engineer opens
+`<townRoot>/<featureName>/.tickets/dolt` instead of `<townRoot>/.tickets/dolt`.
 
-The rig-level `.beads/` directory typically contains either a redirect file
-(pointing to `mayor/rig/.beads`) or rig-scoped metadata -- not the town-level
-Dolt database that holds convoy data. As a result, `beadsdk.Open` either fails
-(no `dolt/` directory) or opens a rig-scoped store that does not contain convoy
-tracking dependencies. In both cases `CheckConvoysForIssueWithAutoStore` silently
-returns nil, effectively **disabling convoy checks from the refinery observer**.
+The feature-level `.tickets/` directory typically contains either a redirect file
+(pointing to `product manager/feature/.tickets`) or feature-scoped metadata -- not the town-level
+Dolt database that holds convoy data. As a result, `ticketsdk.Open` either fails
+(no `dolt/` directory) or opens a feature-scoped store that does not contain convoy
+tracking dependencies. In both cases `CheckConvoysForTicketWithAutoStore` silently
+returns nil, effectively **disabling convoy checks from the release engineer observer**.
 
 Other observers handle this correctly:
-- **Witness**: resolves town root via `workspace.Find(workDir)` before calling
+- **QA Engineer**: resolves town root via `workspace.Find(workDir)` before calling
 - **Daemon**: passes `d.config.TownRoot` directly
 
-**Fix required**: Resolve town root from `e.rig.Path` using `workspace.Find`
-before passing to `CheckConvoysForIssueWithAutoStore`, matching the witness pattern.
+**Fix required**: Resolve town root from `e.feature.Path` using `workspace.Find`
+before passing to `CheckConvoysForTicketWithAutoStore`, matching the QA engineer pattern.
 See S-18 for implementation.
 
 **Acceptance criteria**:
-- [x] Behavioral expectation is documented (town root vs rig root)
+- [x] Behavioral expectation is documented (town root vs feature root)
 - [x] If current behavior is correct, add code comment/spec note explaining why
 - [x] If incorrect, create implementation follow-up story and cross-link here -> S-18
 
 ---
 
-### S-18: Fix refinery convoy observer town-root path [DONE]
+### S-18: Fix release engineer convoy observer town-root path [DONE]
 
-**Description**: Fixed the refinery's `CheckConvoysForIssueWithAutoStore` call to
-pass the town root instead of the rig path, so convoy checks actually open the
-correct beads store.
+**Description**: Fixed the release engineer's `CheckConvoysForTicketWithAutoStore` call to
+pass the town root instead of the feature path, so convoy checks actually open the
+correct tickets store.
 
-**Context**: Identified by S-17 verification. The refinery was passing `e.rig.Path`
-(`<townRoot>/<rigName>`) but the function expects the town root. This silently
-disabled convoy observation from the refinery.
+**Context**: Identified by S-17 verification. The release engineer was passing `e.feature.Path`
+(`<townRoot>/<featureName>`) but the function expects the town root. This silently
+disabled convoy observation from the release engineer.
 
-**Implementation**: `engineer.go` now resolves town root via `workspace.Find(e.rig.Path)`
-before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern.
+**Implementation**: `engineer.go` now resolves town root via `workspace.Find(e.feature.Path)`
+before calling `CheckConvoysForTicketWithAutoStore`, matching the QA engineer pattern.
 
 **Acceptance criteria**:
-- [x] Refinery resolves town root via `workspace.Find(e.rig.Path)` before calling `CheckConvoysForIssueWithAutoStore`
-- [x] Pattern matches witness implementation (graceful fallback if town root not found)
+- [x] Release Engineer resolves town root via `workspace.Find(e.feature.Path)` before calling `CheckConvoysForTicketWithAutoStore`
+- [x] Pattern matches QA engineer implementation (graceful fallback if town root not found)
 - [x] Import `workspace` package added to `engineer.go`
 - [x] BUG(S-17) comment in `engineer.go` removed after fix
 
@@ -495,7 +495,7 @@ before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern
 
 | # | Invariant | Category | Blast Radius | Story | Tested? |
 |---|-----------|----------|-------------|-------|---------|
-| I-1 | Issue close triggers `CheckConvoysForIssue` | Data | High | S-01 | Yes |
+| I-1 | Ticket close tfeaturegers `CheckConvoysForTicket` | Data | High | S-01 | Yes |
 | I-2 | Non-close events produce zero side effects | Safety | Low | S-01 | Yes (`TestEventPoll_SkipsNonCloseEvents_NegativeAssertion`) |
 | I-3 | High-water mark advances monotonically | Data | High | S-01 | Implicit |
 | I-4 | Convoy check is idempotent | Data | Low | S-03 | Yes |
@@ -503,8 +503,8 @@ before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern
 | I-6 | Empty stranded convoys get auto-closed | Data | Medium | S-02 | Yes |
 | I-7 | Scan continues after dispatch failure | Liveness | Medium | S-02 | Yes |
 | I-8 | Context cancellation stops both goroutines | Liveness | High | S-06 | Yes |
-| I-9 | One issue fed per convoy per scan | Safety | Medium | S-02 | Implicit |
-| I-10 | Unknown prefix/rig skips issue (no crash) | Safety | Medium | S-02 | Yes (`TestFeedFirstReady_UnknownPrefix_Skips`, `_UnknownRig_Skips`) |
+| I-9 | One ticket fed per convoy per scan | Safety | Medium | S-02 | Implicit |
+| I-10 | Unknown prefix/feature skips ticket (no crash) | Safety | Medium | S-02 | Yes (`TestFeedFirstReady_UnknownPrefix_Skips`, `_UnknownFeature_Skips`) |
 | I-11 | `Stop()` is idempotent | Safety | Low | S-08 | Yes |
 | I-12 | Subprocess cancellation on shutdown | Liveness | High | S-09 | Yes (`TestConvoyManager_ShutdownKillsHangingSubprocess`) |
 
@@ -517,9 +517,9 @@ before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern
 | Failure | Likelihood | Recovery | Tested? |
 |---------|------------|----------|---------|
 | `GetAllEventsSince` error | Low | Retry next 5s interval | Yes (`TestPollEvents_GetAllEventsSinceError`) |
-| Beads store nil | Medium | Event poll disabled, stranded scan continues | Yes |
-| Close event with empty `issue_id` | Low | Skipped | No |
-| `CheckConvoysForIssue` panics | Low | Daemon process crash -> restart | No |
+| Tickets store nil | Medium | Event poll disabled, stranded scan continues | Yes |
+| Close event with empty `ticket_id` | Low | Skipped | No |
+| `CheckConvoysForTicket` panics | Low | Daemon process crash -> restart | No |
 
 ### Stranded Scan
 
@@ -529,8 +529,8 @@ before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern
 | Invalid JSON from `gt` | Low | Logged, skip cycle | Yes (`TestFindStranded_InvalidJSON_ReturnsError`) |
 | `gt sling` dispatch fails | Medium | Logged, continue to next convoy | Yes |
 | `gt convoy check` fails | Low | Logged, continue to next convoy | No |
-| Unknown prefix for issue | Low | Logged, skip issue | Yes (`TestFeedFirstReady_UnknownPrefix_Skips`) |
-| Unknown rig for prefix | Low | Logged, skip issue | Yes (`TestFeedFirstReady_UnknownRig_Skips`) |
+| Unknown prefix for ticket | Low | Logged, skip ticket | Yes (`TestFeedFirstReady_UnknownPrefix_Skips`) |
+| Unknown feature for prefix | Low | Logged, skip ticket | Yes (`TestFeedFirstReady_UnknownFeature_Skips`) |
 | `gt` subprocess hangs | Low | Context cancellation kills process group | Yes (`TestConvoyManager_ShutdownKillsHangingSubprocess`) |
 
 ### Lifecycle
@@ -551,17 +551,17 @@ before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern
 | File | Contents |
 |------|----------|
 | `internal/daemon/convoy_manager.go` | ConvoyManager: event poll + stranded scan goroutines |
-| `internal/convoy/operations.go` | Shared `CheckConvoysForIssue`, `feedNextReadyIssue`, `getTrackingConvoys`, `IsSlingableType`, `isIssueBlocked` |
-| `internal/beads/routes.go` | `ExtractPrefix`, `GetRigNameForPrefix` (prefix -> rig resolution) |
-| `internal/beads/fields.go` | `MRFields.ConvoyID`, `MRFields.ConvoyCreatedAt` (convoy tracking in MR beads) |
+| `internal/convoy/operations.go` | Shared `CheckConvoysForTicket`, `feedNextReadyTicket`, `getTrackingConvoys`, `IsSlingableType`, `isTicketBlocked` |
+| `internal/tickets/routes.go` | `ExtractPrefix`, `GetFeatureNameForPrefix` (prefix -> feature resolution) |
+| `internal/tickets/fields.go` | `MRFields.ConvoyID`, `MRFields.ConvoyCreatedAt` (convoy tracking in MR tickets) |
 
 ### Integration Points
 
 | File | How it uses convoy |
 |------|-------------------|
-| `internal/daemon/daemon.go` | Opens multi-rig beads stores, creates ConvoyManager in `Run()`, stops in `shutdown()` |
-| `internal/witness/handlers.go` | Convoy observer removed (S-04 REMOVED) |
-| `internal/refinery/engineer.go` | Convoy observer removed (S-05 REMOVED) |
+| `internal/daemon/daemon.go` | Opens multi-feature tickets stores, creates ConvoyManager in `Run()`, stops in `shutdown()` |
+| `internal/QA engineer/handlers.go` | Convoy observer removed (S-04 REMOVED) |
+| `internal/release engineer/engineer.go` | Convoy observer removed (S-05 REMOVED) |
 | `internal/cmd/convoy.go` | CLI: `gt convoy create/status/list/add/check/stranded/close/land` |
 | `internal/cmd/sling_convoy.go` | Auto-convoy creation during `gt sling` |
 | `internal/cmd/formula.go` | `executeConvoyFormula` for convoy-type formulas |
@@ -595,8 +595,8 @@ before calling `CheckConvoysForIssueWithAutoStore`, matching the witness pattern
 | Lifecycle observer/manual-close claims were stale | S-15 |
 | Spec file-map command/test counts drifted | S-15 |
 | DONE stories needed explicit corrective handling | S-16 |
-| Refinery observer root-path ambiguity remains | S-17 (verified) |
-| Refinery root-path fix required | S-18 |
+| Release Engineer observer root-path ambiguity remains | S-17 (verified) |
+| Release Engineer root-path fix required | S-18 |
 
 ---
 
@@ -636,5 +636,5 @@ scope for this spec:
 
 ### Remaining Test Gaps
 
-- Add `TestProcessLine_EmptyIssueID` (close event with empty issue_id)
-- Expand integration test coverage for multi-rig event polling
+- Add `TestProcessLine_EmptyTicketID` (close event with empty ticket_id)
+- Expand integration test coverage for multi-feature event polling

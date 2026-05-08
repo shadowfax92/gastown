@@ -4,18 +4,18 @@
 
 > **Reference examples:** [`docs/contrib-harnesses/`](../contrib-harnesses/)
 > contains copy-and-adapt directives and overlays that contributors can drop
-> into their own rig. See for example `polecat-pr-flow/` for a rig that gates
-> work on GitHub PR review rather than the canonical Refinery merge queue.
+> into their own feature. See for example `agent-pr-flow/` for a feature that gates
+> work on GitHub PR review rather than the canonical Release Engineer merge queue.
 
 ## Problem
 
 The MEOW stack embeds formulas and role templates in the binary — intentionally
 centralized for consistency, but leaving no override path. Operators cannot
-customize agent behavior at the rig or town level.
+customize agent behavior at the feature or town level.
 
-**Concrete failure:** Multiple crew members autonomously posted `gh pr review`
+**Concrete failure:** Multiple engineers members autonomously posted `gh pr review`
 comments on GitHub during PR review tasks. The formula says "post to GitHub,"
-and there was no way for the operator to say "actually, in this rig, report
+and there was no way for the operator to say "actually, in this feature, report
 back instead."
 
 ## Design: Two Levels
@@ -29,42 +29,42 @@ formula they are running.
 **File layout:**
 
 ```
-~/gt/directives/<role>.md              # Town-level (all rigs)
-~/gt/<rig>/directives/<role>.md        # Rig-level (wins by appearing last)
+~/gt/directives/<role>.md              # Town-level (all features)
+~/gt/<feature>/directives/<role>.md        # Feature-level (wins by appearing last)
 ```
 
 **Injection point:** After the role template, before context files and handoff
-content. Directives carry an authority marker: "Rig Policy — overrides formula
+content. Directives carry an authority marker: "Feature Policy — overrides formula
 instructions where they conflict."
 
-**Precedence:** Town and rig directives **concatenate**. If both exist, the
-combined output is `<town content>\n<rig content>`. The rig directive gets the
+**Precedence:** Town and feature directives **concatenate**. If both exist, the
+combined output is `<town content>\n<feature content>`. The feature directive gets the
 last word, so it effectively overrides the town directive on conflicting
 instructions.
 
 **Implementation:**
-- Loader: `internal/config/directives.go` → `LoadRoleDirective(role, townRoot, rigName) string`
+- Loader: `internal/config/directives.go` → `LoadRoleDirective(role, townRoot, featureName) string`
 - Integration: `internal/cmd/prime_output.go` → `outputRoleDirectives(ctx RoleContext)`
 - Called in the `gt prime` pipeline after `outputPrimeContext()`
 
 ### Level 2: Formula Overlays
 
-Per-formula, per-step overrides at rig or town scope. CSS-like step
+Per-formula, per-step overrides at feature or town scope. CSS-like step
 modifications applied post-parse before rendering at prime time.
 
 **File layout:**
 
 ```
 ~/gt/formula-overlays/<formula>.toml        # Town-level
-~/gt/<rig>/formula-overlays/<formula>.toml  # Rig-level (full precedence)
+~/gt/<feature>/formula-overlays/<formula>.toml  # Feature-level (full precedence)
 ```
 
-**Precedence:** Rig-level overlays **fully replace** town-level overlays (not
-merged). If a rig overlay exists, the town overlay is completely ignored. This
+**Precedence:** Feature-level overlays **fully replace** town-level overlays (not
+merged). If a feature overlay exists, the town overlay is completely ignored. This
 prevents conflicting step modifications from merging unpredictably.
 
 **Implementation:**
-- Loader: `internal/formula/overlay.go` → `LoadFormulaOverlay(formulaName, townRoot, rigName) (*FormulaOverlay, error)`
+- Loader: `internal/formula/overlay.go` → `LoadFormulaOverlay(formulaName, townRoot, featureName) (*FormulaOverlay, error)`
 - Applier: `internal/formula/overlay.go` → `ApplyOverlays(f *Formula, overlay *FormulaOverlay) []string`
 - Integration: `internal/cmd/prime_molecule.go` → `applyFormulaOverlays()` called in `showFormulaStepsFull()`
 
@@ -139,22 +139,22 @@ Follow existing patterns in the codebase.
 ### Directive Commands
 
 ```bash
-gt directive show <role> [--rig <rig>]    # Show active directive with source
-gt directive edit <role> [--rig <rig>]    # Open in editor (creates file if needed)
+gt directive show <role> [--feature <feature>]    # Show active directive with source
+gt directive edit <role> [--feature <feature>]    # Open in editor (creates file if needed)
 gt directive list                         # List all directive files
 ```
 
 ### Overlay Commands
 
 ```bash
-gt formula overlay show <formula> [--rig <rig>]   # Show active overlay with source
-gt formula overlay edit <formula> [--rig <rig>]   # Open in editor (creates file if needed)
+gt formula overlay show <formula> [--feature <feature>]   # Show active overlay with source
+gt formula overlay edit <formula> [--feature <feature>]   # Open in editor (creates file if needed)
 gt formula overlay list                           # List all overlay files
 ```
 
 The `edit` commands create the directory and file if they don't exist (following
 the `gt hooks override` precedent). The `show` commands display the resolved
-content with source annotation (town vs rig).
+content with source annotation (town vs feature).
 
 ## gt doctor Integration
 
@@ -165,7 +165,7 @@ gt doctor                    # Runs all checks including overlay health
 ```
 
 **What it checks:**
-- Scans all town-level and rig-level overlay TOML files
+- Scans all town-level and feature-level overlay TOML files
 - Parses each overlay and loads the corresponding embedded formula
 - Validates every `step_id` exists in the current formula version
 - Reports stale step IDs (formula was updated, overlay wasn't)
@@ -193,20 +193,20 @@ This is the motivating use case that drove the feature.
 
 ### The Problem
 
-The `mol-polecat-work` formula has a step called `submit-review` that tells
-polecats to post review results to GitHub using `gh pr review --comment`.
-In the gastown rig, the operator wants polecats to report findings back in
+The `mol-agent-work` formula has a step called `submit-review` that tells
+agents to post review results to GitHub using `gh pr review --comment`.
+In the gastown feature, the operator wants agents to report findings back in
 conversation instead.
 
 ### The Solution
 
-**Step 1: Create a rig-level formula overlay.**
+**Step 1: Create a feature-level formula overlay.**
 
 ```bash
 mkdir -p ~/gt/gastown/formula-overlays
 ```
 
-Create `~/gt/gastown/formula-overlays/mol-polecat-work.toml`:
+Create `~/gt/gastown/formula-overlays/mol-agent-work.toml`:
 
 ```toml
 [[step-overrides]]
@@ -236,11 +236,11 @@ gt doctor
 
 ```bash
 gt prime --explain
-# Shows: "Formula overlay: applying 1 override(s) for mol-polecat-work (rig=gastown)"
+# Shows: "Formula overlay: applying 1 override(s) for mol-agent-work (feature=gastown)"
 ```
 
-Now any polecat in the gastown rig running `mol-polecat-work` will see the
-replacement step instead of the original "post to GitHub" instruction.
+Now any agent in the gastown feature running `mol-agent-work` will see the
+replacement step instead of the ofeatureinal "post to GitHub" instruction.
 
 ### What If the Formula Changes?
 
@@ -248,8 +248,8 @@ If a future `gt` release renames `submit-review` to `post-results`, the
 overlay's `step_id` becomes stale. On next `gt doctor` run:
 
 ```
-⚠ overlay-health: stale step IDs in gastown/formula-overlays/mol-polecat-work.toml:
-  - step_id "submit-review" not found in formula mol-polecat-work
+⚠ overlay-health: stale step IDs in gastown/formula-overlays/mol-agent-work.toml:
+  - step_id "submit-review" not found in formula mol-agent-work
 ```
 
 Running `gt doctor --fix` removes the stale override. The operator then
@@ -270,7 +270,7 @@ Directives and overlays solve different problems at different granularities:
 | Example | "Never post to GitHub" | "In step X, do Y instead" |
 
 A role directive saying "never post to GitHub" applies everywhere — any formula,
-any step. An overlay targeting `submit-review` in `mol-polecat-work` applies
+any step. An overlay targeting `submit-review` in `mol-agent-work` applies
 only to that specific step in that specific formula.
 
 Both are needed: directives for broad guardrails, overlays for surgical fixes.
@@ -285,14 +285,14 @@ effect immediately on the next `gt prime`.
 
 - **Fits gt prime pipeline:** Role template → directives → context → handoff → formula
 - **Follows hooks override precedent:** `~/.gt/hooks-overrides/<target>.json`
-- **Extends property layers:** Rig > town > system precedence
+- **Extends property layers:** Feature > town > system precedence
 - **ZFC-compliant:** Go transports the content, agents interpret the instructions
 - **Only touches gt:** `bd` doesn't render formulas, so overlays are gt-only
 
 ### Dissonance to Manage
 
 - **Conflicting instructions:** Directive says "don't X", formula says "do X" →
-  mitigated with clear authority framing at injection ("Rig Policy — overrides
+  mitigated with clear authority framing at injection ("Feature Policy — overrides
   formula instructions where they conflict")
 - **Unstable step IDs:** Formula steps are not a stable API; step IDs can change
   across versions → `gt doctor` warns about stale overlays

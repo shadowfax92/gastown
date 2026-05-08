@@ -9,10 +9,10 @@
 **Mol Mall** is a registry for sharing formulas across Gas Town installations. Think npm for molecules, or Terraform Registry for workflows.
 
 ```
-"Cook a formula, sling it to a polecat, the witness watches, refinery merges."
+"Cook a formula, sling it to a agent, the QA engineer watches, release engineer merges."
 
 What if you could browse a mall of formulas, install one, and immediately
-have your polecats executing world-class workflows?
+have your agents executing world-class workflows?
 ```
 
 ### The Network Effect
@@ -53,14 +53,14 @@ FEDERATED REGISTRY (HOP future)
 ### URI Scheme
 
 ```
-hop://molmall.gastown.io/formulas/mol-polecat-work@4.0.0
+hop://molmall.gastown.io/formulas/mol-agent-work@4.0.0
        └──────────────────┘         └──────────────┘ └───┘
            registry host              formula name   version
 
 # Short forms
-mol-polecat-work                    # Default registry, latest version
-mol-polecat-work@4                  # Major version
-mol-polecat-work@4.0.0              # Exact version
+mol-agent-work                    # Default registry, latest version
+mol-agent-work@4                  # Major version
+mol-agent-work@4.0.0              # Exact version
 @acme/mol-deploy                    # Scoped to publisher
 hop://acme.corp/formulas/mol-deploy # Full HOP URI
 ```
@@ -80,9 +80,9 @@ GET /formulas
     - offset: int
   Response:
     formulas:
-      - name: mol-polecat-work
+      - name: mol-agent-work
         version: 4.0.0
-        description: "Full polecat work lifecycle..."
+        description: "Full agent work lifecycle..."
         author: steve@gastown.io
         downloads: 12543
         capabilities: [go, testing, code-review]
@@ -90,7 +90,7 @@ GET /formulas
 GET /formulas/{name}
   # Get formula metadata
   Response:
-    name: mol-polecat-work
+    name: mol-agent-work
     versions: [4.0.0, 3.2.1, 3.2.0, ...]
     latest: 4.0.0
     author: steve@gastown.io
@@ -107,7 +107,7 @@ GET /formulas/{name}
 GET /formulas/{name}/{version}
   # Get specific version
   Response:
-    name: mol-polecat-work
+    name: mol-agent-work
     version: 4.0.0
     checksum: sha256:abc123...
     signature: <optional PGP signature>
@@ -136,8 +136,8 @@ GET /formulas/{name}/{version}/download
 Most formulas are single `.formula.toml` files:
 
 ```bash
-gt formula install mol-polecat-code-review
-# Downloads mol-polecat-code-review.formula.toml to ~/gt/.beads/formulas/
+gt formula install mol-agent-code-review
+# Downloads mol-agent-code-review.formula.toml to ~/gt/.tickets/formulas/
 ```
 
 ### Complex Case: Formula Bundle
@@ -164,7 +164,7 @@ mol-deploy-k8s-1.0.0.bundle.tar.gz
 Installation:
 ```bash
 gt formula install mol-deploy-k8s
-# Extracts to ~/gt/.beads/formulas/mol-deploy-k8s/
+# Extracts to ~/gt/.tickets/formulas/mol-deploy-k8s/
 # formula.toml is at mol-deploy-k8s/formula.toml
 ```
 
@@ -173,9 +173,9 @@ gt formula install mol-deploy-k8s
 ### Basic Install
 
 ```bash
-$ gt formula install mol-polecat-code-review
+$ gt formula install mol-agent-code-review
 
-Resolving mol-polecat-code-review...
+Resolving mol-agent-code-review...
   Registry: molmall.gastown.io
   Version:  1.2.0 (latest)
   Author:   steve@gastown.io
@@ -184,26 +184,26 @@ Resolving mol-polecat-code-review...
 Downloading... ████████████████████ 100%
 Verifying checksum... ✓
 
-Installed to: ~/gt/.beads/formulas/mol-polecat-code-review.formula.toml
+Installed to: ~/gt/.tickets/formulas/mol-agent-code-review.formula.toml
 ```
 
 ### Version Pinning
 
 ```bash
-$ gt formula install mol-polecat-work@4.0.0
+$ gt formula install mol-agent-work@4.0.0
 
-Installing mol-polecat-work@4.0.0 (pinned)...
+Installing mol-agent-work@4.0.0 (pinned)...
 ✓ Installed
 
 $ gt formula list --installed
-  mol-polecat-work           4.0.0   [pinned]
-  mol-polecat-code-review    1.2.0   [latest]
+  mol-agent-work           4.0.0   [pinned]
+  mol-agent-code-review    1.2.0   [latest]
 ```
 
 ### Upgrade Flow
 
 ```bash
-$ gt formula upgrade mol-polecat-code-review
+$ gt formula upgrade mol-agent-code-review
 
 Checking for updates...
   Current: 1.2.0
@@ -216,29 +216,29 @@ Changelog for 1.3.0:
 Upgrade? [y/N] y
 
 Downloading... ✓
-Installed: mol-polecat-code-review@1.3.0
+Installed: mol-agent-code-review@1.3.0
 ```
 
 ### Lock File
 
 ```json
-// ~/gt/.beads/formulas/.lock.json
+// ~/gt/.tickets/formulas/.lock.json
 {
   "version": 1,
   "formulas": {
-    "mol-polecat-work": {
+    "mol-agent-work": {
       "version": "4.0.0",
       "pinned": true,
       "checksum": "sha256:abc123...",
       "installed_at": "2026-01-10T00:00:00Z",
-      "source": "hop://molmall.gastown.io/formulas/mol-polecat-work@4.0.0"
+      "source": "hop://molmall.gastown.io/formulas/mol-agent-work@4.0.0"
     },
-    "mol-polecat-code-review": {
+    "mol-agent-code-review": {
       "version": "1.3.0",
       "pinned": false,
       "checksum": "sha256:def456...",
       "installed_at": "2026-01-10T12:00:00Z",
-      "source": "hop://molmall.gastown.io/formulas/mol-polecat-code-review@1.3.0"
+      "source": "hop://molmall.gastown.io/formulas/mol-agent-code-review@1.3.0"
     }
   }
 }
@@ -265,9 +265,9 @@ Logged in as: steve@gastown.io
 ### Publishing
 
 ```bash
-$ gt formula publish mol-polecat-work
+$ gt formula publish mol-agent-work
 
-Publishing mol-polecat-work...
+Publishing mol-agent-work...
 
 Pre-flight checks:
   ✓ formula.toml is valid
@@ -278,9 +278,9 @@ Pre-flight checks:
 Publish to molmall.gastown.io? [y/N] y
 
 Uploading... ✓
-Published: hop://molmall.gastown.io/formulas/mol-polecat-work@4.0.0
+Published: hop://molmall.gastown.io/formulas/mol-agent-work@4.0.0
 
-View at: https://molmall.gastown.io/formulas/mol-polecat-work
+View at: https://molmall.gastown.io/formulas/mol-agent-work
 ```
 
 ### Verification Levels
@@ -346,11 +346,11 @@ Formulas matching capabilities: security, go
 
 ### Agent Accountability
 
-When a polecat completes a formula, the execution is tracked:
+When a agent completes a formula, the execution is tracked:
 
 ```
-Polecat: beads/amber
-Formula: mol-polecat-code-review@1.3.0
+Agent: tickets/amber
+Formula: mol-agent-code-review@1.3.0
 Completed: 2026-01-10T15:30:00Z
 Capabilities exercised:
   - code-review (primary)
@@ -444,8 +444,8 @@ See [Formula Resolution](formula-resolution.md) for the implemented three-tier r
 ### Phase 2: Manual Sharing
 
 - Formula export/import
-- `gt formula export mol-polecat-work > mol-polecat-work.formula.toml`
-- `gt formula import < mol-polecat-work.formula.toml`
+- `gt formula export mol-agent-work > mol-agent-work.formula.toml`
+- `gt formula import < mol-agent-work.formula.toml`
 - Lock file format
 
 ### Phase 3: Public Registry

@@ -11,7 +11,7 @@ other system cruft. This is the garbage collector for Gas Town's runtime:
 ## Dog Contract
 
 This is infrastructure work. You:
-1. Receive gc scope via hook_bead (aggressive or conservative)
+1. Receive gc scope via hook_ticket (aggressive or conservative)
 2. Identify garbage across the system
 3. Safely remove dead state
 4. Report what was cleaned
@@ -21,7 +21,7 @@ This is infrastructure work. You:
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| mode | hook_bead | GC mode: 'conservative' (safe) or 'aggressive' (thorough) |
+| mode | hook_ticket | GC mode: 'conservative' (safe) or 'aggressive' (thorough) |
 
 ## Safety
 
@@ -30,12 +30,12 @@ GC is destructive. This formula errs on the side of caution:
 - Aggressive mode: Includes old but possibly-recoverable state
 
 Running `gt doctor --fix` handles most of this. This formula wraps it with
-reporting and multi-rig scope."""
+reporting and multi-feature scope."""
 formula = "mol-session-gc"
 version = 1
 
 [squash]
-trigger = "on_complete"
+tfeatureger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -47,7 +47,7 @@ Establish GC aggressiveness level.
 
 **1. Check assignment:**
 ```bash
-gt hook               # Shows mode in hook_bead
+gt hook               # Shows mode in hook_ticket
 ```
 
 **2. Mode definitions:**
@@ -64,7 +64,7 @@ gt hook               # Shows mode in hook_bead
 
 **Aggressive additions:**
 - Wisps > 1 hour old
-- Branches with no matching polecat
+- Branches with no matching agent
 - State files > 7 days old
 
 **Exit criteria:** GC mode determined."""
@@ -90,12 +90,12 @@ gt doctor -v
 **3. Additional scans (for aggressive mode):**
 ```bash
 # Old branches
-git branch --list 'polecat/*' | while read branch; do
+git branch --list 'agent/*' | while read branch; do
   last_commit=$(git log -1 --format=%ct "$branch")
-  # If > 7 days old and no matching polecat, candidate for cleanup
+  # If > 7 days old and no matching agent, candidate for cleanup
 done
 
-# Old runtime state files (stored under <rig>/.runtime/ as *.json).
+# Old runtime state files (stored under <feature>/.runtime/ as *.json).
 # Prefer using `gt doctor -v` to enumerate stale state — it knows all locations.
 find "$GT_TOWN_ROOT" -path "*/.runtime/*.json" -mtime +7 2>/dev/null
 ```
@@ -136,7 +136,7 @@ Record each item actually removed for the report.
 
 **Safety checks:**
 - Never delete active sessions (tmux list-clients)
-- Never delete branches with uncommitted polecat work
+- Never delete branches with uncommitted agent work
 - Never delete wisps < 1 hour old
 
 **Exit criteria:** Garbage collected."""
@@ -151,7 +151,7 @@ Confirm garbage was actually removed.
 **1. Re-run doctor to verify:**
 ```bash
 gt doctor -v
-# Should show no issues (or fewer issues)
+# Should show no tickets (or fewer tickets)
 ```
 
 **2. Check for stragglers:**
@@ -163,7 +163,7 @@ tmux list-sessions 2>/dev/null
 pgrep -f claude
 
 # Wisps
-ls .beads-wisp/ 2>/dev/null | wc -l
+ls .tickets-wisp/ 2>/dev/null | wc -l
 ```
 
 **3. Compare before/after:**
@@ -213,9 +213,9 @@ None
 ~{{bytes_freed}} bytes
 ```
 
-**2. Send to Deacon:**
+**2. Send to Senior Engineer:**
 ```bash
-gt mail send deacon/ -s "GC complete: {{total_cleaned}} items" \
+gt mail send senior engineer/ -s "GC complete: {{total_cleaned}} items" \
   -m "{{report}}"
 ```
 
@@ -228,9 +228,9 @@ needs = ["report-gc"]
 description = """
 Signal work complete and return to available pool.
 
-**1. Signal completion to Deacon:**
+**1. Signal completion to Senior Engineer:**
 ```bash
-gt mail send deacon/ -s "DOG_DONE $(hostname)" -m "Task: session-gc
+gt mail send senior engineer/ -s "DOG_DONE $(hostname)" -m "Task: session-gc
 Mode: {{mode}}
 Items cleaned: {{total_cleaned}}
 Space recovered: {{bytes_freed}}
@@ -242,7 +242,7 @@ Ready for next assignment."
 **2. Return to kennel:**
 Dog returns to available state in the pool.
 
-**Exit criteria:** Deacon notified, dog ready for next work."""
+**Exit criteria:** Senior Engineer notified, dog ready for next work."""
 
 [vars]
 [vars.wisp_type]

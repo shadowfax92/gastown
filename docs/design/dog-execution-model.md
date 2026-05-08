@@ -14,7 +14,7 @@ The formula-only dogs were broken because no agent interprets their molecules fr
 ticker context. The molecule system requires an idle dog to execute the formula, but
 the ticker fires regardless of dog availability.
 
-After the Beads Flows work, the Compactor has been upgraded to imperative Go.
+After the Tickets Flows work, the Compactor has been upgraded to imperative Go.
 The Janitor dog was removed entirely — test infrastructure migrated from a
 dedicated port-3308 Dolt test server to testcontainers-go (Docker), eliminating
 the orphan test database problem at its source.
@@ -61,7 +61,7 @@ For plugin-dispatched dogs:
 4. Dog agent interprets the plugin formula and executes
 
 **Key constraint**: The `handleDogs()` dispatch path already exists and works.
-The issue is that ticker-based dogs bypass it. Plugin dogs use it correctly.
+The ticket is that ticker-based dogs bypass it. Plugin dogs use it correctly.
 
 ## Migration Path
 

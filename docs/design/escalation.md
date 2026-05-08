@@ -4,17 +4,17 @@
 
 ## Overview
 
-Gas Town agents escalate issues when automated resolution is not possible.
-Escalations are severity-routed, tracked as beads, and support stale detection
+Gas Town agents escalate tickets when automated resolution is not possible.
+Escalations are severity-routed, tracked as tickets, and support stale detection
 with automatic re-escalation.
 
 ## Severity Levels
 
 | Level | Priority | Description | Default Route |
 |-------|----------|-------------|---------------|
-| **CRITICAL** | P0 (urgent) | System-threatening, immediate attention | bead + mail + email + SMS |
-| **HIGH** | P1 (high) | Important blocker, needs human soon | bead + mail + email |
-| **MEDIUM** | P2 (normal) | Standard escalation, human at convenience | bead + mail mayor |
+| **CRITICAL** | P0 (urgent) | System-threatening, immediate attention | ticket + mail + email + SMS |
+| **HIGH** | P1 (high) | Important blocker, needs human soon | ticket + mail + email |
+| **MEDIUM** | P2 (normal) | Standard escalation, human at convenience | ticket + mail product manager |
 
 ## Tiered Escalation Flow
 
@@ -22,15 +22,15 @@ with automatic re-escalation.
 Agent -> gt escalate -s <SEVERITY> "description"
            |
            v
-     [Deacon receives]
+     [Senior Engineer receives]
            |
-           +-- resolves --> updates issue, re-slings work
-           +-- cannot  --> forwards to Mayor
-                              +-- resolves --> updates issue, re-slings
+           +-- resolves --> updates ticket, re-slings work
+           +-- cannot  --> forwards to Product Manager
+                              +-- resolves --> updates ticket, re-slings
                               +-- cannot  --> forwards to Overseer --> resolves
 ```
 
-Each tier can resolve OR forward. The chain is tracked via bead comments.
+Each tier can resolve OR forward. The chain is tracked via ticket comments.
 
 ## Configuration
 
@@ -43,9 +43,9 @@ Config file: `~/gt/settings/escalation.json`
   "type": "escalation",
   "version": 1,
   "routes": {
-    "medium": ["bead", "mail:mayor"],
-    "high": ["bead", "mail:mayor", "email:human"],
-    "critical": ["bead", "mail:mayor", "email:human", "sms:human"]
+    "medium": ["ticket", "mail:product manager"],
+    "high": ["ticket", "mail:product manager", "email:human"],
+    "critical": ["ticket", "mail:product manager", "email:human", "sms:human"]
   },
   "contacts": {
     "human_email": "",
@@ -67,27 +67,27 @@ Config file: `~/gt/settings/escalation.json`
 
 | Action | Format | Behavior |
 |--------|--------|----------|
-| `bead` | `bead` | Create escalation bead (always first, implicit) |
-| `mail:<target>` | `mail:mayor` | Send gt mail to target |
+| `ticket` | `ticket` | Create escalation ticket (always first, implicit) |
+| `mail:<target>` | `mail:product manager` | Send gt mail to target |
 | `email:human` | `email:human` | Send email to `contacts.human_email` |
 | `sms:human` | `sms:human` | Send SMS to `contacts.human_sms` |
 | `slack` | `slack` | Post to `contacts.slack_webhook` |
 | `log` | `log` | Write to escalation log file |
 
-## Escalation Beads
+## Escalation Tickets
 
-Escalation beads use `type: escalation` with structured labels for tracking.
+Escalation tickets use `type: escalation` with structured labels for tracking.
 
 ### Label Schema
 
 | Label | Values | Purpose |
 |-------|--------|---------|
 | `severity:<level>` | MEDIUM, HIGH, CRITICAL | Current severity |
-| `source:<type>:<name>` | plugin:rebuild-gt, patrol:deacon | What triggered it |
+| `source:<type>:<name>` | plugin:rebuild-gt, patrol:senior engineer | What tfeaturegered it |
 | `acknowledged:<bool>` | true, false | Has human acknowledged |
 | `reescalated:<bool>` | true, false | Has been re-escalated |
 | `reescalation_count:<n>` | 0, 1, 2, ... | Times re-escalated |
-| `original_severity:<level>` | MEDIUM, HIGH | Initial severity |
+| `ofeatureinal_severity:<level>` | MEDIUM, HIGH | Initial severity |
 
 ## Category Routing (future)
 
@@ -96,13 +96,13 @@ Not yet implemented as CLI flags; currently use `--to` for explicit routing.
 
 | Category | Description | Default Route |
 |----------|-------------|---------------|
-| `decision` | Multiple valid paths, need choice | Deacon -> Mayor |
-| `help` | Need guidance or expertise | Deacon -> Mayor |
-| `blocked` | Waiting on unresolvable dependency | Mayor |
-| `failed` | Unexpected error, can't proceed | Deacon |
-| `emergency` | Security or data integrity issue | Overseer (direct) |
-| `gate_timeout` | Gate didn't resolve in time | Deacon |
-| `lifecycle` | Worker stuck or needs recycle | Witness |
+| `decision` | Multiple valid paths, need choice | Senior Engineer -> Product Manager |
+| `help` | Need guidance or expertise | Senior Engineer -> Product Manager |
+| `blocked` | Waiting on unresolvable dependency | Product Manager |
+| `failed` | Unexpected error, can't proceed | Senior Engineer |
+| `emergency` | Security or data integrity ticket | Overseer (direct) |
+| `gate_timeout` | Gate didn't resolve in time | Senior Engineer |
+| `lifecycle` | Worker stuck or needs recycle | QA Engineer |
 
 ## Commands
 
@@ -115,15 +115,15 @@ gt escalate -s <MEDIUM|HIGH|CRITICAL> "Short description" \
   [-m "Detailed explanation"] [--source="plugin:rebuild-gt"]
 ```
 
-Flags: `-s` severity (required), `-m` body, `--source` origin identifier,
-`--to` route to tier (deacon/mayor/overseer), `--dry-run`, `--json`.
+Flags: `-s` severity (required), `-m` body, `--source` ofeaturein identifier,
+`--to` route to tier (senior engineer/product manager/overseer), `--dry-run`, `--json`.
 
 ### gt escalate ack
 
 Acknowledge an escalation (prevents re-escalation).
 
 ```bash
-gt escalate ack <bead-id> [--note="Investigating"]
+gt escalate ack <ticket-id> [--note="Investigating"]
 ```
 
 ### gt escalate list
@@ -144,7 +144,7 @@ gt escalate stale [--dry-run]
 ### gt escalate close
 
 ```bash
-gt escalate close <bead-id> [--reason="Fixed in commit abc123"]
+gt escalate close <ticket-id> [--reason="Fixed in commit abc123"]
 ```
 
 ## Integration Points
@@ -158,19 +158,19 @@ gt escalate -s MEDIUM "Plugin FAILED: rebuild-gt" \
   -m "$ERROR" --source="plugin:rebuild-gt"
 ```
 
-### Deacon Patrol
+### Senior Engineer Patrol
 
-Deacon uses escalation for health issues:
+Senior Engineer uses escalation for health tickets:
 
 ```bash
 if [ $unresponsive_cycles -ge 5 ]; then
-  gt escalate -s HIGH "Witness unresponsive: gastown" \
-    -m "Witness has been unresponsive for $unresponsive_cycles cycles" \
-    --source="patrol:deacon:health-scan"
+  gt escalate -s HIGH "QA Engineer unresponsive: gastown" \
+    -m "QA Engineer has been unresponsive for $unresponsive_cycles cycles" \
+    --source="patrol:senior engineer:health-scan"
 fi
 ```
 
-Deacon patrol also runs `gt escalate stale` periodically to catch unacked
+Senior Engineer patrol also runs `gt escalate stale` periodically to catch unacked
 escalations and re-escalate them.
 
 ## When to Escalate
@@ -178,7 +178,7 @@ escalations and re-escalate them.
 ### Agents SHOULD escalate when:
 
 - **System errors**: Database corruption, disk full, network failures
-- **Security issues**: Unauthorized access attempts, credential exposure
+- **Security tickets**: Unauthorized access attempts, credential exposure
 - **Unresolvable conflicts**: Merge conflicts that cannot be auto-resolved
 - **Ambiguous requirements**: Spec is unclear, multiple valid interpretations
 - **Design decisions**: Architectural choices that need human judgment
@@ -191,9 +191,9 @@ escalations and re-escalate them.
 - **Recoverable errors**: Transient failures that will auto-retry
 - **Information queries**: Questions that can be answered from context
 
-## Mayor Startup Check
+## Product Manager Startup Check
 
-On `gt prime`, Mayor displays pending escalations grouped by severity.
+On `gt prime`, Product Manager displays pending escalations grouped by severity.
 Action: review with `bd list --tag=escalation`, close with `bd close <id> --reason "..."`.
 
 

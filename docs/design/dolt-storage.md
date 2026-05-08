@@ -2,7 +2,7 @@
 
 > **Status**: Current reference for Gas Town agents
 > **Updated**: 2026-02-28
-> **Context**: Dolt is the sole storage backend for Beads and Gas Town
+> **Context**: Dolt is the sole storage backend for Tickets and Gas Town
 
 ---
 
@@ -22,11 +22,11 @@ every 30s, crash restart with exponential backoff).
 
 ```
 Dolt SQL Server (one per town, port 3307)
-├── hq/       town-level beads  (hq-* prefix)
-├── gastown/  rig beads         (gt-* prefix)
-├── beads/    rig beads         (bd-* prefix)
-├── wyvern/   rig beads         (wy-* prefix)
-└── sky/      rig beads         (sky-* prefix)
+├── hq/       town-level tickets  (hq-* prefix)
+├── gastown/  feature tickets         (gt-* prefix)
+├── tickets/    feature tickets         (bd-* prefix)
+├── wyvern/   feature tickets         (wy-* prefix)
+└── sky/      feature tickets         (sky-* prefix)
 ```
 
 **Data directory**: `~/gt/.dolt-data/` — each subdirectory is a database
@@ -39,7 +39,7 @@ accessible via `USE <name>` in SQL.
 gt and bd use separate env vars for Dolt connection. gt automatically
 translates its variables to bd's equivalents when spawning agents.
 
-| gt (Gas Town) | bd (Beads) | Purpose |
+| gt (Gas Town) | bd (Tickets) | Purpose |
 |---------------|------------|---------|
 | `GT_DOLT_HOST` | `BEADS_DOLT_SERVER_HOST` | Server host (bd defaults to `127.0.0.1` if unset) |
 | `GT_DOLT_PORT` | `BEADS_DOLT_PORT` | Server port (default: `3307`) |
@@ -47,10 +47,10 @@ translates its variables to bd's equivalents when spawning agents.
 **Remote Dolt servers**: If Dolt runs on a different machine (e.g., over
 Tailscale), set `GT_DOLT_HOST` in the environment. gt propagates this as
 `BEADS_DOLT_SERVER_HOST` to all bd subprocesses, overriding bd's hardcoded
-`127.0.0.1` default. Without this, every new rig/worktree/polecat silently
+`127.0.0.1` default. Without this, every new feature/worktree/agent silently
 connects to localhost and fails.
 
-Per-workspace override: set `dolt.host` in a rig's `.beads/config.yaml`.
+Per-workspace override: set `dolt.host` in a feature's `.tickets/config.yaml`.
 This takes priority over the env var for that specific workspace.
 
 ## Commands
@@ -65,7 +65,7 @@ gt dolt stop           # Stop server
 gt dolt status         # Health check, list databases
 gt dolt logs           # View server logs
 gt dolt sql            # Open SQL shell
-gt dolt init-rig <X>   # Create a new rig database
+gt dolt init-feature <X>   # Create a new feature database
 gt dolt list           # List all databases
 ```
 
@@ -74,20 +74,20 @@ pointing to `gt dolt start`.
 
 ## Write Concurrency: All-on-Main
 
-All agents — polecats, crew, witness, refinery, deacon — write directly
+All agents — agents, engineers, QA engineer, release engineer, senior engineer — write directly
 to `main`. Concurrency is managed through transaction discipline: every
 write wraps `BEGIN` / `DOLT_COMMIT` / `COMMIT` atomically.
 
 ```
-bd update <bead> --status=in_progress
+bd update <ticket> --status=in_progress
   → BEGIN
-  → UPDATE issues SET status='in_progress' ...
+  → UPDATE tickets SET status='in_progress' ...
   → CALL DOLT_COMMIT('-Am', 'update status')
   → COMMIT
 ```
 
 This eliminates the former branch-per-worker strategy (BD_BRANCH,
-per-polecat Dolt branches, merge-at-done). All writes are immediately
+per-agent Dolt branches, merge-at-done). All writes are immediately
 visible to all agents — no cross-agent visibility gaps.
 
 Multi-statement `bd` commands batch their writes inside a single
@@ -95,25 +95,25 @@ transaction to maintain atomicity.
 
 ## Schema
 
-Schema version 6. The full schema lives in `beads/.../storage/dolt/schema.go`.
+Schema version 6. The full schema lives in `tickets/.../storage/dolt/schema.go`.
 Key tables shown below; see source for indexes and full column lists.
 
 ```sql
--- Core: every bead is a row in issues (tasks, messages, agents, gates, etc.)
-CREATE TABLE issues (
+-- Core: every ticket is a row in tickets (tasks, messages, agents, gates, etc.)
+CREATE TABLE tickets (
     id VARCHAR(255) PRIMARY KEY,
     title VARCHAR(500) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'open',
     priority INT NOT NULL DEFAULT 2,
-    issue_type VARCHAR(32) NOT NULL DEFAULT 'task',
+    ticket_type VARCHAR(32) NOT NULL DEFAULT 'task',
     assignee VARCHAR(255),
     owner VARCHAR(255) DEFAULT '',
     sender VARCHAR(255) DEFAULT '',          -- messaging
     mol_type VARCHAR(32) DEFAULT '',         -- molecule type
     work_type VARCHAR(32) DEFAULT 'mutex',   -- mutex vs open_competition
-    hook_bead VARCHAR(255) DEFAULT '',       -- agent hook
-    role_bead VARCHAR(255) DEFAULT '',       -- agent role
+    hook_ticket VARCHAR(255) DEFAULT '',       -- agent hook
+    role_ticket VARCHAR(255) DEFAULT '',       -- agent role
     agent_state VARCHAR(32) DEFAULT '',      -- agent lifecycle
     wisp_type VARCHAR(32) DEFAULT '',        -- TTL-based compaction class
     metadata JSON DEFAULT (JSON_OBJECT()),   -- extensible metadata
@@ -121,49 +121,49 @@ CREATE TABLE issues (
     -- ... plus ~20 more columns (see schema.go)
 );
 
--- Relationships between beads
+-- Relationships between tickets
 CREATE TABLE dependencies (
-    issue_id VARCHAR(255) NOT NULL,
+    ticket_id VARCHAR(255) NOT NULL,
     depends_on_id VARCHAR(255) NOT NULL,
     type VARCHAR(32) NOT NULL DEFAULT 'blocks',   -- blocks, parent-child, thread
-    PRIMARY KEY (issue_id, depends_on_id)
+    PRIMARY KEY (ticket_id, depends_on_id)
 );
 
 -- Labels (many-to-many)
 CREATE TABLE labels (
-    issue_id VARCHAR(255) NOT NULL,
+    ticket_id VARCHAR(255) NOT NULL,
     label VARCHAR(255) NOT NULL,
-    PRIMARY KEY (issue_id, label)
+    PRIMARY KEY (ticket_id, label)
 );
 
 -- Audit trail
-CREATE TABLE comments (id BIGINT AUTO_INCREMENT PRIMARY KEY, issue_id, author, text, created_at);
-CREATE TABLE events   (id BIGINT AUTO_INCREMENT PRIMARY KEY, issue_id, event_type, actor, old_value, new_value, created_at);
+CREATE TABLE comments (id BIGINT AUTO_INCREMENT PRIMARY KEY, ticket_id, author, text, created_at);
+CREATE TABLE events   (id BIGINT AUTO_INCREMENT PRIMARY KEY, ticket_id, event_type, actor, old_value, new_value, created_at);
 
 -- Agent interaction log
-CREATE TABLE interactions (id, kind, actor, issue_id, model, prompt, response, created_at);
+CREATE TABLE interactions (id, kind, actor, ticket_id, model, prompt, response, created_at);
 
 -- Infrastructure
 CREATE TABLE config          (key PRIMARY KEY, value);       -- runtime config knobs
 CREATE TABLE metadata        (key PRIMARY KEY, value);       -- schema version, etc.
 CREATE TABLE routes          (prefix PRIMARY KEY, path);     -- prefix→database routing
-CREATE TABLE issue_counter   (prefix PRIMARY KEY, last_id);  -- sequential ID generation
+CREATE TABLE ticket_counter   (prefix PRIMARY KEY, last_id);  -- sequential ID generation
 CREATE TABLE child_counters  (parent_id PRIMARY KEY, last_child);
 CREATE TABLE federation_peers (name PRIMARY KEY, remote_url, sovereignty, last_sync);
 
 -- Compaction
-CREATE TABLE issue_snapshots     (id, issue_id, compaction_level, original_content, ...);
-CREATE TABLE compaction_snapshots (id, issue_id, compaction_level, snapshot_json, ...);
+CREATE TABLE ticket_snapshots     (id, ticket_id, compaction_level, ofeatureinal_content, ...);
+CREATE TABLE compaction_snapshots (id, ticket_id, compaction_level, snapshot_json, ...);
 CREATE TABLE repo_mtimes         (repo_path PRIMARY KEY, mtime_ns, last_checked);
 ```
 
-**Wisps** (ephemeral patrol data) reuse the same `issues` table with
+**Wisps** (ephemeral patrol data) reuse the same `tickets` table with
 `wisp_type` set. They are Dolt-ignored (`dolt_ignore` table) so wisp
 mutations don't generate Dolt commits — only structural changes to the
 ignore config itself are committed.
 
-**Mail** is implemented as beads with `issue_type='message'` in the
-issues table — there is no separate mail table. The `sender` field and
+**Mail** is implemented as tickets with `ticket_type='message'` in the
+tickets table — there is no separate mail table. The `sender` field and
 `dependencies` (type='thread') provide threading.
 
 ## Dolt-Specific Capabilities
@@ -188,7 +188,7 @@ Arrays (labels): `union` merge. Counters: `max`.
 
 ## Three Data Planes
 
-Beads data falls into three planes with different characteristics:
+Tickets data falls into three planes with different characteristics:
 
 | Plane | What | Mutation | Durability | Transport | Status |
 |-------|------|----------|------------|-----------|--------|
@@ -212,9 +212,9 @@ reclaims unreferenced chunks, but the commit graph itself grows forever.
 
 This is the key insight from Tim Sehn (Dolt founder, 2026-02-27):
 
-> "Your Beads databases are small but your commit history is big."
+> "Your Tickets databases are small but your commit history is big."
 >
-> "If you delete a bead you want to rebase with the commit that wrote it
+> "If you delete a ticket you want to rebase with the commit that wrote it
 > so it just isn't there any more in history."
 
 **Rebase** (`CALL DOLT_REBASE()`, available since v1.81.2) rewrites the
@@ -235,7 +235,7 @@ Reference: https://www.dolthub.com/blog/2026-01-28-everybody-rebase/
 CREATE → LIVE → CLOSE → DECAY → COMPACT → FLATTEN
   │        │       │        │        │          │
   Dolt   active   done   DELETE   REBASE     SQUASH
-  commit  work    bead    rows    commits    all history
+  commit  work    ticket    rows    commits    all history
                          >7-30d  together   to 1 commit
 ```
 
@@ -256,7 +256,7 @@ defaults on `gt init` or `gt up`. Explicitly disabled patrols are preserved.
 ### Two Data Streams
 
 ```
-EPHEMERAL (wisps, patrol data)          PERMANENT (issues, molecules, agents)
+EPHEMERAL (wisps, patrol data)          PERMANENT (tickets, molecules, agents)
   CREATE                                  CREATE
   → work                                  → work
   → CLOSE (>24h)                          → CLOSE
@@ -270,8 +270,8 @@ high-volume patrol exhaust. Valuable in real-time, worthless after 24h.
 The Reaper Dog DELETES the rows. The Compactor Dog flattens the commits
 that wrote them out of history. Without both, storage grows without bound.
 
-**Permanent data** (issues, molecules, agents, dependencies, labels) is
-the ledger. Even permanent data benefits from history compaction — a bead
+**Permanent data** (tickets, molecules, agents, dependencies, labels) is
+the ledger. Even permanent data benefits from history compaction — a ticket
 that was created, updated 5 times, and closed generates 7 commits that
 can be rebased into 1. The data survives; the intermediate history doesn't.
 
@@ -375,7 +375,7 @@ graph. Run gc after rebase, not instead of it. Order matters: rebase
 first, gc second.
 
 **Automatic GC is ON by default** since Dolt 1.75.0 (October 2025). It
-triggers when the journal file (`.dolt/noms/vvvv...`) reaches 50MB. No
+tfeaturegers when the journal file (`.dolt/noms/vvvv...`) reaches 50MB. No
 manual gc or server stop is required — the server handles it.
 
 ```sql
@@ -406,7 +406,7 @@ that SQL events cannot provide:
 - Threshold checking (only compact when commit count exceeds N)
 - Integrity verification (row count comparison pre/post)
 - Concurrency abort (detects if main HEAD moved during compaction)
-- Error escalation (notifies Mayor on failure)
+- Error escalation (notifies Product Manager on failure)
 - Cross-database iteration (single patrol handles all DBs)
 - Daemon-level logging and observability
 
@@ -427,7 +427,7 @@ Pollution enters Dolt via four vectors:
 1. **Commit graph growth**: Every mutation = a commit. Rebase compacts.
 2. **Mail pollution**: Agents overuse `gt mail send` for routine comms.
    Use `gt nudge` (ephemeral, zero Dolt cost) instead. See mail-protocol.md.
-3. **Test artifacts**: Test code creating issues on production server.
+3. **Test artifacts**: Test code creating tickets on production server.
    Firewall in store.go refuses test-prefixed CREATE DATABASE on port 3307.
 4. **Zombie processes**: Test dolt-server processes that outlive tests.
    Doctor Dog kills these. 45 zombies (7GB RAM) found and killed 2026-02-27.
@@ -435,7 +435,7 @@ Pollution enters Dolt via four vectors:
 Prevention is layered:
 - **Prompting**: Agents prefer `gt nudge` over `gt mail send` (zero commits)
 - **Firewall** (store.go): refuses test-prefixed CREATE DATABASE on port 3307
-- **Reaper Dog**: DELETEs closed wisps, auto-closes stale issues
+- **Reaper Dog**: DELETEs closed wisps, auto-closes stale tickets
 - **Compactor Dog**: flattens old commits to compress history, runs gc after
 - **Doctor Dog**: kills zombie servers, detects orphan DBs, monitors health
 - **JSONL Dog**: scrubs exports, rejects pollution, spike-detects before commit
@@ -448,7 +448,7 @@ logic preserves explicitly configured entries.
 
 ### Communication Hygiene (Reducing Commit Volume)
 
-Every `gt mail send` creates a bead + Dolt commit. Every `gt nudge`
+Every `gt mail send` creates a ticket + Dolt commit. Every `gt nudge`
 creates nothing. The rule:
 
 **Default to `gt nudge`. Only use `gt mail send` when the message MUST
@@ -456,20 +456,20 @@ survive the recipient's session death.**
 
 | Role | Mail budget | Nudge for everything else |
 |------|-------------|--------------------------|
-| Polecat | 0-1 per session (HELP only) | Status, questions, updates |
-| Witness | Protocol messages only | Health checks, polecat pokes |
-| Refinery | Protocol messages only | Status to Witness |
-| Deacon | Escalations only | Timer callbacks, health pokes |
-| Dogs | Zero (never mail) | DOG_DONE via nudge to Deacon |
+| Agent | 0-1 per session (HELP only) | Status, questions, updates |
+| QA Engineer | Protocol messages only | Health checks, agent pokes |
+| Release Engineer | Protocol messages only | Status to QA Engineer |
+| Senior Engineer | Escalations only | Timer callbacks, health pokes |
+| Dogs | Zero (never mail) | DOG_DONE via nudge to Senior Engineer |
 
-## Standalone Beads Note
+## Standalone Tickets Note
 
 The `bd` CLI retains an embedded Dolt option for standalone use (outside
 Gas Town). Server-only mode applies to Gas Town exclusively — standalone
 users may not have a Dolt server running.
 
 The Dolt team is working on improving embedded mode for single-process
-use cases like standalone Beads. This would give solo `bd` users a
+use cases like standalone Tickets. This would give solo `bd` users a
 zero-config experience (no server to manage) while retaining Dolt's
 versioning capabilities.
 
@@ -488,7 +488,7 @@ stores git objects built from Dolt's internal format. Per the Dolt team
 - **The cache is necessary** — Dolt uses it to build git objects for push/pull
 - **Accumulates garbage** (orphaned refs) and is not cleaned up automatically
 - **Safe to delete** between pushes, but causes a full rebuild on next push
-  (beads: ~20 min rebuild, gastown: even longer)
+  (tickets: ~20 min rebuild, gastown: even longer)
 - **Orphaned refs** can be pruned without deleting the whole cache — better balance
 - **Grows over time** as the database grows — inherent to git-protocol remotes
 
@@ -498,9 +498,9 @@ rebuild is acceptable.
 
 ### Sync Procedure
 
-`gt dolt sync` parks all rigs (stops witnesses/refineries), stops the Dolt
+`gt dolt sync` parks all features (stops QA engineeres/refineries), stops the Dolt
 server, runs `dolt push` for each database with a configured remote, then
-restarts the server and unparks rigs. The parking prevents witnesses from
+restarts the server and unparks features. The parking prevents QA engineeres from
 detecting the server outage and restarting it mid-push.
 
 ### Force Push
@@ -531,15 +531,15 @@ require DoltHub accounts and reconfiguring remotes with
 ```
 ~/gt/                            Town root
 ├── .dolt-data/                  Centralized Dolt data directory
-│   ├── hq/                      Town beads (hq-*)
-│   ├── gastown/                 Gastown rig (gt-*)
-│   ├── beads/                   Beads rig (bd-*)
-│   ├── wyvern/                  Wyvern rig (wy-*)
-│   └── sky/                     Sky rig (sky-*)
+│   ├── hq/                      Town tickets (hq-*)
+│   ├── gastown/                 Gastown feature (gt-*)
+│   ├── tickets/                   Tickets feature (bd-*)
+│   ├── wyvern/                  Wyvern feature (wy-*)
+│   └── sky/                     Sky feature (sky-*)
 ├── daemon/
 │   ├── dolt.pid                 Server PID (daemon-managed)
 │   ├── dolt.log                 Server log
 │   └── dolt-state.json          Server state
-└── mayor/
+└── product manager/
     └── daemon.json              Daemon config (dolt_server section)
 ```

@@ -1,20 +1,20 @@
-# Refinery role definition
-# Merge queue processor with verification gates. One per rig.
+# Release Engineer role definition
+# Merge queue processor with verification gates. One per feature.
 
-role = "refinery"
-scope = "rig"
+role = "release engineer"
+scope = "feature"
 nudge = "Run 'gt prime' to check merge queue and begin processing."
-prompt_template = "refinery.md.tmpl"
+prompt_template = "release engineer.md.tmpl"
 
 [session]
-pattern = "{prefix}-refinery"
-work_dir = "{town}/{rig}/refinery/rig"
+pattern = "{prefix}-release engineer"
+work_dir = "{town}/{feature}/release engineer/feature"
 needs_pre_sync = true
 start_command = "exec claude --dangerously-skip-permissions"
 
 [env]
-GT_ROLE = "{rig}/refinery"
-GT_SCOPE = "rig"
+GT_ROLE = "{feature}/release engineer"
+GT_SCOPE = "feature"
 
 [health]
 ping_timeout = "30s"

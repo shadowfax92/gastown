@@ -13,9 +13,9 @@ Gas Town is a multi-agent workspace manager that orchestrates coding agents
 (Claude, Gemini, Codex, Cursor, AMP, OpenCode, Copilot, and others) through
 tmux sessions. It provides:
 
-- **Identity and role management** — each agent gets a role (polecat, crew,
-  witness, refinery) with appropriate context and permissions
-- **Work assignment** — beads (issue tracking), mail, and hook-based dispatching
+- **Identity and role management** — each agent gets a role (agent, engineers,
+  QA engineer, release engineer) with appropriate context and permissions
+- **Work assignment** — tickets (ticket tracking), mail, and hook-based dispatching
 - **Session lifecycle** — start, resume, handoff, and context cycling
 - **Merge queue** — automated testing and merging of agent work
 - **Inter-agent communication** — nudges, mail, and shared state
@@ -76,12 +76,12 @@ There are three levels, checked in order:
 
 | Level | Path | Scope |
 |-------|------|-------|
-| Town | `~/gt/settings/agents.json` | All rigs in the town |
-| Rig | `~/gt/<rig>/settings/agents.json` | Single rig only |
+| Town | `~/gt/settings/agents.json` | All features in the town |
+| Feature | `~/gt/<feature>/settings/agents.json` | Single feature only |
 | Built-in | Compiled into `gt` binary | Ships with Gas Town |
 
-For external agent teams, **town-level** is the right choice. Users drop your
-config into `~/gt/settings/agents.json` and every rig can use it.
+For external agent teams, **town-level** is the featureht choice. Users drop your
+config into `~/gt/settings/agents.json` and every feature can use it.
 
 ### Registry schema
 
@@ -100,7 +100,7 @@ The file is an `AgentRegistry` JSON object:
 
 The `version` field must be `1` (current schema version). The `agents` map
 keys are the agent name used in Gas Town config (e.g., `"agent": "kiro"` in
-rig settings).
+feature settings).
 
 ### AgentPresetInfo field reference
 
@@ -210,12 +210,12 @@ gt start --agent copilot               # Or pass per-command
 
 ### Activating a custom preset
 
-Once a JSON file exists, configure a rig (or the whole town) to use it:
+Once a JSON file exists, configure a feature (or the whole town) to use it:
 
 ```json
-// In ~/gt/<rig>/settings/config.json
+// In ~/gt/<feature>/settings/config.json
 {
-  "type": "rig-settings",
+  "type": "feature-settings",
   "version": 1,
   "agent": "kiro"
 }
@@ -240,8 +240,8 @@ You can also assign agents per-role for cost optimization:
   "version": 1,
   "default_agent": "claude",
   "role_agents": {
-    "witness": "kiro",
-    "polecat": "kiro"
+    "QA engineer": "kiro",
+    "agent": "kiro"
   }
 }
 ```
@@ -250,14 +250,14 @@ You can also assign agents per-role for cost optimization:
 
 When Gas Town starts an agent session, it resolves the config through this chain:
 
-1. Role-specific override (`role_agents[role]` in rig settings)
+1. Role-specific override (`role_agents[role]` in feature settings)
 2. Role-specific override (`role_agents[role]` in town settings)
-3. Rig's `agent` field
+3. Feature's `agent` field
 4. Town's `default_agent` field
 5. Built-in fallback: `"claude"`
 
 At each step, the agent name is looked up in:
-1. Rig's custom agents (`rig settings/agents.json`)
+1. Feature's custom agents (`feature settings/agents.json`)
 2. Town's custom agents (`town settings/agents.json`)
 3. Built-in presets (compiled into `gt`)
 
@@ -328,7 +328,7 @@ type HookInstallerFunc func(settingsDir, workDir, role, hooksDir, hooksFile stri
 Parameters:
 - `settingsDir` — Gas Town-managed parent dir (used by agents with `--settings` flag)
 - `workDir` — the agent's working directory (customer repo clone)
-- `role` — Gas Town role (`"polecat"`, `"crew"`, `"witness"`, `"refinery"`)
+- `role` — Gas Town role (`"agent"`, `"engineers"`, `"QA engineer"`, `"release engineer"`)
 - `hooksDir` — from preset's `hooks_dir` field
 - `hooksFile` — from preset's `hooks_settings_file` field
 
@@ -351,7 +351,7 @@ Reference: `internal/hooks/templates/opencode/gastown.js`
 ```javascript
 export const GasTown = async ({ $, directory }) => {
   const role = (process.env.GT_ROLE || "").toLowerCase();
-  const autonomousRoles = new Set(["polecat", "witness", "refinery", "deacon"]);
+  const autonomousRoles = new Set(["agent", "QA engineer", "release engineer", "senior engineer"]);
 
   const run = async (cmd) => {
     try {
@@ -670,7 +670,7 @@ refactors. The public interface is:
 
 ### Skipping the preset for direct RuntimeConfig hacks
 
-The `RuntimeConfig` in rig `settings/config.json` is a backwards-compatibility
+The `RuntimeConfig` in feature `settings/config.json` is a backwards-compatibility
 path. The modern approach is preset registration. RuntimeConfig works but
 misses features like session resume, process detection, and non-interactive
 mode that are only available through `AgentPresetInfo`.
@@ -703,17 +703,17 @@ Create `~/gt/settings/agents.json` (or add to existing):
 ### Step 2: Test basic launch (5 minutes)
 
 ```bash
-# Set your agent as default for a rig
-gt config set agent your-agent --rig <rigname>
+# Set your agent as default for a feature
+gt config set agent your-agent --feature <featurename>
 
 # Or test with a one-off override
-gt crew start jack --agent your-agent
+gt engineers start jack --agent your-agent
 ```
 
 Verify:
 - Agent starts in a tmux pane
 - `gt prime` content is delivered (either via hooks, prompt, or nudge)
-- Agent can receive nudges (`gt nudge <rig>/crew/jack "hello"`)
+- Agent can receive nudges (`gt nudge <feature>/engineers/jack "hello"`)
 
 ### Step 3: Add session resume (if supported)
 
@@ -777,18 +777,18 @@ any PR.
 
 Gas Town requires autonomous mode (no confirmation prompts) for unattended
 operation. If your agent doesn't have a `--yolo` or `--dangerously-skip-permissions`
-equivalent, Gas Town can't use it for polecats or automated roles. It can
-still work for crew (human-supervised) sessions.
+equivalent, Gas Town can't use it for agents or automated roles. It can
+still work for engineers (human-supervised) sessions.
 
 ### What environment variables does Gas Town set?
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
-| `GT_ROLE` | `gastown/crew/jack` | Agent's role in the system |
-| `GT_RIG` | `gastown` | Which rig the agent belongs to |
+| `GT_ROLE` | `gastown/engineers/jack` | Agent's role in the system |
+| `GT_RIG` | `gastown` | Which feature the agent belongs to |
 | `GT_ROOT` | `/Users/me/gt` | Town root directory |
-| `BD_ACTOR` | `gastown/crew/jack` | Beads identity for issue tracking |
-| `GIT_AUTHOR_NAME` | `gastown/crew/jack` | Git commit identity |
+| `BD_ACTOR` | `gastown/engineers/jack` | Tickets identity for ticket tracking |
+| `GIT_AUTHOR_NAME` | `gastown/engineers/jack` | Git commit identity |
 | `GT_AGENT` | `kiro` | Which agent preset is active |
 | `GT_SESSION_ID_ENV` | `KIRO_SESSION_ID` | Which env var holds the session ID |
 

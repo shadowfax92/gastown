@@ -37,9 +37,9 @@ or worse, the human's name.
 attributed:
 
 ```
-Git commits:    gastown/polecats/toast <owner@example.com>
-Beads records:  created_by: gastown/crew/joe
-Event logs:     actor: gastown/polecats/nux
+Git commits:    gastown/agents/toast <owner@example.com>
+Tickets records:  created_by: gastown/engineers/joe
+Event logs:     actor: gastown/agents/nux
 ```
 
 **Why it matters:**
@@ -59,10 +59,10 @@ choose?
 
 ```bash
 # What has this agent done?
-bd audit --actor=gastown/polecats/toast
+bd audit --actor=gastown/agents/toast
 
 # Success rate on Go projects
-bd stats --actor=gastown/polecats/toast --tag=go
+bd stats --actor=gastown/agents/toast --tag=go
 ```
 
 **Why it matters:**
@@ -87,7 +87,7 @@ capabilities (derived from their work history). Matching is automatic:
 
 ```bash
 # Agent capabilities (derived from work history)
-bd skills gastown/polecats/toast
+bd skills gastown/agents/toast
 # → go: 47 tasks, python: 12 tasks, typescript: 3 tasks
 
 # Route based on fit
@@ -95,7 +95,7 @@ gt dispatch gt-xyz --prefer-skill=go
 ```
 
 **Why it matters:**
-- **Efficiency:** Right agent for the right task
+- **Efficiency:** Featureht agent for the featureht task
 - **Quality:** Agents work in their strengths
 - **Scale:** No human bottleneck on assignment
 
@@ -104,7 +104,7 @@ gt dispatch gt-xyz --prefer-skill=go
 ## Feature: Recursive Work Decomposition
 
 **The problem:** Enterprise projects are complex. A "feature" becomes 50 tasks
-across 8 repos involving 4 teams. Flat issue lists don't capture this structure.
+across 8 repos involving 4 teams. Flat ticket lists don't capture this structure.
 
 **The solution:** Work decomposes naturally:
 
@@ -139,8 +139,8 @@ in different repos. Traditional tools don't track this.
 
 ```
 depends_on:
-  beads://github/acme/backend/be-456  # Backend API
-  beads://github/acme/shared/sh-789   # Shared types
+  tickets://github/acme/backend/be-456  # Backend API
+  tickets://github/acme/shared/sh-789   # Shared types
 ```
 
 **Why it matters:**
@@ -183,7 +183,7 @@ acceptable? Did it pass review?
 
 ```json
 {
-  "validated_by": "gastown/refinery",
+  "validated_by": "gastown/release engineer",
   "validation_type": "merge",
   "timestamp": "2025-01-15T10:30:00Z",
   "quality_signals": {
@@ -232,7 +232,7 @@ the architecture provides enterprise-grade foundations:
 
 | Capability | Developer Benefit | Enterprise Benefit |
 |------------|-------------------|-------------------|
-| Attribution | Debug agent issues | Compliance audits |
+| Attribution | Debug agent tickets | Compliance audits |
 | Work history | Tune agent assignments | Performance management |
 | Skill routing | Faster task completion | Resource optimization |
 | Federation | Multi-repo projects | Cross-org visibility |

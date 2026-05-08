@@ -1,19 +1,19 @@
-# Mayor role definition
-# Global coordinator for cross-rig work. One per town.
+# Product Manager role definition
+# Global coordinator for cross-feature work. One per town.
 
-role = "mayor"
+role = "product manager"
 scope = "town"
 nudge = "Check mail and hook status, then act accordingly."
-prompt_template = "mayor.md.tmpl"
+prompt_template = "product manager.md.tmpl"
 
 [session]
-pattern = "hq-mayor"
-work_dir = "{town}/mayor"
+pattern = "hq-product manager"
+work_dir = "{town}/product manager"
 needs_pre_sync = false
 start_command = "exec claude --dangerously-skip-permissions"
 
 [env]
-GT_ROLE = "mayor"
+GT_ROLE = "product manager"
 GT_SCOPE = "town"
 
 [health]

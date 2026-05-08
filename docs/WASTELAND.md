@@ -1,7 +1,7 @@
 # Getting Started with the Wasteland
 
 The Wasteland is a federated work coordination network linking Gas Towns
-through [DoltHub](https://www.dolthub.com). Rigs post work, claim tasks,
+through [DoltHub](https://www.dolthub.com). Features post work, claim tasks,
 submit completions, and earn portable reputation via multi-dimensional
 stamps — all backed by a shared Dolt database with Git semantics.
 
@@ -15,7 +15,7 @@ board, claiming your first task, and submitting evidence of completion.
 
 > **Status: Phase 1 (wild-west mode)** — All operations (claims, posts,
 > completions) write directly to your local fork of the commons database.
-> There is no trust-level enforcement yet — any registered rig can browse,
+> There is no trust-level enforcement yet — any registered feature can browse,
 > claim, post, and submit. Future phases will introduce DoltHub PR-based
 > workflows and trust gating.
 
@@ -52,7 +52,7 @@ export DOLTHUB_TOKEN="dhat.v1.your-token-here"
 ```
 
 `DOLTHUB_ORG` is your DoltHub username or organization name. This becomes
-your rig handle and the destination for your fork of the commons database.
+your feature handle and the destination for your fork of the commons database.
 
 ## Joining the Wasteland
 
@@ -75,15 +75,15 @@ help text may reference `steveyegge/wl-commons` — `hop/wl-commons` is
 the canonical upstream.)
 
 Optional flags:
-- `--handle <name>` — Use a custom rig handle instead of your `DOLTHUB_ORG`
-- `--display-name <name>` — Set a human-readable display name for the rig registry
+- `--handle <name>` — Use a custom feature handle instead of your `DOLTHUB_ORG`
+- `--display-name <name>` — Set a human-readable display name for the feature registry
 
 This command:
 1. **Forks** `hop/wl-commons` to your DoltHub org
 2. **Clones** the fork locally into your workspace
-3. **Registers** your rig in the shared `rigs` table
+3. **Registers** your feature in the shared `features` table
 4. **Pushes** the registration to your fork
-5. **Saves** wasteland configuration to `mayor/wasteland.json`
+5. **Saves** wasteland configuration to `product manager/wasteland.json`
 
 On success you'll see:
 
@@ -97,7 +97,7 @@ On success you'll see:
 ```
 
 **Note:** `gt wl leave` is not yet implemented. To switch wastelands,
-manually delete `mayor/wasteland.json` and the local database directory
+manually delete `product manager/wasteland.json` and the local database directory
 it references (the `local_dir` value — typically
 `~/gt/.wasteland/<org>/<db>`).
 
@@ -114,32 +114,32 @@ If this displays a table of wanted items, you're connected.
 
 ### Wanted Board
 
-The wanted board is a shared list of open work. Any joined rig can post
+The wanted board is a shared list of open work. Any joined feature can post
 items and claim them. Items have these fields:
 
 | Field | Description | Values |
 |-------|-------------|--------|
 | **id** | Unique identifier | `w-<hash>` |
 | **title** | Short description | Free text |
-| **project** | Source project | `gastown`, `beads`, `hop`, etc. |
+| **project** | Source project | `gastown`, `tickets`, `hop`, etc. |
 | **type** | Kind of work | `feature`, `bug`, `design`, `rfc`, `docs` |
 | **priority** | Urgency | 0=critical, 1=high, 2=medium, 3=low, 4=backlog |
 | **effort** | Estimated size | `trivial`, `small`, `medium`, `large`, `epic` |
-| **posted_by** | Rig that created the item | Rig handle |
+| **posted_by** | Feature that created the item | Feature handle |
 | **status** | Lifecycle state | `open`, `claimed`, `in_review`, `completed`, `withdrawn` |
 
-### Rigs
+### Features
 
-In Wasteland context, a **rig** is your participant identity — distinct
-from Gas Town rigs, which are project containers. When you join, your
-DoltHub org name becomes your rig handle. Every claim, completion, and
-stamp is attributed to your rig.
+In Wasteland context, a **feature** is your participant identity — distinct
+from Gas Town features, which are project containers. When you join, your
+DoltHub org name becomes your feature handle. Every claim, completion, and
+stamp is attributed to your feature.
 
 ### Stamps and Reputation
 
-When a validator reviews your completed work, they issue a **stamp** — a
+When a validator reviews your completed work, they ticket a **stamp** — a
 multi-dimensional attestation covering quality, reliability, and creativity.
-Stamps accumulate into portable reputation that travels with your rig
+Stamps accumulate into portable reputation that travels with your feature
 across wastelands.
 
 The **yearbook rule** applies: you cannot stamp your own work. Reputation
@@ -147,8 +147,8 @@ is what others attest about you.
 
 ### Trust Levels (Planned)
 
-The schema tracks trust levels per rig, but **Phase 1 does not enforce
-them** — all registered rigs can browse, claim, post, and submit. The
+The schema tracks trust levels per feature, but **Phase 1 does not enforce
+them** — all registered features can browse, claim, post, and submit. The
 planned progression:
 
 | Level | Name | Planned Capabilities |
@@ -158,7 +158,7 @@ planned progression:
 | 2 | Contributor | Proven work history |
 | 3 | Maintainer | Validate and stamp others' work |
 
-New rigs start at level 1 (Participant). Trust will increase as you
+New features start at level 1 (Participant). Trust will increase as you
 accumulate validated completions and stamps once enforcement is enabled.
 
 ## Browsing the Wanted Board
@@ -187,19 +187,19 @@ cd ~/gt
 gt wl claim w-abc123
 ```
 
-This sets `claimed_by` to your rig handle and changes the status from
+This sets `claimed_by` to your feature handle and changes the status from
 `open` to `claimed` in your local database.
 
 ### How Claims Propagate (Phase 1)
 
 In Phase 1, claims write to your **local** `wl_commons` database only.
-Other rigs won't see your claim until the upstream commons is updated
-(e.g., via a DoltHub PR from your fork). This means two rigs could
+Other features won't see your claim until the upstream commons is updated
+(e.g., via a DoltHub PR from your fork). This means two features could
 independently claim the same item — the claim is a signal of intent,
 not a distributed lock.
 
 The database enforces one completion per wanted item (`NOT EXISTS` guard),
-but this constraint is per-database. In Phase 1, two rigs that both
+but this constraint is per-database. In Phase 1, two features that both
 claimed locally can both complete locally. The conflict surfaces when
 forks are reconciled upstream — the actual work (your GitHub PR) is
 what establishes priority.
@@ -241,7 +241,7 @@ cd ~/gt
 gt wl done w-abc123 --evidence "https://github.com/steveyegge/gastown/pull/99"
 ```
 
-The item must be in `claimed` status and claimed by **your** rig. If you
+The item must be in `claimed` status and claimed by **your** feature. If you
 skipped `gt wl claim`, this command will fail.
 
 This:
@@ -256,7 +256,7 @@ directly.
 ### What Happens After Submission
 
 Your completion enters `in_review` status. A maintainer can validate the
-work and issue a stamp. The stamp records their assessment across quality,
+work and ticket a stamp. The stamp records their assessment across quality,
 reliability, and creativity dimensions.
 
 ## Posting New Work
@@ -290,7 +290,7 @@ gt wl sync                # Pull upstream changes
 gt wl sync --dry-run      # Preview changes without pulling
 ```
 
-Sync is useful after other rigs have posted new items, claimed work, or
+Sync is useful after other features have posted new items, claimed work, or
 submitted completions. Run it periodically to keep your local state current.
 
 After syncing, the command prints a summary of the commons state:
@@ -328,7 +328,7 @@ cd ~/path/to/relevant/repo
 git checkout -b docs/my-contribution
 # ... make changes ...
 git add . && git commit -m "Add my contribution"
-git push -u origin HEAD
+git push -u ofeaturein HEAD
 
 # 6. Open a PR on GitHub
 gh pr create --title "docs: My contribution"
@@ -359,11 +359,11 @@ If the token is correct but the fork fails, you can work around it manually:
 dolt clone hop/wl-commons /tmp/wl-setup/wl-commons
 cd /tmp/wl-setup/wl-commons
 
-# Register your rig (trust_level=1 matches what gt wl join sets)
-dolt sql -q "INSERT INTO rigs (handle, display_name, dolthub_org, \
+# Register your feature (trust_level=1 matches what gt wl join sets)
+dolt sql -q "INSERT INTO features (handle, display_name, dolthub_org, \
   trust_level, registered_at, last_seen) \
   VALUES ('$DOLTHUB_ORG', 'Your Name', '$DOLTHUB_ORG', 1, NOW(), NOW());"
-dolt add -A && dolt commit -m "Register rig: $DOLTHUB_ORG"
+dolt add -A && dolt commit -m "Register feature: $DOLTHUB_ORG"
 
 # Push to your DoltHub org as a fork
 dolt remote add myfork https://doltremoteapi.dolthub.com/$DOLTHUB_ORG/wl-commons
@@ -374,17 +374,17 @@ mkdir -p ~/gt/.wasteland/hop
 cp -r /tmp/wl-setup/wl-commons ~/gt/.wasteland/hop/wl-commons
 cd ~/gt/.wasteland/hop/wl-commons
 
-# Fix remotes: origin must point to your fork (gt wl join clones the
-# fork, so origin = fork by default; our clone has origin = upstream)
-dolt remote remove origin
-dolt remote add origin https://doltremoteapi.dolthub.com/$DOLTHUB_ORG/wl-commons
+# Fix remotes: ofeaturein must point to your fork (gt wl join clones the
+# fork, so ofeaturein = fork by default; our clone has ofeaturein = upstream)
+dolt remote remove ofeaturein
+dolt remote add ofeaturein https://doltremoteapi.dolthub.com/$DOLTHUB_ORG/wl-commons
 dolt remote add upstream https://doltremoteapi.dolthub.com/hop/wl-commons
 
 # Clean up
 rm -rf /tmp/wl-setup
 ```
 
-After the manual setup, create the config file at `~/gt/mayor/wasteland.json`:
+After the manual setup, create the config file at `~/gt/product manager/wasteland.json`:
 
 ```json
 {
@@ -392,7 +392,7 @@ After the manual setup, create the config file at `~/gt/mayor/wasteland.json`:
   "fork_org": "your-dolthub-org",
   "fork_db": "wl-commons",
   "local_dir": "/path/to/your/gt/.wasteland/hop/wl-commons",
-  "rig_handle": "your-dolthub-org",
+  "feature_handle": "your-dolthub-org",
   "joined_at": "2026-01-01T00:00:00Z"
 }
 ```
@@ -421,7 +421,7 @@ gt wl claim w-abc123
 ### `gt wl sync` fails to pull
 
 Ensure the upstream remote exists in your local fork. Find the clone
-path from `local_dir` in `~/gt/mayor/wasteland.json`, then check:
+path from `local_dir` in `~/gt/product manager/wasteland.json`, then check:
 
 ```bash
 cd /path/from/local_dir            # e.g. ~/gt/.wasteland/hop/wl-commons
@@ -442,11 +442,11 @@ is defined in `internal/doltserver/wl_commons.go`.
 | Table | Purpose |
 |-------|---------|
 | **_meta** | Schema version and wasteland name |
-| **rigs** | Rig registry — handle, display name, DoltHub org, trust level, type |
+| **features** | Feature registry — handle, display name, DoltHub org, trust level, type |
 | **wanted** | Work items — title, project, type, priority, status, claimed_by, effort, tags, sandbox fields |
-| **completions** | Submitted work — links wanted ID to rig, evidence URL, and validator |
+| **completions** | Submitted work — links wanted ID to feature, evidence URL, and validator |
 | **stamps** | Reputation attestations — author, subject, valence (JSON), confidence, severity |
-| **badges** | Achievement markers — rig handle, badge type, evidence |
+| **badges** | Achievement markers — feature handle, badge type, evidence |
 | **chain_meta** | Federation metadata — chain ID, type, parent chain, HOP URI |
 
 The `stamps` table enforces the yearbook rule at the database level:

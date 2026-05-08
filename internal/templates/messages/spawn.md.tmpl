@@ -1,8 +1,8 @@
 # Work Assignment
 
-You have been assigned to work on the following issue:
+You have been assigned to work on the following ticket:
 
-## Issue: {{ .Issue }}
+## Ticket: {{ .Ticket }}
 
 **Title**: {{ .Title }}
 **Priority**: P{{ .Priority }}
@@ -16,17 +16,17 @@ You have been assigned to work on the following issue:
 
 ## Your Task
 
-1. Review the issue details with `bd show {{ .Issue }}`
-2. Work in your clone at `{{ .RigName }}/polecats/{{ .Polecat }}/`
+1. Review the ticket details with `bd show {{ .Ticket }}`
+2. Work in your clone at `{{ .FeatureName }}/agents/{{ .Agent }}/`
 3. Commit changes regularly with clear messages
 4. When complete, run:
-   - `bd close {{ .Issue }}`
+   - `bd close {{ .Ticket }}`
    - `{{ cmd }} done`
 
 ## Need Help?
 
-- File blocking issues: `bd create --title="Blocked: <reason>" --type=task`
-- Ask Witness: `{{ cmd }} mail send {{ .RigName }}/witness -s "Question" -m "..."`
-- Escalate: The Witness will escalate if you're stuck
+- File blocking tickets: `bd create --title="Blocked: <reason>" --type=task`
+- Ask QA Engineer: `{{ cmd }} mail send {{ .FeatureName }}/QA engineer -s "Question" -m "..."`
+- Escalate: The QA Engineer will escalate if you're stuck
 
 Good luck!

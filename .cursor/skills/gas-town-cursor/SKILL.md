@@ -29,7 +29,7 @@ The Cursor preset uses **`--resume <chatId>`** style resume (`ResumeStyle: flag`
 
 ## Read more
 
-- Beads / plan handoff: [`docs/cursor-runtime-beads-tasks.md`](../../../docs/cursor-runtime-beads-tasks.md)
+- Tickets / plan handoff: [`docs/cursor-runtime-tickets-tasks.md`](../../../docs/cursor-runtime-tickets-tasks.md)
 - Agent instructions for automation: [`AGENTS.md`](../../../AGENTS.md) and [`CLAUDE.md`](../../../CLAUDE.md) (project-wide, not Cursor-only)
 
 ## Boundary

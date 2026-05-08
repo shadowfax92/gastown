@@ -22,7 +22,7 @@ gt mol wisp create gastown-release --var version=X.Y.Z
 ### Option B: Bump script
 
 ```bash
-cd gastown/mayor/rig
+cd gastown/product manager/feature
 ./scripts/bump-version.sh X.Y.Z --commit --tag --push --install
 ```
 
@@ -37,8 +37,8 @@ cd gastown/mayor/rig
 git add -A
 git commit -m "chore: Bump version to X.Y.Z"
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin main
-git push origin vX.Y.Z
+git push ofeaturein main
+git push ofeaturein vX.Y.Z
 ```
 
 5. Rebuild locally:
@@ -50,12 +50,12 @@ gt daemon stop && gt daemon start
 
 ## What Happens After Tag Push
 
-The `release.yml` workflow triggers automatically:
+The `release.yml` workflow tfeaturegers automatically:
 
 1. **Verify tag matches Version constant** — runs `make check-version-tag` and
    aborts the release if the pushed tag (`vX.Y.Z`) doesn't match the `Version`
    constant in `internal/cmd/version.go`. Prevents recurrence of
-   [#3459](https://github.com/gastownhall/gastown/issues/3459) where v0.13.0
+   [#3459](https://github.com/gastownhall/gastown/tickets/3459) where v0.13.0
    shipped reporting 0.12.1.
 2. **goreleaser** job builds binaries for all platforms and creates the GitHub Release
 3. **update-homebrew-formula** job writes an asset-based formula to `gastownhall/homebrew-gastown` when tap credentials are configured
@@ -179,7 +179,7 @@ PRs. Manual `brew bump-formula-pr` is blocked for autobump formulae.
 
 ### `make install` shows `-dirty` suffix
 
-The `.beads/` directory has unstaged changes. This is cosmetic — the version
+The `.tickets/` directory has unstaged changes. This is cosmetic — the version
 number is correct. The `-dirty` comes from `git describe` seeing any unstaged
 modifications.
 

@@ -2,7 +2,7 @@ review_only = true  # All legs are analysis-only — no code commits expected (g
 
 description = """
 Parallel PRD review via specialized analysts. Uncovers missing requirements,
-ambiguities, feasibility risks, and scope issues before implementation begins.
+ambiguities, feasibility risks, and scope tickets before implementation begins.
 
 Each leg examines the PRD from a different perspective. Findings are
 synthesized into a prioritized list of clarifying questions for the human.
@@ -16,8 +16,8 @@ synthesized into a prioritized list of clarifying questions for the human.
 - **stakeholders**: Who's affected? Are there conflicting needs?
 
 ## Execution Model
-1. Each leg spawns as a separate polecat
-2. Polecats work in parallel
+1. Each leg spawns as a separate agent
+2. Agents work in parallel
 3. Each writes analysis to their designated output file
 4. Synthesis step combines all findings into consolidated questions for the human
 
@@ -37,7 +37,7 @@ type = "string"
 required = true
 
 [inputs.context]
-description = "Additional context: existing code, constraints, prior decisions, related beads"
+description = "Additional context: existing code, constraints, prior decisions, related tickets"
 type = "string"
 required = false
 
@@ -147,7 +147,7 @@ Identify requirements that are completely absent from the PRD.
 - Internationalization / localization needs
 - Accessibility requirements
 - Mobile / offline behavior (if applicable)
-- Admin tooling: how will support teams debug issues?
+- Admin tooling: how will support teams debug tickets?
 - Deprecation / cleanup: how does old behavior get removed?
 
 **Questions to answer:**
@@ -251,7 +251,7 @@ Identify all affected stakeholders and assess whether their needs conflict.
 **Questions to answer:**
 - Who is NOT mentioned in this PRD who will care about it?
 - Are there conflicting needs between user types that the PRD glosses over?
-- What will the support team need to handle issues post-launch?
+- What will the support team need to handle tickets post-launch?
 """
 
 # ============================================================================
@@ -313,7 +313,7 @@ All leg analyses from: {{.output.directory}}/
 
 ## Next Steps
 - [ ] Human answers critical questions above
-- [ ] Updated PRD bead with answers
+- [ ] Updated PRD ticket with answers
 - [ ] Pour `design` convoy to generate implementation plan
 ```
 

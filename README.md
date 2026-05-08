@@ -13,55 +13,55 @@ Gas Town is a workspace manager that lets you coordinate multiple AI coding agen
 | Agents lose context on restart  | Work persists in git-backed hooks            |
 | Manual agent coordination       | Built-in mailboxes, identities, and handoffs |
 | 4-10 agents become chaotic      | Scale comfortably to 20-30 agents            |
-| Work state lost in agent memory | Work state stored in Beads ledger            |
+| Work state lost in agent memory | Work state stored in Tickets ledger            |
 
 ### Architecture
 
 ```mermaid
 graph TB
-    Mayor[The Mayor<br/>AI Coordinator]
+    Product Manager[The Product Manager<br/>AI Coordinator]
     Town[Town Workspace<br/>~/gt/]
 
-    Town --> Mayor
-    Town --> Rig1[Rig: Project A]
-    Town --> Rig2[Rig: Project B]
+    Town --> Product Manager
+    Town --> Feature1[Feature: Project A]
+    Town --> Feature2[Feature: Project B]
 
-    Rig1 --> Crew1[Crew Member<br/>Your workspace]
-    Rig1 --> Hooks1[Hooks<br/>Persistent storage]
-    Rig1 --> Polecats1[Polecats<br/>Worker agents]
+    Feature1 --> Engineers1[Engineers Member<br/>Your workspace]
+    Feature1 --> Hooks1[Hooks<br/>Persistent storage]
+    Feature1 --> Agents1[Agents<br/>Worker agents]
 
-    Rig2 --> Crew2[Crew Member]
-    Rig2 --> Hooks2[Hooks]
-    Rig2 --> Polecats2[Polecats]
+    Feature2 --> Engineers2[Engineers Member]
+    Feature2 --> Hooks2[Hooks]
+    Feature2 --> Agents2[Agents]
 
     Hooks1 -.git worktree.-> GitRepo1[Git Repository]
     Hooks2 -.git worktree.-> GitRepo2[Git Repository]
 
-    style Mayor fill:#e1f5ff,color:#000000
+    style Product Manager fill:#e1f5ff,color:#000000
     style Town fill:#f0f0f0,color:#000000
-    style Rig1 fill:#fff4e1,color:#000000
-    style Rig2 fill:#fff4e1,color:#000000
+    style Feature1 fill:#fff4e1,color:#000000
+    style Feature2 fill:#fff4e1,color:#000000
 ```
 
 ## Core Concepts
 
-### The Mayor 🎩
+### The Product Manager 🎩
 
-Your primary AI coordinator. The Mayor is a Claude Code instance with full context about your workspace, projects, and agents. **Start here** - just tell the Mayor what you want to accomplish.
+Your primary AI coordinator. The Product Manager is a Claude Code instance with full context about your workspace, projects, and agents. **Start here** - just tell the Product Manager what you want to accomplish.
 
 ### Town 🏘️
 
 Your workspace directory (e.g., `~/gt/`). Contains all projects, agents, and configuration.
 
-### Rigs 🏗️
+### Features 🏗️
 
-Project containers. Each rig wraps a git repository and manages its associated agents.
+Project containers. Each feature wraps a git repository and manages its associated agents.
 
-### Crew Members 👤
+### Engineers Members 👤
 
-Your personal workspace within a rig. Where you do hands-on work.
+Your personal workspace within a feature. Where you do hands-on work.
 
-### Polecats 🦨
+### Agents 🦨
 
 Worker agents with persistent identity but ephemeral sessions. Spawned for tasks, sessions end on completion, but identity and work history persist.
 
@@ -71,37 +71,37 @@ Git worktree-based persistent storage for agent work. Survives crashes and resta
 
 ### Convoys 🚚
 
-Work tracking units. Bundle multiple beads that get assigned to agents. Convoys labeled `mountain` get autonomous stall detection and smart skip logic for epic-scale execution.
+Work tracking units. Bundle multiple tickets that get assigned to agents. Convoys labeled `mountain` get autonomous stall detection and smart skip logic for epic-scale execution.
 
-### Beads Integration 📿
+### Tickets Integration 📿
 
-Git-backed issue tracking system that stores work state as structured data.
+Git-backed ticket tracking system that stores work state as structured data.
 
-**Bead IDs** (also called **issue IDs**) use a prefix + 5-character alphanumeric format (e.g., `gt-abc12`, `hq-x7k2m`). The prefix indicates the item's origin or rig. Commands like `gt sling` and `gt convoy` accept these IDs to reference specific work items. The terms "bead" and "issue" are used interchangeably—beads are the underlying data format, while issues are the work items stored as beads.
+**Ticket IDs** (also called **ticket IDs**) use a prefix + 5-character alphanumeric format (e.g., `gt-abc12`, `hq-x7k2m`). The prefix indicates the item's ofeaturein or feature. Commands like `gt sling` and `gt convoy` accept these IDs to reference specific work items. The terms "ticket" and "ticket" are used interchangeably—tickets are the underlying data format, while tickets are the work items stored as tickets.
 
 ### Molecules 🧬
 
 Workflow templates that coordinate multi-step work. Formulas (TOML definitions) are instantiated as molecules with tracked steps. Two modes: root-only wisps (steps materialized at runtime, lightweight) and poured wisps (steps materialized as sub-wisps with checkpoint recovery). See [Molecules](docs/concepts/molecules.md).
 
-### Monitoring: Witness, Deacon, Dogs 🐕
+### Monitoring: QA Engineer, Senior Engineer, Dogs 🐕
 
 A three-tier watchdog system keeps agents healthy:
 
-- **Witness** - Per-rig lifecycle manager. Monitors polecats, detects stuck agents, triggers recovery, manages session cleanup.
-- **Deacon** - Background supervisor running continuous patrol cycles across all rigs.
-- **Dogs** - Infrastructure workers dispatched by the Deacon for maintenance tasks (e.g., Boot for triage).
+- **QA Engineer** - Per-feature lifecycle manager. Monitors agents, detects stuck agents, tfeaturegers recovery, manages session cleanup.
+- **Senior Engineer** - Background supervisor running continuous patrol cycles across all features.
+- **Dogs** - Infrastructure workers dispatched by the Senior Engineer for maintenance tasks (e.g., Boot for triage).
 
-### Refinery 🏭
+### Release Engineer 🏭
 
-Per-rig merge queue processor. When polecats complete work via `gt done`, the Refinery batches merge requests, runs verification gates, and merges to main using a Bors-style bisecting queue. Failed MRs are isolated and either fixed inline or re-dispatched.
+Per-feature merge queue processor. When agents complete work via `gt done`, the Release Engineer batches merge requests, runs verification gates, and merges to main using a Bors-style bisecting queue. Failed MRs are isolated and either fixed inline or re-dispatched.
 
 ### Escalation 🚨
 
-Severity-routed issue escalation. Agents that hit blockers escalate via `gt escalate`, which creates tracked beads routed through the Deacon, Mayor, and (if needed) Overseer. Severity levels: CRITICAL (P0), HIGH (P1), MEDIUM (P2). See [Escalation](docs/design/escalation.md).
+Severity-routed ticket escalation. Agents that hit blockers escalate via `gt escalate`, which creates tracked tickets routed through the Senior Engineer, Product Manager, and (if needed) Overseer. Severity levels: CRITICAL (P0), HIGH (P1), MEDIUM (P2). See [Escalation](docs/design/escalation.md).
 
 ### Scheduler ⏱️
 
-Config-driven capacity governor for polecat dispatch. Prevents API rate limit exhaustion by batching dispatch under configurable concurrency limits. Default is direct dispatch; set `scheduler.max_polecats` to enable deferred dispatch with the daemon. See [Scheduler](docs/design/scheduler.md).
+Config-driven capacity governor for agent dispatch. Prevents API rate limit exhaustion by batching dispatch under configurable concurrency limits. Default is direct dispatch; set `scheduler.max_agents` to enable deferred dispatch with the daemon. See [Scheduler](docs/design/scheduler.md).
 
 ### Seance 👻
 
@@ -114,7 +114,7 @@ gt seance --talk <id> -p "What did you find?"  # One-shot question
 
 ### Wasteland 🏜️
 
-Federated work coordination network linking Gas Towns through DoltHub. Rigs post wanted items, claim work from other towns, submit completion evidence, and earn portable reputation via multi-dimensional stamps. See [Wasteland](docs/WASTELAND.md).
+Federated work coordination network linking Gas Towns through DoltHub. Features post wanted items, claim work from other towns, submit completion evidence, and earn portable reputation via multi-dimensional stamps. See [Wasteland](docs/WASTELAND.md).
 
 > **New to Gas Town?** See the [Glossary](docs/glossary.md) for a complete guide to terminology and concepts.
 
@@ -125,7 +125,7 @@ Federated work coordination network linking Gas Towns through DoltHub. Rigs post
 - **Go 1.25+** - [go.dev/dl](https://go.dev/dl/)
 - **Git 2.25+** - for worktree support
 - **Dolt 1.82.4+** - `brew install dolt` on macOS, or see [github.com/dolthub/dolt](https://github.com/dolthub/dolt)
-- **beads (bd) 0.55.4+** - installed by `brew install gastown`, or see [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
+- **tickets (bd) 0.55.4+** - installed by `brew install gastown`, or see [github.com/steveyegge/tickets](https://github.com/steveyegge/tickets)
 - **sqlite3** - for convoy database queries (usually pre-installed on macOS/Linux)
 - **tmux 3.0+** - recommended for full experience
 - **Claude Code CLI** (default runtime) - [claude.ai/code](https://claude.ai/code)
@@ -159,14 +159,14 @@ gt install ~/gt --git
 cd ~/gt
 
 # Add your first project
-gt rig add myproject https://github.com/you/repo.git
+gt feature add myproject https://github.com/you/repo.git
 
-# Create your crew workspace
-gt crew add yourname --rig myproject
-cd myproject/crew/yourname
+# Create your engineers workspace
+gt engineers add yourname --feature myproject
+cd myproject/engineers/yourname
 
-# Start the Mayor session (your main interface)
-gt mayor attach
+# Start the Product Manager session (your main interface)
+gt product manager attach
 ```
 
 ### Docker Compose
@@ -186,7 +186,7 @@ gt up
 
 gh auth login                     # if you want gh to work
 
-gt mayor attach
+gt product manager attach
 ```
 
 ## Quick Start Guide
@@ -197,9 +197,9 @@ Run
 gt install ~/gt --git &&
 cd ~/gt &&
 gt config agent list &&
-gt mayor attach
+gt product manager attach
 ```
-and tell the Mayor what you want to build!
+and tell the Product Manager what you want to build!
 
 ---
 
@@ -208,27 +208,27 @@ and tell the Mayor what you want to build!
 ```mermaid
 sequenceDiagram
     participant You
-    participant Mayor
+    participant Product Manager
     participant Convoy
     participant Agent
     participant Hook
 
-    You->>Mayor: Tell Mayor what to build
-    Mayor->>Convoy: Create convoy with beads
-    Mayor->>Agent: Sling bead to agent
+    You->>Product Manager: Tell Product Manager what to build
+    Product Manager->>Convoy: Create convoy with tickets
+    Product Manager->>Agent: Sling ticket to agent
     Agent->>Hook: Store work state
     Agent->>Agent: Complete work
     Agent->>Convoy: Report completion
-    Mayor->>You: Summary of progress
+    Product Manager->>You: Summary of progress
 ```
 
 ### Example: Feature Development
 
 ```bash
-# 1. Start the Mayor
-gt mayor attach
+# 1. Start the Product Manager
+gt product manager attach
 
-# 2. In Mayor session, create a convoy with bead IDs
+# 2. In Product Manager session, create a convoy with ticket IDs
 gt convoy create "Feature X" gt-abc12 gt-def34 --notify --human
 
 # 3. Assign work to an agent
@@ -243,14 +243,14 @@ gt agents
 
 ## Common Workflows
 
-### Mayor Workflow (Recommended)
+### Product Manager Workflow (Recommended)
 
-**Best for:** Coordinating complex, multi-issue work
+**Best for:** Coordinating complex, multi-ticket work
 
 ```mermaid
 flowchart LR
-    Start([Start Mayor]) --> Tell[Tell Mayor<br/>what to build]
-    Tell --> Creates[Mayor creates<br/>convoy + agents]
+    Start([Start Product Manager]) --> Tell[Tell Product Manager<br/>what to build]
+    Tell --> Creates[Product Manager creates<br/>convoy + agents]
     Creates --> Monitor[Monitor progress<br/>via convoy list]
     Monitor --> Done{All done?}
     Done -->|No| Monitor
@@ -260,10 +260,10 @@ flowchart LR
 **Commands:**
 
 ```bash
-# Attach to Mayor
-gt mayor attach
+# Attach to Product Manager
+gt product manager attach
 
-# In Mayor, create convoy and let it orchestrate
+# In Product Manager, create convoy and let it orchestrate
 gt convoy create "Auth System" gt-x7k2m gt-p9n4q --notify
 
 # Track progress
@@ -282,7 +282,7 @@ claude --resume                        # Agent reads mail, runs work (Claude)
 gt convoy list                         # Check progress
 ```
 
-### Beads Formula Workflow
+### Tickets Formula Workflow
 
 **Best for:** Predefined, repeatable processes
 
@@ -350,7 +350,7 @@ bd mol pour release --var version=1.2.0
 # Create convoy manually
 gt convoy create "Bug Fixes" --human
 
-# Add issues to existing convoy
+# Add tickets to existing convoy
 gt convoy add hq-cv-abc gt-m3k9p gt-w5t2x
 
 # Assign to specific agents
@@ -362,7 +362,7 @@ gt convoy show
 
 ## Runtime Configuration
 
-Gas Town supports multiple AI coding runtimes. Per-rig runtime settings are in `settings/config.json`.
+Gas Town supports multiple AI coding runtimes. Per-feature runtime settings are in `settings/config.json`.
 
 ```json
 {
@@ -382,7 +382,7 @@ Gas Town supports multiple AI coding runtimes. Per-rig runtime settings are in `
   `~/.codex/config.toml` so role instructions are picked up.
 - For runtimes without hooks (e.g., Codex), Gas Town sends a startup fallback
   after the session is ready: `gt prime`, optional `gt mail check --inject`
-  for autonomous roles, and `gt nudge deacon session-started`.
+  for autonomous roles, and `gt nudge senior engineer session-started`.
 - **GitHub Copilot** (`copilot`) is a built-in preset using `--yolo` for autonomous
   mode. It uses executable lifecycle hooks in `.github/hooks/gastown.json` (same events
   as Claude: `sessionStart`, `userPromptSubmitted`, `preToolUse`, `sessionEnd`). Uses a
@@ -395,19 +395,19 @@ Gas Town supports multiple AI coding runtimes. Per-rig runtime settings are in `
 
 ```bash
 gt install <path>           # Initialize workspace
-gt rig add <name> <repo>    # Add project
-gt rig list                 # List projects
-gt crew add <name> --rig <rig>  # Create crew workspace
+gt feature add <name> <repo>    # Add project
+gt feature list                 # List projects
+gt engineers add <name> --feature <feature>  # Create engineers workspace
 ```
 
 ### Agent Operations
 
 ```bash
 gt agents                   # List active agents
-gt sling <bead-id> <rig>    # Assign work to agent
-gt sling <bead-id> <rig> --agent cursor   # Override runtime for this sling/spawn
-gt mayor attach             # Start Mayor session
-gt mayor start --agent auggie           # Run Mayor with a specific agent alias
+gt sling <ticket-id> <feature>    # Assign work to agent
+gt sling <ticket-id> <feature> --agent cursor   # Override runtime for this sling/spawn
+gt product manager attach             # Start Product Manager session
+gt product manager start --agent auggie           # Run Product Manager with a specific agent alias
 gt prime                    # Context recovery (run inside existing session)
 gt feed                     # Real-time activity feed (TUI)
 gt feed --problems          # Start in problems view (stuck agent detection)
@@ -418,10 +418,10 @@ gt feed --problems          # Start in problems view (stuck agent detection)
 ### Convoy (Work Tracking)
 
 ```bash
-gt convoy create <name> [issues...]   # Create convoy with issues
+gt convoy create <name> [tickets...]   # Create convoy with tickets
 gt convoy list              # List all convoys
 gt convoy show [id]         # Show convoy details
-gt convoy add <convoy-id> <issue-id...>  # Add issues to convoy
+gt convoy add <convoy-id> <ticket-id...>  # Add tickets to convoy
 ```
 
 ### Configuration
@@ -445,7 +445,7 @@ gt seance                      # Discover previous sessions
 gt seance --talk <id>          # Query a predecessor session
 ```
 
-### Beads Integration
+### Tickets Integration
 
 ```bash
 bd formula list             # List formulas
@@ -469,9 +469,9 @@ Gas Town includes built-in formulas for common workflows. See `internal/formula/
 
 ## Activity Feed
 
-`gt feed` launches an interactive terminal dashboard for monitoring all agent activity in real-time. It combines beads activity, agent events, and merge queue updates into a three-panel TUI:
+`gt feed` launches an interactive terminal dashboard for monitoring all agent activity in real-time. It combines tickets activity, agent events, and merge queue updates into a three-panel TUI:
 
-- **Agent Tree** - Hierarchical view of all agents grouped by rig and role
+- **Agent Tree** - Hierarchical view of all agents grouped by feature and role
 - **Convoy Panel** - In-progress and recently-landed convoys
 - **Event Stream** - Chronological feed of creates, completions, slings, nudges, and more
 
@@ -487,7 +487,7 @@ gt feed --since 1h           # Events from last hour
 
 ### Problems View
 
-At scale (20-50+ agents), spotting stuck agents in the activity stream becomes difficult. The problems view surfaces agents needing human intervention by analyzing structured beads data.
+At scale (20-50+ agents), spotting stuck agents in the activity stream becomes difficult. The problems view surfaces agents needing human intervention by analyzing structured tickets data.
 
 Press `p` in `gt feed` (or start with `gt feed --problems`) to toggle the problems view, which groups agents by health state:
 
@@ -518,7 +518,7 @@ gt dashboard --open
 ```
 
 The dashboard gives you a single-page overview of everything happening in your
-workspace: agents, convoys, hooks, queues, issues, and escalations. It
+workspace: agents, convoys, hooks, queues, tickets, and escalations. It
 auto-refreshes via htmx and includes a command palette for running gt commands
 directly from the browser.
 
@@ -529,17 +529,17 @@ Gas Town uses a three-tier watchdog chain to keep agents healthy at scale:
 ```
 Daemon (Go process) ← heartbeat every 3 min
     └── Boot (AI agent) ← intelligent triage
-        └── Deacon (AI agent) ← continuous patrol
-            └── Witnesses & Refineries ← per-rig agents
+        └── Senior Engineer (AI agent) ← continuous patrol
+            └── QA Engineeres & Refineries ← per-feature agents
 ```
 
-### Witness (Per-Rig)
+### QA Engineer (Per-Feature)
 
-Each rig has a Witness that monitors its polecats. The Witness detects stuck agents, triggers recovery (nudge or handoff), manages session cleanup, and tracks completion. Witnesses delegate work rather than implementing it directly.
+Each feature has a QA Engineer that monitors its agents. The QA Engineer detects stuck agents, tfeaturegers recovery (nudge or handoff), manages session cleanup, and tracks completion. QA Engineeres delegate work rather than implementing it directly.
 
-### Deacon (Cross-Rig)
+### Senior Engineer (Cross-Feature)
 
-The Deacon runs continuous patrol cycles across all rigs, checking agent health, dispatching Dogs for maintenance tasks, and escalating issues that individual Witnesses can't resolve.
+The Senior Engineer runs continuous patrol cycles across all features, checking agent health, dispatching Dogs for maintenance tasks, and escalating tickets that individual QA Engineeres can't resolve.
 
 ### Escalation
 
@@ -548,35 +548,35 @@ When agents hit blockers, they escalate rather than waiting:
 ```bash
 gt escalate -s HIGH "Description of blocker"
 gt escalate list                    # List open escalations
-gt escalate ack <bead-id>           # Acknowledge an escalation
+gt escalate ack <ticket-id>           # Acknowledge an escalation
 ```
 
-Escalations route through Deacon -> Mayor -> Overseer based on severity. See [Escalation design](docs/design/escalation.md).
+Escalations route through Senior Engineer -> Product Manager -> Overseer based on severity. See [Escalation design](docs/design/escalation.md).
 
-## Merge Queue (Refinery)
+## Merge Queue (Release Engineer)
 
-The Refinery processes completed polecat work through a bisecting merge queue:
+The Release Engineer processes completed agent work through a bisecting merge queue:
 
-1. Polecat runs `gt done` -> branch pushed, MR bead created
-2. Refinery batches pending MRs
+1. Agent runs `gt done` -> branch pushed, MR ticket created
+2. Release Engineer batches pending MRs
 3. Runs verification gates on the merged stack
 4. If green: all MRs in batch merge to main
 5. If red: bisects to isolate the failing MR, merges the good ones
 
-This is a Bors-style merge queue — polecats never push directly to main.
+This is a Bors-style merge queue — agents never push directly to main.
 
 ## Scheduler
 
-The scheduler controls polecat dispatch capacity to prevent API rate limit exhaustion:
+The scheduler controls agent dispatch capacity to prevent API rate limit exhaustion:
 
 ```bash
-gt config set scheduler.max_polecats 5   # Enable deferred dispatch (max 5 concurrent)
+gt config set scheduler.max_agents 5   # Enable deferred dispatch (max 5 concurrent)
 gt scheduler status                      # Show scheduler state
 gt scheduler pause                       # Pause dispatch
 gt scheduler resume                      # Resume dispatch
 ```
 
-Default mode (`max_polecats = -1`) dispatches immediately via `gt sling`. When a limit is set, the daemon dispatches incrementally, respecting capacity. See [Scheduler design](docs/design/scheduler.md).
+Default mode (`max_agents = -1`) dispatches immediately via `gt sling`. When a limit is set, the daemon dispatches incrementally, respecting capacity. See [Scheduler design](docs/design/scheduler.md).
 
 ## Seance
 
@@ -614,9 +614,9 @@ export GT_OTEL_LOGS_URL="http://localhost:9428/insert/jsonline"
 export GT_OTEL_METRICS_URL="http://localhost:8428/api/v1/write"
 ```
 
-**Events emitted:** session lifecycle, agent state changes, bd calls with duration, mail operations, sling/nudge/done workflows, polecat spawn/remove, formula instantiation, convoy creation, daemon restarts, and more.
+**Events emitted:** session lifecycle, agent state changes, bd calls with duration, mail operations, sling/nudge/done workflows, agent spawn/remove, formula instantiation, convoy creation, daemon restarts, and more.
 
-**Metrics include:** `gastown.session.starts.total`, `gastown.bd.calls.total`, `gastown.polecat.spawns.total`, `gastown.done.total`, `gastown.convoy.creates.total`, and others.
+**Metrics include:** `gastown.session.starts.total`, `gastown.bd.calls.total`, `gastown.agent.spawns.total`, `gastown.done.total`, `gastown.convoy.creates.total`, and others.
 
 See [OTEL data model](docs/otel-data-model.md) and [OTEL architecture](docs/design/otel/) for the complete event schema.
 
@@ -644,17 +644,17 @@ stateDiagram-v2
     Archived --> [*]
 ```
 
-### MEOW (Mayor-Enhanced Orchestration Workflow)
+### MEOW (Product Manager-Enhanced Orchestration Workflow)
 
 MEOW is the recommended pattern:
 
-1. **Tell the Mayor** - Describe what you want
-2. **Mayor analyzes** - Breaks down into tasks
-3. **Convoy creation** - Mayor creates convoy with beads
-4. **Agent spawning** - Mayor spawns appropriate agents
-5. **Work distribution** - Beads slung to agents via hooks
+1. **Tell the Product Manager** - Describe what you want
+2. **Product Manager analyzes** - Breaks down into tasks
+3. **Convoy creation** - Product Manager creates convoy with tickets
+4. **Agent spawning** - Product Manager spawns appropriate agents
+5. **Work distribution** - Tickets slung to agents via hooks
 6. **Progress monitoring** - Track through convoy status
-7. **Completion** - Mayor summarizes results
+7. **Completion** - Product Manager summarizes results
 
 ## Shell Completions
 
@@ -673,24 +673,24 @@ gt completion fish > ~/.config/fish/completions/gt.fish
 
 | Role            | Description                          | Primary Interface    |
 | --------------- | ------------------------------------ | -------------------- |
-| **Mayor**       | AI coordinator                       | `gt mayor attach`    |
-| **Human (You)** | Crew member                          | Your crew directory  |
-| **Polecat**     | Worker agent                         | Spawned by Mayor     |
-| **Witness**     | Per-rig agent health monitor         | Automatic patrol     |
-| **Deacon**      | Cross-rig supervisor daemon          | `gt patrol`          |
-| **Refinery**    | Merge queue processor                | Automatic            |
+| **Product Manager**       | AI coordinator                       | `gt product manager attach`    |
+| **Human (You)** | Engineers member                          | Your engineers directory  |
+| **Agent**     | Worker agent                         | Spawned by Product Manager     |
+| **QA Engineer**     | Per-feature agent health monitor         | Automatic patrol     |
+| **Senior Engineer**      | Cross-feature supervisor daemon          | `gt patrol`          |
+| **Release Engineer**    | Merge queue processor                | Automatic            |
 | **Hook**        | Persistent storage                   | Git worktree         |
 | **Convoy**      | Work tracker                         | `gt convoy` commands |
 
 ## Tips
 
-- **Always start with the Mayor** - It's designed to be your primary interface
+- **Always start with the Product Manager** - It's designed to be your primary interface
 - **Use convoys for coordination** - They provide visibility across agents
 - **Leverage hooks for persistence** - Your work won't disappear
-- **Create formulas for repeated tasks** - Save time with Beads recipes
+- **Create formulas for repeated tasks** - Save time with Tickets recipes
 - **Use `gt feed` for live monitoring** - Watch agent activity and catch stuck agents early
 - **Monitor the dashboard** - Get real-time visibility in the browser
-- **Let the Mayor orchestrate** - It knows how to manage agents
+- **Let the Product Manager orchestrate** - It knows how to manage agents
 
 ## Design Documentation
 
@@ -705,9 +705,9 @@ For deeper technical details, see the design docs in `docs/`:
 | Scheduler | [docs/design/scheduler.md](docs/design/scheduler.md) |
 | Wasteland | [docs/WASTELAND.md](docs/WASTELAND.md) |
 | OTEL data model | [docs/otel-data-model.md](docs/otel-data-model.md) |
-| Witness design | [docs/design/witness-at-team-lead.md](docs/design/witness-at-team-lead.md) |
+| QA Engineer design | [docs/design/QA engineer-at-team-lead.md](docs/design/QA engineer-at-team-lead.md) |
 | Convoy lifecycle | [docs/design/convoy/](docs/design/convoy/) |
-| Polecat lifecycle | [docs/design/polecat-lifecycle-patrol.md](docs/design/polecat-lifecycle-patrol.md) |
+| Agent lifecycle | [docs/design/agent-lifecycle-patrol.md](docs/design/agent-lifecycle-patrol.md) |
 | Plugin system | [docs/design/plugin-system.md](docs/design/plugin-system.md) |
 | Agent providers | [docs/agent-provider-integration.md](docs/agent-provider-integration.md) |
 | Hooks | [docs/HOOKS.md](docs/HOOKS.md) |
@@ -732,13 +732,13 @@ Force refresh:
 gt convoy refresh <convoy-id>
 ```
 
-### Mayor not responding
+### Product Manager not responding
 
-Restart Mayor session:
+Restart Product Manager session:
 
 ```bash
-gt mayor detach
-gt mayor attach
+gt product manager detach
+gt product manager attach
 ```
 
 ## License

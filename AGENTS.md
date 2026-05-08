@@ -8,21 +8,21 @@ This file exists for compatibility with tools that look for AGENTS.md.
 
 Full context is injected by `gt prime` at session start.
 
-<!-- beads-agent-instructions-v2 -->
+<!-- tickets-agent-instructions-v2 -->
 
 ---
 
-## Beads Workflow Integration
+## Tickets Workflow Integration
 
-This project uses [beads](https://github.com/steveyegge/beads) for issue tracking. Issues live in `.beads/` and are tracked in git.
+This project uses [tickets](https://github.com/steveyegge/tickets) for ticket tracking. Tickets live in `.tickets/` and are tracked in git.
 
-Two CLIs: **bd** (issue CRUD) and **bv** (graph-aware triage, read-only).
+Two CLIs: **bd** (ticket CRUD) and **bv** (graph-aware triage, read-only).
 
-### bd: Issue Management
+### bd: Ticket Management
 
 ```bash
-bd ready              # Unblocked issues ready to work
-bd list --status=open # All open issues
+bd ready              # Unblocked tickets ready to work
+bd list --status=open # All open tickets
 bd show <id>          # Full details with dependencies
 bd create --title="..." --type=task --priority=2
 bd update <id> --status=in_progress
@@ -40,7 +40,7 @@ bd sync               # Sync with git
 bv --robot-triage     # Ranked picks, quick wins, blockers, health
 bv --robot-next       # Single top pick + claim command
 bv --robot-plan       # Parallel execution tracks
-bv --robot-alerts     # Stale issues, cascades, mismatches
+bv --robot-alerts     # Stale tickets, cascades, mismatches
 bv --robot-insights   # Full graph metrics: PageRank, betweenness, cycles
 ```
 
@@ -57,9 +57,9 @@ bv --robot-insights   # Full graph metrics: PageRank, betweenness, cycles
 ```bash
 git status            # Check what changed
 git add <files>       # Stage code changes
-bd sync               # Commit beads changes
+bd sync               # Commit tickets changes
 git commit -m "..."   # Commit code
-bd sync               # Commit any new beads changes
+bd sync               # Commit any new tickets changes
 git push              # Push to remote
 ```
 
@@ -69,7 +69,7 @@ git push              # Push to remote
 - **Types**: task, bug, feature, epic, question, docs
 - **Dependencies**: `bd ready` shows only unblocked work
 
-<!-- end-beads-agent-instructions -->
+<!-- end-tickets-agent-instructions -->
 
 <!-- gastown-agent-instructions-v1 -->
 
@@ -85,15 +85,15 @@ with other agents using `gt` commands — never by printing text or using raw tm
 `gt nudge` sends a message directly to another agent's active session:
 
 ```bash
-gt nudge mayor "Status update: PR review complete"
-gt nudge laneassist/crew/dom "Check your mail — PR ready for review"
-gt nudge witness "Polecat health check needed"
-gt nudge refinery "Merge queue has items"
+gt nudge product manager "Status update: PR review complete"
+gt nudge laneassist/engineers/dom "Check your mail — PR ready for review"
+gt nudge QA engineer "Agent health check needed"
+gt nudge release engineer "Merge queue has items"
 ```
 
 **Target formats:**
-- Role shortcuts: `mayor`, `deacon`, `witness`, `refinery`
-- Full path: `<rig>/crew/<name>`, `<rig>/polecats/<name>`
+- Role shortcuts: `product manager`, `senior engineer`, `QA engineer`, `release engineer`
+- Full path: `<feature>/engineers/<name>`, `<feature>/agents/<name>`
 
 **Important:** `gt nudge` is the ONLY way to send text to another agent's session.
 Never print "Hey @name" — the other agent cannot see your terminal output.
@@ -108,8 +108,8 @@ gt mail inbox                    # List messages
 gt mail read <id>                # Read a specific message
 
 # Sending (use --stdin for multi-line content)
-gt mail send mayor/ -s "Subject" -m "Short message"
-gt mail send laneassist/crew/dom -s "PR Review" --stdin <<'BODY'
+gt mail send product manager/ -s "Subject" -m "Short message"
+gt mail send laneassist/engineers/dom -s "PR Review" --stdin <<'BODY'
 Multi-line message content here.
 Details about the PR and what to look for.
 BODY
@@ -138,15 +138,15 @@ gt mail inbox         # Check for messages
 <!-- end-gastown-agent-instructions -->
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
-## Beads Issue Tracker
+## Tickets Ticket Tracker
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+This project uses **bd (tickets)** for ticket tracking. Run `bd prime` to see full workflow context and commands.
 
 ### Quick Reference
 
 ```bash
 bd ready              # Find available work
-bd show <id>          # View issue details
+bd show <id>          # View ticket details
 bd update <id> --claim  # Claim work
 bd close <id>         # Complete work
 ```
@@ -163,15 +163,15 @@ bd close <id>         # Complete work
 
 **MANDATORY WORKFLOW:**
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
+1. **File tickets for remaining work** - Create tickets for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
+3. **Update ticket status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
    bd dolt push
    git push
-   git status  # MUST show "up to date with origin"
+   git status  # MUST show "up to date with ofeaturein"
    ```
 5. **Clean up** - Clear stashes, prune remote branches
 6. **Verify** - All changes committed AND pushed

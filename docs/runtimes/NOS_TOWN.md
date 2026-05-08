@@ -4,7 +4,7 @@ This document describes how to use Gas Town's core orchestration with the NOS To
 
 ## Overview
 
-NOS Town extends Gas Town with Groq-hosted open model support, multi-model routing, consensus councils, and institutional memory via the Historian. The two systems share the same core concepts (Hooks, Beads, Convoys, Mayor/Witness/Deacon roles) but diverge on runtime and model selection.
+NOS Town extends Gas Town with Groq-hosted open model support, multi-model routing, consensus councils, and institutional memory via the Historian. The two systems share the same core concepts (Hooks, Tickets, Convoys, Product Manager/QA Engineer/Senior Engineer roles) but diverge on runtime and model selection.
 
 ## Architecture
 
@@ -12,10 +12,10 @@ NOS Town extends Gas Town with Groq-hosted open model support, multi-model routi
 Gas Town Core (this repo)     NOS Town Runtime (kab0rn/nostown)
 │                              │
 ├── Hook lifecycle            ├── Groq API client
-├── Beads integration         ├── Multi-model routing table
+├── Tickets integration         ├── Multi-model routing table
 ├── Convoy management          ├── Council orchestration
-├── Mayor/Witness/Deacon       ├── Historian (Batch job)
-├── Refinery merge queue       ├── Safeguard integration
+├── Product Manager/QA Engineer/Senior Engineer       ├── Historian (Batch job)
+├── Release Engineer merge queue       ├── Safeguard integration
 └── gt CLI                     └── nos CLI (wraps gt + Groq)
 ```
 
@@ -42,7 +42,7 @@ To use NOS Town with this Gas Town fork:
 ```bash
 # Gas Town deps (same as standard install)
 go install github.com/kab0rn/gastown/cmd/gt@latest
-go install github.com/steveyegge/beads/cmd/bd@latest
+go install github.com/steveyegge/tickets/cmd/bd@latest
 
 # NOS Town CLI
 go install github.com/kab0rn/nostown/cmd/nos@latest
@@ -65,9 +65,9 @@ gt config set runtime.provider groq
 gt config set runtime.base_url https://api.groq.com/openai/v1
 ```
 
-### 3. Configure Per-Rig Runtime
+### 3. Configure Per-Feature Runtime
 
-Edit `<rig>/settings/config.json`:
+Edit `<feature>/settings/config.json`:
 
 ```json
 {
@@ -77,12 +77,12 @@ Edit `<rig>/settings/config.json`:
     "api_key_env": "GROQ_API_KEY"
   },
   "routing": {
-    "mayor":    { "default": "llama-3.3-70b-versatile" },
-    "crew":     { "default": "llama-3.3-70b-versatile" },
-    "polecat":  { "default": "llama-3.1-8b-instant", "boosted": "llama-3.3-70b-versatile" },
-    "witness":  { "default": "llama-3.3-70b-versatile", "council": ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"] },
-    "refinery": { "default": "llama-3.3-70b-versatile", "fast_path": "llama-3.1-8b-instant" },
-    "deacon":   { "default": "llama-3.1-8b-instant" },
+    "product manager":    { "default": "llama-3.3-70b-versatile" },
+    "engineers":     { "default": "llama-3.3-70b-versatile" },
+    "agent":  { "default": "llama-3.1-8b-instant", "boosted": "llama-3.3-70b-versatile" },
+    "QA engineer":  { "default": "llama-3.3-70b-versatile", "council": ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"] },
+    "release engineer": { "default": "llama-3.3-70b-versatile", "fast_path": "llama-3.1-8b-instant" },
+    "senior engineer":   { "default": "llama-3.1-8b-instant" },
     "dogs":     { "default": "llama-3.1-8b-instant" }
   }
 }
@@ -96,17 +96,17 @@ The `nos` CLI wraps all `gt` commands and adds Groq-specific extensions:
 
 ```bash
 # Same as gt
-nos rig add myproject https://github.com/you/repo.git
-nos crew add yourname --rig myproject
-nos mayor attach
+nos feature add myproject https://github.com/you/repo.git
+nos engineers add yourname --feature myproject
+nos product manager attach
 
 # NOS-specific: routing config
 nos config route show
-nos config route set polecat.consistency high  # Enable N-way self-consistent mode
+nos config route set agent.consistency high  # Enable N-way self-consistent mode
 
 # NOS-specific: historian status
 nos historian status
-nos historian rebuild  # Force Playbook rebuild from Beads
+nos historian rebuild  # Force Playbook rebuild from Tickets
 ```
 
 ### Using gt CLI with Groq
@@ -114,7 +114,7 @@ nos historian rebuild  # Force Playbook rebuild from Beads
 You can also use `gt` directly if you configure the Groq runtime in `settings/config.json`. All core commands work:
 
 ```bash
-gt mayor attach
+gt product manager attach
 gt convoy create "Feature X" gt-abc12 gt-def34
 gt sling gt-abc12 myproject
 ```
@@ -127,10 +127,10 @@ The main difference: `gt` doesn't know about NOS-specific features like councils
 |---------|------------------------|------------------|
 | **Runtime** | Claude Code IDE | Groq OpenAI-compatible API |
 | **Model Selection** | Single model (Opus/Sonnet/Haiku) | Multi-model routing per role |
-| **Polecat Modes** | Single instance per bead | Standard / Self-consistent / Power |
-| **Witness** | Single judgment | Optional council (N judges) |
-| **Refinery** | Live merge queue only | + Offline Batch merge simulation |
-| **Institutional Memory** | CLAUDE.md per rig | + Historian mines Playbooks from all Beads |
+| **Agent Modes** | Single instance per ticket | Standard / Self-consistent / Power |
+| **QA Engineer** | Single judgment | Optional council (N judges) |
+| **Release Engineer** | Live merge queue only | + Offline Batch merge simulation |
+| **Institutional Memory** | CLAUDE.md per feature | + Historian mines Playbooks from all Tickets |
 | **Safety** | Claude's built-in guardrails | + Safeguard-20B explicit sentry |
 | **Cost Profile** | ~$15/M input, $75/M output | ~$0.10–$0.80/M tokens |
 | **Throughput** | ~50–100 tok/s per agent | ~500+ tok/s per agent |
@@ -139,7 +139,7 @@ The main difference: `gt` doesn't know about NOS-specific features like councils
 
 ### To Gas Town Core
 
-If you discover improvements to Hooks, Beads, Convoy lifecycle, or core roles:
+If you discover improvements to Hooks, Tickets, Convoy lifecycle, or core roles:
 
 1. Fork `gastownhall/gastown`
 2. Make changes in your fork

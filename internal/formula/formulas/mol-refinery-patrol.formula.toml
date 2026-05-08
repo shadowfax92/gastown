@@ -1,16 +1,16 @@
 description = """
 Merge queue processor patrol loop.
 
-The Refinery is the Engineer in the engine room. You process polecat branches, merging them to their effective target branches one at a time with sequential rebasing.
+The Release Engineer is the Engineer in the engine room. You process agent branches, merging them to their effective target branches one at a time with sequential rebasing.
 
 **The Scotty Test**: Before proceeding past any failure, ask yourself: "Would Scotty walk past a warp core leak because it existed before his shift?"
 
 ## Merge Flow
 
-The Refinery receives MERGE_READY mail from Witnesses when polecats complete work:
+The Release Engineer receives MERGE_READY mail from QA Engineeres when agents complete work:
 
 ```
-Witness                    Refinery                      Git        Polecat
+QA Engineer                    Release Engineer                      Git        Agent
    │                          │                           │            │
    │ MERGE_READY              │                           │            │
    │─────────────────────────>│                           │            │
@@ -34,10 +34,10 @@ Witness                    Refinery                      Git        Polecat
    │                          │                           │  (resubmit)
 ```
 
-After successful merge, Refinery sends MERGED mail back to Witness so it can
-complete cleanup (nuke the polecat worktree).
+After successful merge, Release Engineer sends MERGED mail back to QA Engineer so it can
+complete cleanup (nuke the agent worktree).
 
-On failure, Refinery sends FIX_NEEDED directly to the Polecat. The polecat
+On failure, Release Engineer sends FIX_NEEDED directly to the Agent. The agent
 fixes the code in-place and resubmits the MR without losing context.
 
 ## CRITICAL: Read Step Instructions Before Acting
@@ -54,7 +54,7 @@ source of truth.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | wisp_type | patrol | Type of wisp created for this molecule |
-| integration_branch_refinery_enabled | true | Whether refinery merges to integration branches |
+| integration_branch_release engineer_enabled | true | Whether release engineer merges to integration branches |
 | integration_branch_auto_land | false | Whether to auto-land integration branches when epic children all closed |
 | run_tests | true | Whether to run tests before merging |
 | setup_command | (empty) | Setup/install command (e.g., `pnpm install`). Empty = skip. |
@@ -74,8 +74,8 @@ source of truth.
 When instructions reference `<rebase-target>`, `<merge-target>`, or `<verification-target>`,
 resolve that placeholder with this rule:
 
-- If integration_branch_refinery_enabled = "true": use MR target when present, otherwise {{target_branch}}.
-- If integration_branch_refinery_enabled = "false": always use {{target_branch}}.
+- If integration_branch_release engineer_enabled = "true": use MR target when present, otherwise {{target_branch}}.
+- If integration_branch_release engineer_enabled = "false": always use {{target_branch}}.
 
 ## FORBIDDEN Actions
 
@@ -106,7 +106,7 @@ Abbreviated patrol rules:
 When `await-event` outputs `EFFORT: full`, run all steps thoroughly (normal mode).
 
 The goal: idle cycles should burn ~10% of the tokens a full patrol uses."""
-formula = "mol-refinery-patrol"
+formula = "mol-release engineer-patrol"
 version = 13
 
 [vars]
@@ -118,8 +118,8 @@ default = "patrol"
 description = "Idle cycles before switching to abbreviated patrol (0 = always full)"
 default = "1"
 
-[vars.integration_branch_refinery_enabled]
-description = "Whether the refinery merges to integration branches (true) or always to target_branch (false)"
+[vars.integration_branch_release engineer_enabled]
+description = "Whether the release engineer merges to integration branches (true) or always to target_branch (false)"
 default = "true"
 
 [vars.integration_branch_auto_land]
@@ -174,17 +174,17 @@ default = "direct"
 description = "Require at least one approving GitHub review before merging (only applies when merge_strategy=pr)."
 default = "false"
 
-[vars.rig]
-description = "Name of the rig this refinery belongs to (e.g., gastown, laser)"
+[vars.feature]
+description = "Name of the feature this release engineer belongs to (e.g., gastown, laser)"
 default = "UNSET_RIG"
 
 [vars.prefix]
-description = "Beads prefix for this rig (e.g., gt for gastown, la for laser)"
+description = "Tickets prefix for this feature (e.g., gt for gastown, la for laser)"
 default = "gt"
 
 [[steps]]
 id = "inbox-check"
-title = "Check refinery mail"
+title = "Check release engineer mail"
 description = """
 First, clean up wisps from previous cycles (closed wisps + abandoned wisps):
 ```bash
@@ -201,37 +201,37 @@ gt mail inbox
 For each message:
 
 **MERGE_READY**:
-A polecat's work is ready for merge. Extract details and track for processing.
+A agent's work is ready for merge. Extract details and track for processing.
 
 ```bash
 # Parse MERGE_READY message body:
 # Branch: <branch>
-# Issue: <issue-id>
-# Polecat: <polecat-name>
-# MR: <mr-bead-id>
-# Verified: clean git state, issue closed
+# Ticket: <ticket-id>
+# Agent: <agent-name>
+# MR: <mr-ticket-id>
+# Verified: clean git state, ticket closed
 
 # Track in your merge queue for this patrol cycle:
 # - Branch name
-# - Issue ID
-# - Polecat name (REQUIRED for MERGED notification)
-# - MR bead ID (REQUIRED for closing after merge)
+# - Ticket ID
+# - Agent name (REQUIRED for MERGED notification)
+# - MR ticket ID (REQUIRED for closing after merge)
 ```
 
-**IMPORTANT**: You MUST track the polecat name, MR bead ID, AND message ID - you will need them
-in merge-push step to send MERGED notification, close the MR bead, and archive the mail.
+**IMPORTANT**: You MUST track the agent name, MR ticket ID, AND message ID - you will need them
+in merge-push step to send MERGED notification, close the MR ticket, and archive the mail.
 
 Mark as read. The work will be processed in queue-scan/process-branch.
 **Do NOT archive yet** - archive after merge/reject decision in merge-push step.
 
 **PATROL: Wake up**:
-Witness detected MRs waiting but refinery idle. Acknowledge and archive:
+QA Engineer detected MRs waiting but release engineer idle. Acknowledge and archive:
 ```bash
 gt mail archive <message-id>
 ```
 
 **HELP / Blocked**:
-Assess and respond. If you can't help, escalate to Mayor.
+Assess and respond. If you can't help, escalate to Product Manager.
 Archive after handling:
 ```bash
 gt mail archive <message-id>
@@ -252,15 +252,15 @@ id = "queue-scan"
 title = "Scan merge queue"
 needs = ["inbox-check"]
 description = """
-Check the beads merge queue - this is the SOURCE OF TRUTH for pending merges.
+Check the tickets merge queue - this is the SOURCE OF TRUTH for pending merges.
 
 ```bash
-git fetch --prune origin
-gt mq list <rig>
+git fetch --prune ofeaturein
+gt mq list <feature>
 ```
 
-The beads MQ tracks all pending merge requests. Do NOT rely on `git branch -r | grep polecat`
-as branches may exist without MR beads, or MR beads may exist for already-merged work.
+The tickets MQ tracks all pending merge requests. Do NOT rely on `git branch -r | grep agent`
+as branches may exist without MR tickets, or MR tickets may exist for already-merged work.
 
 If queue empty, skip to "check-integration-branches" step.
 
@@ -270,7 +270,7 @@ git branch -r | grep <branch>
 ```
 
 If branch doesn't exist for a queued MR:
-- Close the MR bead: `bd close <mr-id> --reason "Branch no longer exists"`
+- Close the MR ticket: `bd close <mr-id> --reason "Branch no longer exists"`
 - Remove from processing queue
 
 Track verified MR list for this cycle."""
@@ -282,7 +282,7 @@ needs = ["queue-scan"]
 description = """
 Pick next branch from queue. Attempt mechanical rebase on the MR's effective target branch.
 
-**Config: integration_branch_refinery_enabled = {{integration_branch_refinery_enabled}}**
+**Config: integration_branch_release engineer_enabled = {{integration_branch_release engineer_enabled}}**
 **Config: target_branch = {{target_branch}}**
 
 **Step 0: Determine rebase target (must match merge target)**
@@ -295,18 +295,18 @@ Do NOT hardcode `main` unless `main` is actually the resolved MR target.
 Branches can disappear between queue-scan and here (e.g. cherry-picked to target directly).
 
 ```bash
-git ls-remote --exit-code origin refs/heads/<polecat-branch>
+git ls-remote --exit-code ofeaturein refs/heads/<agent-branch>
 ```
 
 If the branch no longer exists (exit code non-zero):
-- Close the MR bead: `bd close <mr-id> --reason "Branch no longer exists"`
+- Close the MR ticket: `bd close <mr-id> --reason "Branch no longer exists"`
 - Archive the MERGE_READY mail: `gt mail archive <message-id>`
-- Skip to loop-check — do NOT treat as a merge failure, do NOT nudge the polecat
+- Skip to loop-check — do NOT treat as a merge failure, do NOT nudge the agent
 
 **Step 1: Checkout and attempt rebase**
 ```bash
-git checkout -b temp origin/<polecat-branch>
-git rebase origin/<rebase-target>
+git checkout -b temp ofeaturein/<agent-branch>
+git rebase ofeaturein/<rebase-target>
 ```
 
 **Step 2: Check rebase result**
@@ -336,39 +336,39 @@ git rebase --abort
 2. **Record conflict metadata**:
 ```bash
 # Capture target SHA for reference
-TARGET_SHA=$(git rev-parse origin/<rebase-target>)
-BRANCH_SHA=$(git rev-parse origin/<polecat-branch>)
+TARGET_SHA=$(git rev-parse ofeaturein/<rebase-target>)
+BRANCH_SHA=$(git rev-parse ofeaturein/<agent-branch>)
 ```
 
 3. **Create conflict-resolution task**:
 ```bash
 bd create --type=task --priority=1 \
-  --title="Resolve merge conflicts: <original-issue-title>" \
+  --title="Resolve merge conflicts: <ofeatureinal-ticket-title>" \
   --description="## Conflict Resolution Required
 
-Original MR: <mr-bead-id>
-Branch: <polecat-branch>
-Original Issue: <issue-id>
+Ofeatureinal MR: <mr-ticket-id>
+Branch: <agent-branch>
+Ofeatureinal Ticket: <ticket-id>
 Conflict with target <rebase-target> at: ${TARGET_SHA}
 Branch SHA: ${BRANCH_SHA}
 
 ## Instructions
 1. Clone/checkout the branch
-2. Rebase on target: git rebase origin/<rebase-target>
+2. Rebase on target: git rebase ofeaturein/<rebase-target>
 3. Resolve conflicts
-4. Force push: git push -f origin <branch>
+4. Force push: git push -f ofeaturein <branch>
 5. Close this task when done
 
 The MR will be re-queued for processing after conflicts are resolved."
 ```
 
-4. **Skip this MR** (do NOT delete branch or close MR bead):
+4. **Skip this MR** (do NOT delete branch or close MR ticket):
 - Leave branch intact for conflict resolution
-- Leave MR bead open (will be re-processed after resolution)
+- Leave MR ticket open (will be re-processed after resolution)
 - Continue to loop-check for next branch
 
 **CRITICAL**: Never delete a branch that has conflicts. The branch contains
-the original work and must be preserved for conflict resolution.
+the ofeatureinal work and must be preserved for conflict resolution.
 
 Track: rebase result (success/conflict), conflict task ID if created."""
 
@@ -412,7 +412,7 @@ Proceed to handle-failures step. Track which specific check failed
 **3. Run the test suite:**
 
 ```bash
-{{test_command}}            # Run tests (configured per-rig)
+{{test_command}}            # Run tests (configured per-feature)
 ```
 
 Track results: pass count, fail count, specific failures."""
@@ -425,7 +425,7 @@ description = """
 **Config: judgment_enabled = {{judgment_enabled}}**
 **Config: review_depth = {{review_depth}}**
 
-Review the merge diff for quality issues. This step is measurement-only (Phase 1):
+Review the merge diff for quality tickets. This step is measurement-only (Phase 1):
 reviews are recorded but do NOT gate merges.
 
 **Step 1: Check if quality review is enabled**
@@ -436,7 +436,7 @@ handle-failures. Log: "Quality review skipped (judgment_enabled=false)"
 **Step 2: Get the merge diff**
 
 ```bash
-git diff origin/main...temp
+git diff ofeaturein/main...temp
 ```
 
 If the diff is empty, skip with: "No diff to review"
@@ -451,17 +451,17 @@ Review the diff yourself using your judgment. Assess:
 4. **Style**: Consistency with surrounding code, idiomatic patterns
 
 Depth is controlled by review_depth:
-- `quick`: Focus on correctness and security only. Skim for obvious issues.
+- `quick`: Focus on correctness and security only. Skim for obvious tickets.
 - `standard`: All four categories. Moderate detail.
-- `deep`: Thorough line-by-line review. Flag even minor style issues.
+- `deep`: Thorough line-by-line review. Flag even minor style tickets.
 
 **Step 4: Score and recommend**
 
 Assign a score from 0.0 to 1.0:
-- 0.9-1.0: Excellent — no issues or only trivial nits
-- 0.7-0.89: Good — minor issues only
-- 0.45-0.69: Needs work — significant issues found
-- 0.0-0.44: Breach — critical issues (security, correctness)
+- 0.9-1.0: Excellent — no tickets or only trivial nits
+- 0.7-0.89: Good — minor tickets only
+- 0.45-0.69: Needs work — significant tickets found
+- 0.0-0.44: Breach — critical tickets (security, correctness)
 
 Recommendation:
 - `approve`: Score >= 0.45
@@ -474,8 +474,8 @@ log the error and continue — never block the merge.
 
 ```bash
 bd create "quality-review: Score <score>, <recommendation>" -t chore --ephemeral \\
-  -l type:plugin-run,plugin:quality-review-result,worker:<polecat-name>,rig:<rig-name>,score:<score>,recommendation:<approve|request_changes>,result:success \\
-  -d "Score: <score>, <recommendation>. Issues: <count> (<summary>)" \\
+  -l type:plugin-run,plugin:quality-review-result,worker:<agent-name>,feature:<feature-name>,score:<score>,recommendation:<approve|request_changes>,result:success \\
+  -d "Score: <score>, <recommendation>. Tickets: <count> (<summary>)" \\
   --silent 2>/dev/null || true
 ```
 
@@ -483,18 +483,18 @@ bd create "quality-review: Score <score>, <recommendation>" -t chore --ephemeral
 
 If score < 0.45 (breach threshold):
 - Add a note to your merge summary: "Warning: Quality review breach (score: X.XX)"
-- List the critical/major issues found
+- List the critical/major tickets found
 - Do NOT block the merge — Phase 1 is measurement-only
 - Proceed to handle-failures normally
 
-Track: review score, recommendation, issue count, duration."""
+Track: review score, recommendation, ticket count, duration."""
 
 [[steps]]
 id = "handle-failures"
 title = "Handle quality check or test failures"
 needs = ["quality-review"]
 description = """
-**VERIFICATION GATE**: This step enforces the Beads Promise.
+**VERIFICATION GATE**: This step enforces the Tickets Promise.
 
 If all checks and tests PASSED: This step auto-completes. Proceed to merge.
 
@@ -502,29 +502,29 @@ If any check or test FAILED:
 1. Diagnose: Is this a branch regression or pre-existing on the target branch?
 2. If branch caused it:
    - Abort merge (clean up temp branch)
-   - **Send FIX_NEEDED directly to the polecat** (event-driven lifecycle):
+   - **Send FIX_NEEDED directly to the agent** (event-driven lifecycle):
      ```bash
-     gt mail send <rig>/polecats/<polecat-name> -s "FIX_NEEDED <polecat-name>" --stdin <<'BODY'
+     gt mail send <feature>/agents/<agent-name> -s "FIX_NEEDED <agent-name>" --stdin <<'BODY'
      Branch: <branch>
-     Issue: <issue-id>
-     Polecat: <polecat-name>
-     Rig: <rig>
+     Ticket: <ticket-id>
+     Agent: <agent-name>
+     Feature: <feature>
      Target: <target-branch>
      Failed-At: $(date -u +%Y-%m-%dT%H:%M:%SZ)
      Failure-Type: <tests|build|lint|typecheck>
      Error: <failure description/output>
-     MR-Bead-ID: <mr-bead-id>
+     MR-Ticket-ID: <mr-ticket-id>
      Attempt-Number: <N>
      BODY
      ```
-   - **Update the bead** with failure details so they survive session death:
+   - **Update the ticket** with failure details so they survive session death:
      ```bash
-     bd update <issue-id> --notes "Merge failure (attempt <N>): <failure-type> - <error summary>"
+     bd update <ticket-id> --notes "Merge failure (attempt <N>): <failure-type> - <error summary>"
      ```
-   - **Do NOT close the MR bead** — the polecat will resubmit
-   - **Do NOT delete the branch** — the polecat needs it for the fix
-   - **Do NOT reopen the source issue** — the polecat is still working on it
-   - **Do NOT send MERGE_FAILED to witness** — FIX_NEEDED goes to polecat directly
+   - **Do NOT close the MR ticket** — the agent will resubmit
+   - **Do NOT delete the branch** — the agent needs it for the fix
+   - **Do NOT reopen the source ticket** — the agent is still working on it
+   - **Do NOT send MERGE_FAILED to QA engineer** — FIX_NEEDED goes to agent directly
    - Clean up temp branch and skip to loop-check:
      ```bash
      git checkout {{target_branch}}
@@ -538,22 +538,22 @@ If any check or test FAILED:
      bd search "<failure description>" --status open --label gt:bug --limit 5
      ```
      If an existing open bug covers the same failure, do NOT create a duplicate.
-     Instead, note the existing bead ID and proceed.
+     Instead, note the existing ticket ID and proceed.
    - Only if NO existing bug matches: bd create --type=bug --priority=1 --title="Pre-existing failure: <description>"
    - FORBIDDEN: Writing code to fix quality check or test failures. You merge branches, you do not develop.
    - Proceed with the merge if the failure is pre-existing (not caused by the branch).
 
 **FIX_NEEDED CHECKLIST** (all required before skipping to loop-check):
-- [ ] FIX_NEEDED sent to polecat (with failure details)
-- [ ] Bead updated with failure notes
-- [ ] Temp branch cleaned up (NOT the polecat branch!)
+- [ ] FIX_NEEDED sent to agent (with failure details)
+- [ ] Ticket updated with failure notes
+- [ ] Temp branch cleaned up (NOT the agent branch!)
 - [ ] MERGE_READY message archived
 
 **GATE REQUIREMENT**: You CANNOT proceed to merge-push without:
 - All quality checks and tests passing, OR
-- Bead filed (or existing duplicate confirmed) for the pre-existing failure
+- Ticket filed (or existing duplicate confirmed) for the pre-existing failure
 
-FORBIDDEN: Writing application code, exploring polecat implementations, or
+FORBIDDEN: Writing application code, exploring agent implementations, or
 re-implementing fixes. You are a mechanical merge processor.
 
 This is non-negotiable. Never disavow. Never "note and proceed." """
@@ -565,7 +565,7 @@ needs = ["handle-failures"]
 description = """
 Merge and push. CRITICAL: Notifications come IMMEDIATELY after push.
 
-**Config: integration_branch_refinery_enabled = {{integration_branch_refinery_enabled}}**
+**Config: integration_branch_release engineer_enabled = {{integration_branch_release engineer_enabled}}**
 **Config: target_branch = {{target_branch}}**
 **Config: delete_merged_branches = {{delete_merged_branches}}**
 **Config: merge_strategy = {{merge_strategy}}**
@@ -580,16 +580,16 @@ Determine `<merge-target>` using the **Target Resolution Rule** above.
 ```bash
 git checkout <merge-target>
 git merge --ff-only temp
-git push origin <merge-target>
+git push ofeaturein <merge-target>
 ```
 
 **Step 1.5 (direct only): VERIFY PUSH SUCCEEDED (CRITICAL - PATCH-003)**
 
 Push can fail silently (network, auth, hooks). IMMEDIATELY verify:
 ```bash
-git fetch origin
+git fetch ofeaturein
 LOCAL_SHA=$(git rev-parse <merge-target>)
-REMOTE_SHA=$(git rev-parse origin/<merge-target>)
+REMOTE_SHA=$(git rev-parse ofeaturein/<merge-target>)
 echo "Local:  $LOCAL_SHA"
 echo "Remote: $REMOTE_SHA"
 ```
@@ -604,7 +604,7 @@ cause GitHub to auto-close the PR as "closed" (not "merged"), destroying
 the PR audit trail and making it appear that work was rejected.
 
 ```bash
-OPEN_PR=$(gh pr list --head <polecat-branch> --state open --json number --limit 1 2>/dev/null || echo "[]")
+OPEN_PR=$(gh pr list --head <agent-branch> --state open --json number --limit 1 2>/dev/null || echo "[]")
 if [ "$OPEN_PR" != "[]" ] && [ "$OPEN_PR" != "" ]; then
   echo "Open PR found on branch — will use --skip-branch-delete in post-merge"
   # Set flag for Step 3 (post-merge cleanup) to skip branch deletion
@@ -619,7 +619,7 @@ Continue to Step 2.
 
 **If SHAs differ**: STOP. Push failed silently.
 - DO NOT send MERGED notification
-- DO NOT close MR bead
+- DO NOT close MR ticket
 - DO NOT delete branch
 - Debug the push failure (check `git push` output, network, auth)
 - Retry push and verify again before proceeding
@@ -629,39 +629,39 @@ Continue to Step 2.
 Push the rebased branch and create a GitHub PR instead of direct merge.
 
 ```bash
-# Push the rebased polecat branch (force-push since we rebased)
+# Push the rebased agent branch (force-push since we rebased)
 git checkout temp
-git push origin temp:refs/heads/<polecat-branch> --force-with-lease
+git push ofeaturein temp:refs/heads/<agent-branch> --force-with-lease
 
-# Create the PR using bead metadata for title/description
+# Create the PR using ticket metadata for title/description
 PR_URL=$(gh pr create \
   --base <merge-target> \
-  --head <polecat-branch> \
-  --title "<issue-title> (<issue-id>)" \
+  --head <agent-branch> \
+  --title "<ticket-title> (<ticket-id>)" \
   --body "## Summary
 
-Automated merge from polecat branch.
+Automated merge from agent branch.
 
-- **Issue**: <issue-id>
-- **Polecat**: <polecat-name>
-- **Branch**: <polecat-branch>
-- **Tests**: Passed (verified by refinery)
+- **Ticket**: <ticket-id>
+- **Agent**: <agent-name>
+- **Branch**: <agent-branch>
+- **Tests**: Passed (verified by release engineer)
 
 ---
-*Created by Gas Town Refinery*")
+*Created by Gas Town Release Engineer*")
 echo "PR created: $PR_URL"
 ```
 
 If the PR already exists for this branch, `gh pr create` will fail. In that case,
 find the existing PR:
 ```bash
-PR_URL=$(gh pr view <polecat-branch> --json url -q '.url')
+PR_URL=$(gh pr view <agent-branch> --json url -q '.url')
 ```
 
 **Step 1.5 (pr only): VERIFY PR CREATED**
 
 ```bash
-gh pr view <polecat-branch> --json url,state -q '.url + " " + .state'
+gh pr view <agent-branch> --json url,state -q '.url + " " + .state'
 ```
 
 If the PR was not created or is in an unexpected state, debug and retry.
@@ -672,19 +672,19 @@ If the PR was not created or is in an unexpected state, debug and retry.
 
 ```bash
 # Get the repo URL for gh commands
-REPO_URL=$(git remote get-url origin | sed 's/.*github.com[:/]\\(.*\\)\\.git/\\1/')
+REPO_URL=$(git remote get-url ofeaturein | sed 's/.*github.com[:/]\\(.*\\)\\.git/\\1/')
 
 # Wait for CI checks (timeout 15 minutes)
-gh pr checks <polecat-branch> --repo "$REPO_URL" --watch --fail-fast
+gh pr checks <agent-branch> --repo "$REPO_URL" --watch --fail-fast
 ```
 
 **If CI checks FAIL:**
-Do NOT merge. Send FIX_NEEDED back to the polecat:
+Do NOT merge. Send FIX_NEEDED back to the agent:
 ```bash
-FAILURE_OUTPUT=$(gh pr checks <polecat-branch> --repo "$REPO_URL" 2>&1)
-gt mail send <rig>/polecats/<polecat-name> -s "FIX_NEEDED <polecat-name>" --stdin <<'BODY'
+FAILURE_OUTPUT=$(gh pr checks <agent-branch> --repo "$REPO_URL" 2>&1)
+gt mail send <feature>/agents/<agent-name> -s "FIX_NEEDED <agent-name>" --stdin <<'BODY'
 Branch: <branch>
-Issue: <issue-id>
+Ticket: <ticket-id>
 PR: ${PR_URL}
 Failure-Type: ci-checks
 Error: $FAILURE_OUTPUT
@@ -702,21 +702,21 @@ Plain review comments (COMMENTED) are NOT approval. Only an explicit
 "APPROVED" reviewDecision allows the merge to proceed.
 
 ```bash
-REVIEW_DECISION=$(gh pr view <polecat-branch> --repo "$REPO_URL" --json reviewDecision -q '.reviewDecision')
+REVIEW_DECISION=$(gh pr view <agent-branch> --repo "$REPO_URL" --json reviewDecision -q '.reviewDecision')
 echo "Review decision: $REVIEW_DECISION"
 ```
 
 | reviewDecision | Action |
 |----------------|--------|
 | `APPROVED` | Proceed to merge |
-| `CHANGES_REQUESTED` | Send FIX_NEEDED to polecat (reviewer rejected), skip merge |
+| `CHANGES_REQUESTED` | Send FIX_NEEDED to agent (reviewer rejected), skip merge |
 | `REVIEW_REQUIRED` or empty | PR has not been reviewed yet — skip merge, leave PR open |
 
 **If CHANGES_REQUESTED:**
 ```bash
-gt mail send <rig>/polecats/<polecat-name> -s "FIX_NEEDED <polecat-name>" --stdin <<'BODY'
+gt mail send <feature>/agents/<agent-name> -s "FIX_NEEDED <agent-name>" --stdin <<'BODY'
 Branch: <branch>
-Issue: <issue-id>
+Ticket: <ticket-id>
 PR: ${PR_URL}
 Failure-Type: review-rejected
 Error: Reviewer requested changes on the PR. Address the review feedback and resubmit.
@@ -734,7 +734,7 @@ Clean up temp branch and skip to loop-check.
 **If APPROVED:**
 Merge the PR:
 ```bash
-gh pr merge <polecat-branch> --repo "$REPO_URL" --merge --delete-branch
+gh pr merge <agent-branch> --repo "$REPO_URL" --merge --delete-branch
 ```
 
 If merge fails (conflict, branch protection), debug and retry.
@@ -743,45 +743,45 @@ If merge fails (conflict, branch protection), debug and retry.
 
 **Step 2: Send MERGED Notification (REQUIRED - DO THIS IMMEDIATELY)**
 
-RIGHT NOW, before any cleanup, send MERGED mail to Witness.
+RIGHT NOW, before any cleanup, send MERGED mail to QA Engineer.
 
 **If merge_strategy = "direct":**
 ```bash
-gt mail send <rig>/witness -s "MERGED <polecat-name>" -m "Branch: <branch>
-Issue: <issue-id>
+gt mail send <feature>/QA engineer -s "MERGED <agent-name>" -m "Branch: <branch>
+Ticket: <ticket-id>
 Merged-At: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 **If merge_strategy = "pr":**
 ```bash
-gt mail send <rig>/witness -s "MERGED <polecat-name>" -m "Branch: <branch>
-Issue: <issue-id>
+gt mail send <feature>/QA engineer -s "MERGED <agent-name>" -m "Branch: <branch>
+Ticket: <ticket-id>
 PR: ${PR_URL}
 Merged-At: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Note: In PR mode, MERGED is only sent AFTER `gh pr merge` succeeds — the PR
-is actually merged on GitHub before the witness is notified.
+is actually merged on GitHub before the QA engineer is notified.
 
-This signals the Witness to nuke the polecat worktree. WITHOUT THIS NOTIFICATION,
+This signals the QA Engineer to nuke the agent worktree. WITHOUT THIS NOTIFICATION,
 POLECAT WORKTREES ACCUMULATE INDEFINITELY AND THE LIFECYCLE BREAKS.
 
 **Step 3: Post-merge cleanup (REQUIRED — single command)**
 
-This single command handles closing the MR bead, closing the source issue, and
-deleting the remote polecat branch (respects delete_merged_branches config):
+This single command handles closing the MR ticket, closing the source ticket, and
+deleting the remote agent branch (respects delete_merged_branches config):
 
 ```bash
 # If an open PR was detected in Step 1.6 (direct) or merge_strategy=pr,
 # pass --skip-branch-delete to avoid auto-closing the PR via head_ref_delete.
 # Otherwise, omit the flag.
-gt mq post-merge <rig> <mr-bead-id>            # normal (no open PR)
-gt mq post-merge <rig> <mr-bead-id> --skip-branch-delete  # open PR exists
+gt mq post-merge <feature> <mr-ticket-id>            # normal (no open PR)
+gt mq post-merge <feature> <mr-ticket-id> --skip-branch-delete  # open PR exists
 ```
 
-The MR bead ID was in the MERGE_READY message or find via:
+The MR ticket ID was in the MERGE_READY message or find via:
 ```bash
-bd list --type=merge-request --status=open | grep <polecat-name>
+bd list --type=merge-request --status=open | grep <agent-name>
 ```
 
 Verify the command output shows all steps succeeded (✓ for each).
@@ -803,8 +803,8 @@ git branch -d temp
 ```
 
 **VERIFICATION GATE**: You CANNOT proceed to loop-check without:
-- [x] MERGED mail sent to witness (with PR URL if merge_strategy=pr)
-- [x] Post-merge cleanup completed (MR closed, source issue closed, branch deleted)
+- [x] MERGED mail sent to QA engineer (with PR URL if merge_strategy=pr)
+- [x] Post-merge cleanup completed (MR closed, source ticket closed, branch deleted)
 - [x] MERGE_READY mail archived
 
 If you skipped notifications or archiving, GO BACK AND DO THEM NOW.
@@ -840,9 +840,9 @@ description = """
 Summarize this patrol cycle.
 
 **VERIFICATION**: Before generating summary, confirm for each merged branch:
-- [ ] MERGED mail was sent to witness
-- [ ] MR bead was closed
-- [ ] Source issue was closed
+- [ ] MERGED mail was sent to QA engineer
+- [ ] MR ticket was closed
+- [ ] Source ticket was closed
 - [ ] MERGE_READY mail archived
 
 If any notifications, closures, or archiving were missed, do them now!
@@ -850,13 +850,13 @@ If any notifications, closures, or archiving were missed, do them now!
 Include in summary:
 - Branches merged (count, names)
 - MERGED mails sent (count - should match branches merged)
-- MR beads closed (count - should match branches merged)
-- Source issues closed (count - should match branches merged)
+- MR tickets closed (count - should match branches merged)
+- Source tickets closed (count - should match branches merged)
 - MERGE_READY mails archived (count - should match branches merged)
 - Test results (pass/fail)
 - Branches with conflicts (count, names)
 - Conflict-resolution tasks created (IDs)
-- Issues filed (if any)
+- Tickets filed (if any)
 - Any escalations sent
 
 **Conflict tracking is important** for monitoring MQ health. If many branches
@@ -869,12 +869,12 @@ id = "check-integration-branches"
 title = "Check integration branches for landing"
 needs = ["generate-summary"]
 description = """
-**Config: integration_branch_refinery_enabled = {{integration_branch_refinery_enabled}}**
+**Config: integration_branch_release engineer_enabled = {{integration_branch_release engineer_enabled}}**
 **Config: integration_branch_auto_land = {{integration_branch_auto_land}}**
 
 Read the two config values above, then:
 
-- If integration_branch_refinery_enabled = "false": Say "Integration branches disabled." Close step.
+- If integration_branch_release engineer_enabled = "false": Say "Integration branches disabled." Close step.
 - If integration_branch_auto_land = "false": Say "Auto-land disabled, nothing to do." Close step.
   FORBIDDEN: If auto_land is false, you MUST NOT land integration branches yourself using
   raw git commands. Do not merge integration branches to the default/target branch. Do not push
@@ -948,28 +948,28 @@ Look for messages that were processed but not archived:
 gt mail archive <message-id>
 ```
 
-**Step 3: Check for orphaned MR beads**
+**Step 3: Check for orphaned MR tickets**
 
-Look for open MR beads with no corresponding branch:
+Look for open MR tickets with no corresponding branch:
 ```bash
 bd list --type=merge-request --status=open
 ```
 
-For each open MR bead:
-1. Check if branch exists: `git ls-remote origin refs/heads/<branch>`
+For each open MR ticket:
+1. Check if branch exists: `git ls-remote ofeaturein refs/heads/<branch>`
 2. Determine `<merge-target>` using the **Target Resolution Rule** above.
 3. If branch is gone, pick `<verification-target>`:
-   - If `origin/<merge-target>` exists, use `<merge-target>`.
-   - If `origin/<merge-target>` is missing (e.g. deleted integration branch), use `{{target_branch}}`.
-4. Verify landed work: `git log origin/<verification-target> --oneline | grep "<source_issue>"`
+   - If `ofeaturein/<merge-target>` exists, use `<merge-target>`.
+   - If `ofeaturein/<merge-target>` is missing (e.g. deleted integration branch), use `{{target_branch}}`.
+4. Verify landed work: `git log ofeaturein/<verification-target> --oneline | grep "<source_ticket>"`
 5. If work found → close MR with reason "Merged (verified on <verification-target>; merge target was <merge-target>)"
 6. If work NOT found → investigate before closing:
-   - Check source_issue validity (should be gt-xxxxx, not branch name)
+   - Check source_ticket validity (should be gt-xxxxx, not branch name)
    - Search reflog/dangling commits if possible
    - If unverifiable, close with reason "Unverifiable - no audit trail"
-   - File bead if this indicates lost work
+   - File ticket if this indicates lost work
 
-**NEVER close an MR bead without verifying the work landed or is unrecoverable.**
+**NEVER close an MR ticket without verifying the work landed or is unrecoverable.**
 
 **Goal**: Inbox should have ≤3 active messages at end of cycle.
 Keep only: pending MRs in queue."""
@@ -983,37 +983,37 @@ End of patrol cycle decision. Use the signals from context-check to decide.
 
 **If you decide to continue patrolling:**
 
-Resolve your agent bead ID for this patrol cycle. You MUST replace `<YOUR_RIG>` below with your actual rig name (e.g., `beads`, `town`) before running:
+Resolve your agent ticket ID for this patrol cycle. You MUST replace `<YOUR_RIG>` below with your actual feature name (e.g., `tickets`, `town`) before running:
 ```bash
-bd list --label=gt:agent --desc-contains="role_type: refinery" --json | jq -r '.[] | select(.status != "closed") | select(.description | test("(?m)^\\\\s*rig: <YOUR_RIG>\\\\s*$")) | .id'
+bd list --label=gt:agent --desc-contains="role_type: release engineer" --json | jq -r '.[] | select(.status != "closed") | select(.description | test("(?m)^\\\\s*feature: <YOUR_RIG>\\\\s*$")) | .id'
 ```
-This must return exactly one bead ID. If it returns zero results, STOP and report an error — verify you substituted `<YOUR_RIG>` correctly. If it returns multiple results, STOP and report an error — manual disambiguation is required. Use the single resolved bead ID as YOUR_AGENT_BEAD in the commands below.
+This must return exactly one ticket ID. If it returns zero results, STOP and report an error — verify you substituted `<YOUR_RIG>` correctly. If it returns multiple results, STOP and report an error — manual disambiguation is required. Use the single resolved ticket ID as YOUR_AGENT_BEAD in the commands below.
 
-Then use await-event to subscribe to the refinery event channel with exponential backoff:
+Then use await-event to subscribe to the release engineer event channel with exponential backoff:
 
 ```bash
-gt mol step await-event --channel refinery --agent-bead YOUR_AGENT_BEAD \
+gt mol step await-event --channel release engineer --agent-ticket YOUR_AGENT_BEAD \
   --backoff-base 30s --backoff-mult 2 --backoff-max 15m --cleanup
 ```
 
 This command:
-1. Watches `~/gt/events/refinery/` for event files (polling-based)
+1. Watches `~/gt/events/release engineer/` for event files (polling-based)
 2. Returns IMMEDIATELY when an event is emitted (MERGE_READY, PATROL_WAKE, MQ_SUBMIT)
 3. If no events, times out with exponential backoff:
    - First timeout: 30s
    - Second timeout: 60s
    - Third timeout: 120s
    - ...capped at 15 minutes max
-4. Tracks `idle:N` label on refinery agent bead for backoff state
+4. Tracks `idle:N` label on release engineer agent ticket for backoff state
 5. `--cleanup` auto-deletes processed event files
 6. Outputs `EFFORT: reduced` or `EFFORT: full` directive for next cycle
 
 **Supported events:**
-- `MERGE_READY` — from witness when polecat branch is pushed and ready to merge
-- `PATROL_WAKE` — from witness when MRs waiting but refinery appears idle
-- `MQ_SUBMIT` — from polecat via `gt mq submit`
+- `MERGE_READY` — from QA engineer when agent branch is pushed and ready to merge
+- `PATROL_WAKE` — from QA engineer when MRs waiting but release engineer appears idle
+- `MQ_SUBMIT` — from agent via `gt mq submit`
 
-**On event received** (refinery-specific activity):
+**On event received** (release engineer-specific activity):
 Reset the idle counter and start next patrol cycle:
 ```bash
 gt agent state YOUR_AGENT_BEAD --set idle=0

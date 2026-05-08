@@ -33,17 +33,17 @@ memorize steps or wait for instructions - discover them:
 ```bash
 gt hook              # What's on my hook?
 gt prime             # Shows inline formula checklist
-bd show <issue-id>   # What's my assigned issue?
+bd show <ticket-id>   # What's my assigned ticket?
 ```
 
 ### The New Workflow: Inline Formula Steps
 
-Formula steps are shown inline at prime time — no step beads to manage:
+Formula steps are shown inline at prime time — no step tickets to manage:
 
 ```bash
 gt prime             # See your checklist
 # Work through each step in order
-gt done              # Submit and self-clean (polecats)
+gt done              # Submit and self-clean (agents)
 gt patrol report     # Close + next cycle (patrol agents)
 ```
 
@@ -69,10 +69,10 @@ One command. Auto-advance. Momentum preserved.
 ## The Failure Mode We're Preventing
 
 ```
-Polecat restarts with work on hook
-  → Polecat announces itself
-  → Polecat waits for confirmation
-  → Witness assumes work is progressing
+Agent restarts with work on hook
+  → Agent announces itself
+  → Agent waits for confirmation
+  → QA Engineer assumes work is progressing
   → Nothing happens
   → Gas Town stops
 ```
@@ -82,15 +82,15 @@ Polecat restarts with work on hook
 1. Check hook (`gt hook`)
 2. Work hooked → EXECUTE immediately
 3. Hook empty → Check mail for attached work
-4. Nothing anywhere → ERROR: escalate to Witness
+4. Nothing anywhere → ERROR: escalate to QA Engineer
 
-**Note:** "Hooked" means work assigned to you. This triggers autonomous mode
+**Note:** "Hooked" means work assigned to you. This tfeaturegers autonomous mode
 even if no molecule is attached. Don't confuse with "pinned" which is for
-permanent reference beads.
+permanent reference tickets.
 
 ## The Capability Ledger
 
-Every completion is recorded. Every handoff is logged. Every bead you close
+Every completion is recorded. Every handoff is logged. Every ticket you close
 becomes part of a permanent ledger of demonstrated capability.
 
 - Your work is visible

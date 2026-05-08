@@ -1,16 +1,16 @@
-# Polecat Lifecycle
+# Agent Lifecycle
 
-> Understanding the three-layer architecture of polecat workers
+> Understanding the three-layer architecture of agent workers
 
 ## Overview
 
-Polecats have three distinct lifecycle layers that operate independently. The
-key design principle: **polecats are persistent**. They survive work completion
+Agents have three distinct lifecycle layers that operate independently. The
+key design principle: **agents are persistent**. They survive work completion
 and can be reused across assignments.
 
 ## The Four Operating States
 
-Polecats have four operating states:
+Agents have four operating states:
 
 | State | Description | How it happens |
 |-------|-------------|----------------|
@@ -37,18 +37,18 @@ Polecats have four operating states:
          └──────────┘
 ```
 
-No `nuke` in the happy path. Polecats cycle: IDLE -> WORKING -> IDLE.
+No `nuke` in the happy path. Agents cycle: IDLE -> WORKING -> IDLE.
 
 **Key distinctions:**
 
 - **Working** = actively executing. Session alive, hook set, doing work.
 - **Idle** = work done, session killed, sandbox preserved. Ready for next `gt sling`.
-- **Stalled** = supposed to be working, but stopped. Needs Witness intervention.
+- **Stalled** = supposed to be working, but stopped. Needs QA Engineer intervention.
 - **Zombie** = finished work, tried to exit, but cleanup failed. Stuck in limbo.
 
-## The Persistent Polecat Model (gt-4ac)
+## The Persistent Agent Model (gt-4ac)
 
-**Polecats persist after completing work.** When a polecat finishes its assignment:
+**Agents persist after completing work.** When a agent finishes its assignment:
 
 1. Signals completion via `gt done`
 2. Pushes branch, submits MR to merge queue
@@ -57,37 +57,37 @@ No `nuke` in the happy path. Polecats cycle: IDLE -> WORKING -> IDLE.
 5. Kills its own session
 6. **Sandbox (worktree) is preserved for reuse**
 
-The next `gt sling` reuses idle polecats before allocating new ones, avoiding
+The next `gt sling` reuses idle agents before allocating new ones, avoiding
 the overhead of creating fresh worktrees.
 
 ### Why Persistent?
 
 - **Faster turnaround** — Reusing an existing worktree is faster than creating one
-- **Preserved identity** — The polecat's agent bead, CV chain, and work history persist
+- **Preserved identity** — The agent's agent ticket, CV chain, and work history persist
 - **Simpler lifecycle** — No nuke/respawn cycle between assignments
-- **Done means idle** — Session dies, sandbox lives, polecat awaits next assignment
+- **Done means idle** — Session dies, sandbox lives, agent awaits next assignment
 
 ### What About Pending Merges?
 
-The Refinery owns the merge queue. Once `gt done` submits work:
-- The branch is pushed to origin
-- Work exists in the MQ, not in the polecat
-- If rebase fails, Refinery creates a conflict-resolution task
-- The idle polecat can be reused for the conflict resolution work
+The Release Engineer owns the merge queue. Once `gt done` submits work:
+- The branch is pushed to ofeaturein
+- Work exists in the MQ, not in the agent
+- If rebase fails, Release Engineer creates a conflict-resolution task
+- The idle agent can be reused for the conflict resolution work
 
 ## The Three Layers
 
 ### The Problem: Three Concepts Were Conflated
 
-Early designs treated polecats as monolithic. This caused recurring issues:
+Early designs treated agents as monolithic. This caused recurring tickets:
 
 | Concept | Lifecycle | Old behavior |
 |---------|-----------|-----------------|
 | **Identity** | Long-lived (name, CV, ledger) | Destroyed on nuke |
 | **Sandbox** | Per-assignment (worktree, branch) | Destroyed on nuke |
-| **Session** | Ephemeral (Claude context window) | = polecat lifetime |
+| **Session** | Ephemeral (Claude context window) | = agent lifetime |
 
-Separating these three layers means idle polecats are a healthy state (not waste),
+Separating these three layers means idle agents are a healthy state (not waste),
 eliminates unnecessary worktree creation overhead, and preserves capability
 records (CV, completion history) across assignments.
 
@@ -95,21 +95,21 @@ records (CV, completion history) across assignments.
 
 | Layer | Component | Lifecycle | Persistence |
 |-------|-----------|-----------|-------------|
-| **Identity** | Agent bead, CV chain, work history | Permanent | Never dies |
+| **Identity** | Agent ticket, CV chain, work history | Permanent | Never dies |
 | **Sandbox** | Git worktree, branch | Persistent across assignments | Created on first sling, reused thereafter |
 | **Session** | Claude (tmux pane), context window | Ephemeral per step | Cycles per step/handoff |
 
 ### Identity Layer
 
-The polecat's **identity is permanent**. It includes:
+The agent's **identity is permanent**. It includes:
 
-- Agent bead (created once, never deleted)
+- Agent ticket (created once, never deleted)
 - CV chain (work history accumulates across all assignments)
 - Mailbox and attribution record
 
 Identity survives all session cycles and sandbox resets. In the HOP model, this IS
-the polecat — everything else is infrastructure that comes and goes. See
-[Polecat Identity](#polecat-identity) below for details.
+the agent — everything else is infrastructure that comes and goes. See
+[Agent Identity](#agent-identity) below for details.
 
 ### Session Layer
 
@@ -120,7 +120,7 @@ The Claude session is **ephemeral**. It cycles frequently:
 - On crash/timeout
 - After extended work periods
 
-**Key insight:** Session cycling is **normal operation**, not failure. The polecat
+**Key insight:** Session cycling is **normal operation**, not failure. The agent
 continues working—only the Claude context refreshes.
 
 ```
@@ -129,14 +129,14 @@ Session 2: Steps 3-4 → handoff
 Session 3: Step 5 → gt done
 ```
 
-All three sessions are the **same polecat**. The sandbox persists throughout.
+All three sessions are the **same agent**. The sandbox persists throughout.
 
 ### Sandbox Layer
 
-The sandbox is the **git worktree**—the polecat's working directory:
+The sandbox is the **git worktree**—the agent's working directory:
 
 ```
-~/gt/gastown/polecats/Toast/
+~/gt/gastown/agents/Toast/
 ```
 
 This worktree:
@@ -145,24 +145,24 @@ This worktree:
 - Is repaired (reset to fresh branch from main) when reused by `gt sling`
 - Contains uncommitted work, staged changes, branch state during active work
 
-The Witness never destroys sandboxes. Only explicit `gt polecat nuke` removes them.
+The QA Engineer never destroys sandboxes. Only explicit `gt agent nuke` removes them.
 
 #### Sandbox Sync (Between Assignments)
 
-When work completes and the polecat goes idle, the sandbox is synced to main:
+When work completes and the agent goes idle, the sandbox is synced to main:
 
 ```bash
-# In the polecat's worktree (done automatically by gt done / gt sling)
+# In the agent's worktree (done automatically by gt done / gt sling)
 git checkout main
-git pull origin main
-git branch -D polecat/<name>/<old-issue>@<timestamp>
+git pull ofeaturein main
+git branch -D agent/<name>/<old-ticket>@<timestamp>
 # Worktree is now clean, on main, ready for next assignment
 ```
 
 When new work is slung:
 ```bash
 # Create fresh branch from current main
-git checkout -b polecat/<name>/<new-issue>@<timestamp>
+git checkout -b agent/<name>/<new-ticket>@<timestamp>
 # Start working
 ```
 
@@ -171,7 +171,7 @@ existing worktree. This avoids the ~5s overhead of creating fresh worktrees.
 
 ### Slot Layer
 
-The slot is the **name allocation** from the polecat pool:
+The slot is the **name allocation** from the agent pool:
 
 ```bash
 # Pool: [Toast, Shadow, Copper, Ash, Storm...]
@@ -179,9 +179,9 @@ The slot is the **name allocation** from the polecat pool:
 ```
 
 The slot:
-- Determines the sandbox path (`polecats/Toast/`)
+- Determines the sandbox path (`agents/Toast/`)
 - Maps to a tmux session (`gt-gastown-Toast`)
-- Appears in attribution (`gastown/polecats/Toast`)
+- Appears in attribution (`gastown/agents/Toast`)
 - Persists until explicit nuke
 
 ## Correct Lifecycle
@@ -189,10 +189,10 @@ The slot:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        gt sling                             │
-│  → Find idle polecat OR allocate slot from pool (Toast)    │
+│  → Find idle agent OR allocate slot from pool (Toast)    │
 │  → Create/repair sandbox (worktree on new branch)          │
 │  → Start session (Claude in tmux)                          │
-│  → Hook molecule to polecat                                │
+│  → Hook molecule to agent                                │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -201,8 +201,8 @@ The slot:
 │                                                             │
 │  Session cycles happen here:                               │
 │  - gt handoff between steps                                │
-│  - Compaction triggers respawn                             │
-│  - Crash → Witness respawns                                │
+│  - Compaction tfeaturegers respawn                             │
+│  - Crash → QA Engineer respawns                                │
 │                                                             │
 │  Sandbox persists through ALL session cycles               │
 └─────────────────────────────────────────────────────────────┘
@@ -210,22 +210,22 @@ The slot:
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  gt done (persistent model)                  │
-│  → Push branch to origin                                   │
-│  → Submit work to merge queue (MR bead)                    │
+│  → Push branch to ofeaturein                                   │
+│  → Submit work to merge queue (MR ticket)                    │
 │  → Set agent state to "idle"                               │
 │  → Kill session                                            │
 │                                                             │
-│  Work now lives in MQ. Polecat is IDLE, not gone.          │
+│  Work now lives in MQ. Agent is IDLE, not gone.          │
 │  Sandbox preserved for reuse by next gt sling.             │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Refinery: merge queue                     │
+│                   Release Engineer: merge queue                     │
 │  → Rebase and merge to target branch                       │
 │    (main or integration branch — see below)                │
-│  → Close the issue                                         │
-│  → If conflict: create task for available polecat          │
+│  → Close the ticket                                         │
+│  → If conflict: create task for available agent          │
 │                                                             │
 │  Integration branch path:                                  │
 │  → MRs from epic children merge to integration/<epic>      │
@@ -238,7 +238,7 @@ The slot:
 **Session cycling**: Normal. Claude restarts, sandbox stays, slot stays.
 
 ```bash
-gt handoff  # Session cycles, polecat continues
+gt handoff  # Session cycles, agent continues
 ```
 
 **Sandbox repair**: On reuse. `gt sling` resets the worktree to a fresh branch.
@@ -255,37 +255,37 @@ Session cycling happens constantly. Sandbox repair happens between assignments.
 
 **Anti-pattern:**
 ```bash
-gt polecat done Toast    # DON'T: external state manipulation
-gt polecat reset Toast   # DON'T: manual lifecycle control
+gt agent done Toast    # DON'T: external state manipulation
+gt agent reset Toast   # DON'T: manual lifecycle control
 ```
 
 **Correct:**
 ```bash
-# Polecat signals its own completion:
-gt done  # (from inside the polecat session)
+# Agent signals its own completion:
+gt done  # (from inside the agent session)
 
-# Only explicit nuke destroys polecats:
-gt polecat nuke Toast  # (destroys sandbox, identity persists)
+# Only explicit nuke destroys agents:
+gt agent nuke Toast  # (destroys sandbox, identity persists)
 ```
 
-Polecats manage their own session lifecycle. External manipulation bypasses verification.
+Agents manage their own session lifecycle. External manipulation bypasses verification.
 
 ### Sandboxes Without Work (Idle vs Stalled)
 
-An idle polecat has no hook and no session — this is **normal**. It completed
+An idle agent has no hook and no session — this is **normal**. It completed
 its work and is waiting for the next `gt sling`.
 
-A **stalled** polecat has a hook but no session — this is a **failure**:
+A **stalled** agent has a hook but no session — this is a **failure**:
 - The session crashed and wasn't nudged back to life
 - The hook was lost during a crash
 - State corruption occurred
 
 **Recovery for stalled:**
 ```bash
-# Witness respawns the session in the existing sandbox
+# QA Engineer respawns the session in the existing sandbox
 # Or, if unrecoverable:
-gt polecat nuke Toast        # Clean up the stalled polecat
-gt sling gt-abc gastown      # Respawn with fresh polecat
+gt agent nuke Toast        # Clean up the stalled agent
+gt sling gt-abc gastown      # Respawn with fresh agent
 ```
 
 ### Confusing Session with Sandbox
@@ -297,7 +297,7 @@ gt sling gt-abc gastown      # Respawn with fresh polecat
 # Work is NOT lost because:
 # - Git commits persist in sandbox
 # - Staged changes persist in sandbox
-# - Molecule state persists in beads
+# - Molecule state persists in tickets
 # - Hook persists across sessions
 ```
 
@@ -307,32 +307,32 @@ The new session picks up where the old one left off via `gt prime`.
 
 Sessions cycle for these reasons:
 
-| Trigger | Action | Result |
+| Tfeatureger | Action | Result |
 |---------|--------|--------|
 | `gt handoff` | Voluntary | Clean cycle to fresh context |
 | Context compaction | Automatic | Forced by Claude Code |
-| Crash/timeout | Failure | Witness respawns |
-| `gt done` | Completion | Session exits, polecat goes idle |
+| Crash/timeout | Failure | QA Engineer respawns |
+| `gt done` | Completion | Session exits, agent goes idle |
 
 All except `gt done` result in continued work. Only `gt done` signals completion
-and transitions the polecat to idle.
+and transitions the agent to idle.
 
-## Witness Responsibilities
+## QA Engineer Responsibilities
 
-The Witness monitors polecats but does NOT:
-- Force session cycles (polecats self-manage via handoff)
+The QA Engineer monitors agents but does NOT:
+- Force session cycles (agents self-manage via handoff)
 - Interrupt mid-step (unless truly stuck)
-- Nuke polecats after completion (persistent model)
+- Nuke agents after completion (persistent model)
 
-The Witness DOES:
-- Detect and nudge stalled polecats (sessions that stopped unexpectedly)
-- Clean up zombie polecats (sessions where `gt done` failed)
+The QA Engineer DOES:
+- Detect and nudge stalled agents (sessions that stopped unexpectedly)
+- Clean up zombie agents (sessions where `gt done` failed)
 - Respawn crashed sessions
-- Handle escalations from stuck polecats (polecats that explicitly asked for help)
+- Handle escalations from stuck agents (agents that explicitly asked for help)
 
-## Polecat Identity
+## Agent Identity
 
-**Key insight:** Polecat *identity* is permanent; sessions are ephemeral, sandboxes are persistent.
+**Key insight:** Agent *identity* is permanent; sessions are ephemeral, sandboxes are persistent.
 
 In the HOP model, every entity has a chain (CV) that tracks:
 - What work they've done
@@ -340,8 +340,8 @@ In the HOP model, every entity has a chain (CV) that tracks:
 - Skills demonstrated
 - Quality metrics
 
-The polecat *name* (Toast, Shadow, etc.) is a slot from a pool — persistent until
-explicit nuke. The *agent identity* that executes as that polecat accumulates a
+The agent *name* (Toast, Shadow, etc.) is a slot from a pool — persistent until
+explicit nuke. The *agent identity* that executes as that agent accumulates a
 work history across all assignments.
 
 ```
@@ -361,21 +361,21 @@ This distinction matters for:
 ## Implementation Status
 
 As of 2026-03-07 (gt-o8g8 audit), all core lifecycle operations are **shipped and
-running in production**. See [design/polecat-lifecycle-patrol.md § 10](../design/polecat-lifecycle-patrol.md#10-implementation-status-gt-o8g8-audit-2026-03-07)
-for the full implementation matrix and [design/persistent-polecat-pool.md](../design/persistent-polecat-pool.md)
+running in production**. See [design/agent-lifecycle-patrol.md § 10](../design/agent-lifecycle-patrol.md#10-implementation-status-gt-o8g8-audit-2026-03-07)
+for the full implementation matrix and [design/persistent-agent-pool.md](../design/persistent-agent-pool.md)
 for phase-by-phase shipping status.
 
 Key files:
 - `internal/cmd/done.go` — work submission, sandbox sync, idle transition
-- `internal/cmd/sling.go` + `polecat_spawn.go` — idle reuse, branch-only repair
+- `internal/cmd/sling.go` + `agent_spawn.go` — idle reuse, branch-only repair
 - `internal/cmd/handoff.go` — session cycling for all roles
-- `internal/witness/handlers.go` — cleanup pipeline, POLECAT_DONE routing, zombie/orphan detection
-- `internal/polecat/manager.go` — stale detection, idle reuse (`FindIdlePolecat`, `ReuseIdlePolecat`), pool management
+- `internal/QA engineer/handlers.go` — cleanup pipeline, POLECAT_DONE routing, zombie/orphan detection
+- `internal/agent/manager.go` — stale detection, idle reuse (`FindIdleAgent`, `ReuseIdleAgent`), pool management
 
 ## Related Documentation
 
 - [Overview](../overview.md) - Role taxonomy and architecture
-- [Molecules](molecules.md) - Molecule execution and polecat workflow
-- [Propulsion Principle](propulsion-principle.md) - Why work triggers immediate execution
-- [Polecat Lifecycle Patrol](../design/polecat-lifecycle-patrol.md) - Implementation details, cleanup stages, patrol coordination
-- [Persistent Polecat Pool](../design/persistent-polecat-pool.md) - Pool management design and shipping status
+- [Molecules](molecules.md) - Molecule execution and agent workflow
+- [Propulsion Principle](propulsion-principle.md) - Why work tfeaturegers immediate execution
+- [Agent Lifecycle Patrol](../design/agent-lifecycle-patrol.md) - Implementation details, cleanup stages, patrol coordination
+- [Persistent Agent Pool](../design/persistent-agent-pool.md) - Pool management design and shipping status

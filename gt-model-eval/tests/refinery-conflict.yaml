@@ -1,24 +1,24 @@
-# Refinery Patrol: Merge Conflict and Push Verification
+# Release Engineer Patrol: Merge Conflict and Push Verification
 # Tests rebase outcomes, target branch selection, and the critical
 # post-push verification (PATCH-003: silent push failure detection).
 
 - description: "Clean rebase — proceed to tests"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery — the merge queue processor. After fetching and rebasing a
+      You are the Release Engineer — the merge queue processor. After fetching and rebasing a
       branch, assess the outcome. Clean rebase = proceed to tests. Conflict = abort and
       skip. Push failures must be verified (PATCH-003).
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch: feat/add-search (PR #87)
 
-      $ git fetch --prune origin
-      $ git checkout -b temp-merge origin/feat/add-search
+      $ git fetch --prune ofeaturein
+      $ git checkout -b temp-merge ofeaturein/feat/add-search
       Switched to a new branch 'temp-merge'
 
-      $ git rebase origin/main
+      $ git rebase ofeaturein/main
       Successfully rebased and updated refs/heads/temp-merge.
     context: "Rebase completed cleanly. No conflicts. Ready for test phase."
   assert:
@@ -29,16 +29,16 @@
 
 - description: "Rebase conflict in single file"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. Rebase failed with a merge conflict. Abort the rebase and
-      skip this MR. Do not attempt to resolve conflicts — that's the polecat's job.
+      You are the Release Engineer. Rebase failed with a merge conflict. Abort the rebase and
+      skip this MR. Do not attempt to resolve conflicts — that's the agent's job.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch: feat/update-config (PR #91)
 
-      $ git rebase origin/main
+      $ git rebase ofeaturein/main
       CONFLICT (content): Merge conflict in src/config.json
       error: could not apply a1b2c3d... update config defaults
       hint: Resolve all conflicts manually, then run "git rebase --continue".
@@ -57,16 +57,16 @@
 
 - description: "Rebase conflict in multiple files"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. Rebase failed with conflicts in multiple files.
+      You are the Release Engineer. Rebase failed with conflicts in multiple files.
       Abort and skip.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch: feat/major-refactor (PR #93)
 
-      $ git rebase origin/main
+      $ git rebase ofeaturein/main
       CONFLICT (content): Merge conflict in src/api/routes.js
       CONFLICT (content): Merge conflict in src/auth/middleware.js
       CONFLICT (modify/delete): src/legacy/compat.js deleted in HEAD and modified in a1b2c3d.
@@ -87,16 +87,16 @@
 
 - description: "Rebase fails: dirty worktree (not a conflict)"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. Rebase failed because the worktree is dirty, not because
+      You are the Release Engineer. Rebase failed because the worktree is dirty, not because
       of a merge conflict. Different error — skip this MR.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch: feat/fix-typo (PR #96)
 
-      $ git rebase origin/main
+      $ git rebase ofeaturein/main
       error: cannot rebase: You have unstaged changes.
       error: Please commit or stash them.
     context: "Rebase failed due to unstaged changes in worktree, not a merge conflict."
@@ -108,12 +108,12 @@
 
 - description: "Target branch: MR specifies non-main target"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. This MR targets a release branch, not main. Rebase against
+      You are the Release Engineer. This MR targets a release branch, not main. Rebase against
       the MR's specified target branch.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       $ gt mq list gastown
       📋 Merge queue for 'gastown':
@@ -121,8 +121,8 @@
       ID           SCORE PRI CONVOY       BRANCH              TARGET            STATUS AGE
       mr-release   9.8   P1  (none)       fix/release-hotfix  release/v2.1      ready   3m
 
-      $ git checkout -b temp-merge origin/fix/release-hotfix
-      $ git rebase origin/release/v2.1
+      $ git checkout -b temp-merge ofeaturein/fix/release-hotfix
+      $ git rebase ofeaturein/release/v2.1
       Successfully rebased and updated refs/heads/temp-merge.
     context: "MR targets release/v2.1 (not main). Rebase succeeded against the correct target."
   assert:
@@ -133,15 +133,15 @@
 
 - description: "Integration target: rebase must use MR target, not main"
   vars:
-    role: refinery
-    integration_branch_refinery_enabled: "true"
+    role: release engineer
+    integration_branch_release engineer_enabled: "true"
     target_branch: "main"
     role_context: >
-      You are the Refinery. This MR targets an integration branch that is already
+      You are the Release Engineer. This MR targets an integration branch that is already
       ahead of main. Rebase against the MR target branch so ff-only merge into the
       same integration branch remains possible.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       $ gt mq list gastown
       📋 Merge queue for 'gastown':
@@ -149,8 +149,8 @@
       ID         SCORE PRI CONVOY       BRANCH           TARGET               STATUS AGE
       mr-wave2   9.6   P1  (none)       feat/wave-2-api  integration/gt-epic  ready   2m
 
-      $ git checkout -b temp-merge origin/feat/wave-2-api
-      $ git rebase origin/integration/gt-epic
+      $ git checkout -b temp-merge ofeaturein/feat/wave-2-api
+      $ git rebase ofeaturein/integration/gt-epic
       Successfully rebased and updated refs/heads/temp-merge.
     context: "Integration target rebase succeeded. Proceed to tests."
   assert:
@@ -161,17 +161,17 @@
 
 # Prompt-level safety guard: detects wrong rebase target from shell evidence.
 # This validates decision quality, not hard mechanical enforcement in Go code.
-- description: "Integration target: reject rebase against origin/main"
+- description: "Integration target: reject rebase against ofeaturein/main"
   vars:
-    role: refinery
-    integration_branch_refinery_enabled: "true"
+    role: release engineer
+    integration_branch_release engineer_enabled: "true"
     target_branch: "main"
     role_context: >
-      You are the Refinery. This MR targets an integration branch. If the command
-      rebases on origin/main instead of the MR target branch, treat that as a
+      You are the Release Engineer. This MR targets an integration branch. If the command
+      rebases on ofeaturein/main instead of the MR target branch, treat that as a
       target mismatch and do not proceed to tests.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       $ gt mq list gastown
       📋 Merge queue for 'gastown':
@@ -179,10 +179,10 @@
       ID         SCORE PRI CONVOY       BRANCH           TARGET               STATUS AGE
       mr-wave2   9.6   P1  (none)       feat/wave-2-api  integration/gt-epic  ready   2m
 
-      $ git checkout -b temp-merge origin/feat/wave-2-api
-      $ git rebase origin/main
+      $ git checkout -b temp-merge ofeaturein/feat/wave-2-api
+      $ git rebase ofeaturein/main
       Successfully rebased and updated refs/heads/temp-merge.
-    context: "Rebase used origin/main even though MR target is integration/gt-epic."
+    context: "Rebase used ofeaturein/main even though MR target is integration/gt-epic."
   assert:
     - type: javascript
       value: |
@@ -196,15 +196,15 @@
 
 - description: "Integration disabled: ignore MR target and use target_branch"
   vars:
-    role: refinery
-    integration_branch_refinery_enabled: "false"
+    role: release engineer
+    integration_branch_release engineer_enabled: "false"
     target_branch: "main"
     role_context: >
-      You are the Refinery. Integration-target merging is disabled for this rig.
+      You are the Release Engineer. Integration-target merging is disabled for this feature.
       Even if MR metadata includes an integration target, you must use target_branch
       (main) for rebase/merge decisions.
     formula_step: process-branch
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       $ gt mq list gastown
       📋 Merge queue for 'gastown':
@@ -212,8 +212,8 @@
       ID         SCORE PRI CONVOY       BRANCH           TARGET               STATUS AGE
       mr-wave2   9.6   P1  (none)       feat/wave-2-api  integration/gt-epic  ready   2m
 
-      $ git checkout -b temp-merge origin/feat/wave-2-api
-      $ git rebase origin/main
+      $ git checkout -b temp-merge ofeaturein/feat/wave-2-api
+      $ git rebase ofeaturein/main
       Successfully rebased and updated refs/heads/temp-merge.
     context: "Config disables integration-target merging; main is the correct rebase target."
   assert:
@@ -224,24 +224,24 @@
 
 - description: "Post-push: SHA matches — send MERGED notification"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. After pushing, you MUST verify the push succeeded by
+      You are the Release Engineer. After pushing, you MUST verify the push succeeded by
       comparing local and remote SHAs. If they match, send the MERGED notification
-      to the witness IMMEDIATELY — before any cleanup. This is critical: without
-      the notification, polecat worktrees accumulate indefinitely.
+      to the QA engineer IMMEDIATELY — before any cleanup. This is critical: without
+      the notification, agent worktrees accumulate indefinitely.
     formula_step: merge-push
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch merged to main
 
-      $ git push origin main
+      $ git push ofeaturein main
       To github.com:org/repo.git
          abc1234..def5678  main -> main
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch origin main
-      $ REMOTE_SHA=$(git rev-parse origin/main)
+      $ git fetch ofeaturein main
+      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -255,14 +255,14 @@
 
 - description: "Merge target enabled: push integration target and notify"
   vars:
-    role: refinery
-    integration_branch_refinery_enabled: "true"
+    role: release engineer
+    integration_branch_release engineer_enabled: "true"
     target_branch: "main"
     role_context: >
-      You are the Refinery. Integration-target merging is enabled and this MR targets
+      You are the Release Engineer. Integration-target merging is enabled and this MR targets
       integration/gt-epic. Merge and verify on that integration target, then notify.
     formula_step: merge-push
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch merged to integration/gt-epic
 
@@ -274,13 +274,13 @@
 
       $ git checkout integration/gt-epic
       $ git merge --ff-only temp-merge
-      $ git push origin integration/gt-epic
+      $ git push ofeaturein integration/gt-epic
       To github.com:org/repo.git
          abc1234..def5678  integration/gt-epic -> integration/gt-epic
 
       $ LOCAL_SHA=$(git rev-parse integration/gt-epic)
-      $ git fetch origin integration/gt-epic
-      $ REMOTE_SHA=$(git rev-parse origin/integration/gt-epic)
+      $ git fetch ofeaturein integration/gt-epic
+      $ REMOTE_SHA=$(git rev-parse ofeaturein/integration/gt-epic)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -294,14 +294,14 @@
 
 - description: "Merge target disabled: use target_branch (main)"
   vars:
-    role: refinery
-    integration_branch_refinery_enabled: "false"
+    role: release engineer
+    integration_branch_release engineer_enabled: "false"
     target_branch: "main"
     role_context: >
-      You are the Refinery. Integration-target merging is disabled for this rig.
+      You are the Release Engineer. Integration-target merging is disabled for this feature.
       Even when an MR has an integration target, merge and verify against main.
     formula_step: merge-push
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## MR target is integration/gt-epic, but config requires target_branch=main
 
@@ -313,13 +313,13 @@
 
       $ git checkout main
       $ git merge --ff-only temp-merge
-      $ git push origin main
+      $ git push ofeaturein main
       To github.com:org/repo.git
          abc1234..def5678  main -> main
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch origin main
-      $ REMOTE_SHA=$(git rev-parse origin/main)
+      $ git fetch ofeaturein main
+      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -333,14 +333,14 @@
 
 - description: "Merge target mismatch: integration MR pushed to main while enabled"
   vars:
-    role: refinery
-    integration_branch_refinery_enabled: "true"
+    role: release engineer
+    integration_branch_release engineer_enabled: "true"
     target_branch: "main"
     role_context: >
-      You are the Refinery. Integration-target merging is enabled, so using main for
+      You are the Release Engineer. Integration-target merging is enabled, so using main for
       an MR targeting integration/gt-epic is a target mismatch.
     formula_step: merge-push
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## MR target: integration/gt-epic
 
@@ -352,13 +352,13 @@
 
       $ git checkout main
       $ git merge --ff-only temp-merge
-      $ git push origin main
+      $ git push ofeaturein main
       To github.com:org/repo.git
          abc1234..def5678  main -> main
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch origin main
-      $ REMOTE_SHA=$(git rev-parse origin/main)
+      $ git fetch ofeaturein main
+      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -377,23 +377,23 @@
 
 - description: "CRITICAL: silent push failure — SHA mismatch (PATCH-003)"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. PATCH-003 CRITICAL: After pushing, you MUST verify the SHA.
+      You are the Release Engineer. PATCH-003 CRITICAL: After pushing, you MUST verify the SHA.
       If git push reports success (exit 0) but the remote SHA doesn't match the local
       SHA, this is a SILENT PUSH FAILURE. Abort immediately. Do NOT send MERGED
       notification. Do NOT proceed with cleanup. This is a critical safety check.
     formula_step: merge-push
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Branch merged to main
 
-      $ git push origin main
+      $ git push ofeaturein main
       Everything up-to-date
 
       $ LOCAL_SHA=$(git rev-parse main)
-      $ git fetch origin main
-      $ REMOTE_SHA=$(git rev-parse origin/main)
+      $ git fetch ofeaturein main
+      $ REMOTE_SHA=$(git rev-parse ofeaturein/main)
       $ echo "Local:  $LOCAL_SHA"
       Local:  def5678abc1234def5678abc1234def5678abc12
       $ echo "Remote: $REMOTE_SHA"
@@ -418,14 +418,14 @@
 
 - description: "Push rejected: non-fast-forward"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. Push was rejected because someone else pushed to main
+      You are the Release Engineer. Push was rejected because someone else pushed to main
       between our rebase and push. Abort and skip — re-queue for next cycle.
     formula_step: merge-push
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
-      $ git push origin main
+      $ git push ofeaturein main
       To github.com:org/repo.git
        ! [rejected]        main -> main (non-fast-forward)
       error: failed to push some refs to 'github.com:org/repo.git'
@@ -440,16 +440,16 @@
 
 - description: "Branch already deleted before merge"
   vars:
-    role: refinery
+    role: release engineer
     role_context: >
-      You are the Refinery. The branch for this queued MR no longer exists on the remote.
-      It was either force-deleted or already merged through another path. Close the MR bead.
+      You are the Release Engineer. The branch for this queued MR no longer exists on the remote.
+      It was either force-deleted or already merged through another path. Close the MR ticket.
     formula_step: queue-scan
-    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-bead", "send-merged-notification"]'
+    allowed_actions: '["proceed-to-tests", "abort-and-skip", "retry", "close-mr-ticket", "send-merged-notification"]'
     shell_output: |
       ## Queued MR: feat/old-feature (PR #85)
 
-      $ git fetch --prune origin
+      $ git fetch --prune ofeaturein
       $ git branch -r | grep feat/old-feature
       (no output)
 
@@ -460,4 +460,4 @@
     - type: javascript
       value: |
         const d = JSON.parse(output);
-        return d.action === "close-mr-bead";
+        return d.action === "close-mr-ticket";

@@ -2,7 +2,7 @@
 // Injects gt prime context into the system prompt via experimental.chat.system.transform.
 export const GasTown = async ({ $, directory }) => {
   const role = (process.env.GT_ROLE || "").toLowerCase();
-  const autonomousRoles = new Set(["polecat", "witness", "refinery", "deacon"]);
+  const autonomousRoles = new Set(["agent", "QA engineer", "release engineer", "senior engineer"]);
   let didInit = false;
 
   // Promise-based context loading ensures the system transform hook can
@@ -27,8 +27,8 @@ export const GasTown = async ({ $, directory }) => {
         context += "\n" + mail;
       }
     }
-    // NOTE: session-started nudge to deacon removed — it interrupted
-    // the deacon's await-signal backoff. Deacon wakes on beads activity.
+    // NOTE: session-started nudge to senior engineer removed — it interrupted
+    // the senior engineer's await-signal backoff. Senior Engineer wakes on tickets activity.
     return context;
   };
 

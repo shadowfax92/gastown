@@ -22,8 +22,8 @@ gt init
 # View status
 gt status
 
-# List rigs
-gt rig list
+# List features
+gt feature list
 ```
 
 ## Supported Platforms

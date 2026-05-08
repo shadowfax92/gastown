@@ -2,7 +2,7 @@
   "skipDangerousModePermissionPrompt": true,
   "editorMode": "normal",
   "enabledPlugins": {
-    "beads@beads-marketplace": false
+    "tickets@tickets-marketplace": false
   },
   "hooks": {
     "PreToolUse": [

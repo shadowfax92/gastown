@@ -203,7 +203,7 @@ async function install() {
     console.error('');
     console.error('Installation failed. You can try:');
     console.error('1. Installing manually from: https://github.com/steveyegge/gastown/releases');
-    console.error('2. Opening an issue: https://github.com/steveyegge/gastown/issues');
+    console.error('2. Opening an ticket: https://github.com/steveyegge/gastown/tickets');
     process.exit(1);
   }
 }

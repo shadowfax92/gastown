@@ -1,12 +1,12 @@
-# Escalation: {{ .Polecat }} stuck on {{ .Issue }}
+# Escalation: {{ .Agent }} stuck on {{ .Ticket }}
 
 ## Summary
 
-Polecat **{{ .Polecat }}** appears stuck and has not responded to {{ .NudgeCount }} nudges.
+Agent **{{ .Agent }}** appears stuck and has not responded to {{ .NudgeCount }} nudges.
 
 ## Details
 
-- **Issue**: {{ .Issue }}
+- **Ticket**: {{ .Ticket }}
 - **Reason**: {{ .Reason }}
 - **Last known status**: {{ .LastStatus }}
 - **Nudges sent**: {{ .NudgeCount }}
@@ -17,13 +17,13 @@ Polecat **{{ .Polecat }}** appears stuck and has not responded to {{ .NudgeCount
 - {{ . }}
 {{ end }}
 
-## Witness Assessment
+## QA Engineer Assessment
 
-The polecat may need:
+The agent may need:
 - Manual intervention to unblock
 - Session restart to recover from bad state
-- Issue reassignment to a different worker
+- Ticket reassignment to a different worker
 
 Please advise on how to proceed.
 
-—Witness
+—QA Engineer

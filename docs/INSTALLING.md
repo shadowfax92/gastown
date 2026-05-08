@@ -11,7 +11,7 @@ Complete setup guide for Gas Town multi-agent orchestrator.
 | **Go** | 1.24+ | `go version` | See [golang.org](https://go.dev/doc/install) |
 | **Git** | 2.20+ | `git --version` | See below |
 | **Dolt** | >= 1.82.4 | `dolt version` | macOS: `brew install dolt`; other platforms: see [dolthub/dolt](https://github.com/dolthub/dolt?tab=readme-ov-file#installation) |
-| **Beads** | >= 0.55.4 | `bd version` | Installed by `brew install gastown`, or from source with `go install github.com/steveyegge/beads/cmd/bd@latest` |
+| **Tickets** | >= 0.55.4 | `bd version` | Installed by `brew install gastown`, or from source with `go install github.com/steveyegge/tickets/cmd/bd@latest` |
 
 ### Optional (for Full Stack Mode)
 
@@ -101,7 +101,7 @@ repository and use `make` instead.
 
 ```bash
 brew install dolt
-go install github.com/steveyegge/beads/cmd/bd@latest
+go install github.com/steveyegge/tickets/cmd/bd@latest
 export PATH="$PATH:$HOME/go/bin"
 git clone https://github.com/steveyegge/gastown.git
 cd gastown
@@ -118,24 +118,24 @@ gt install ~/gt --shell
 # This creates:
 #   ~/gt/
 #   ├── CLAUDE.md          # Identity anchor (run gt prime)
-#   ├── mayor/             # Mayor config and state
-#   ├── rigs/              # Project containers (initially empty)
-#   └── .beads/            # Town-level issue tracking
+#   ├── product manager/             # Product Manager config and state
+#   ├── features/              # Project containers (initially empty)
+#   └── .tickets/            # Town-level ticket tracking
 ```
 
-### Step 3: Add a Project (Rig)
+### Step 3: Add a Project (Feature)
 
 ```bash
 # Add your first project
-gt rig add myproject https://github.com/you/repo.git
+gt feature add myproject https://github.com/you/repo.git
 
 # This clones the repo and sets up:
 #   ~/gt/myproject/
-#   ├── .beads/            # Project issue tracking
-#   ├── mayor/rig/         # Mayor's clone (canonical)
-#   ├── refinery/rig/      # Merge queue processor
-#   ├── witness/           # Worker monitor
-#   └── polecats/          # Worker clones (created on demand)
+#   ├── .tickets/            # Project ticket tracking
+#   ├── product manager/feature/         # Product Manager's clone (canonical)
+#   ├── release engineer/feature/      # Merge queue processor
+#   ├── QA engineer/           # Worker monitor
+#   └── agents/          # Worker clones (created on demand)
 ```
 
 ### Step 4: Verify Installation
@@ -163,7 +163,7 @@ gt config agent list
 gt config agent set codex-low "codex --thinking low"
 gt config agent set claude-haiku "claude --model haiku --dangerously-skip-permissions"
 
-# Set the town default agent (used when a rig doesn't specify one)
+# Set the town default agent (used when a feature doesn't specify one)
 gt config default-agent codex-low
 ```
 
@@ -188,7 +188,7 @@ gt convoy create "Fix bugs" gt-abc12
 gt sling gt-abc12 myproject
 
 # Run runtime manually
-cd ~/gt/myproject/polecats/<worker>
+cd ~/gt/myproject/agents/<worker>
 claude --resume          # Claude Code
 # or: codex              # Codex CLI
 
@@ -215,8 +215,8 @@ gt sling gt-def34 myproject
 gt convoy list
 
 # Attach to any agent session
-gt mayor attach
-gt witness attach myproject
+gt product manager attach
+gt QA engineer attach myproject
 ```
 
 **When to use**: Production workflows with multiple concurrent agents.
@@ -227,10 +227,10 @@ Gas Town is modular. Enable only what you need:
 
 | Configuration | Roles | Use Case |
 |--------------|-------|----------|
-| **Polecats only** | Workers | Manual spawning, no monitoring |
-| **+ Witness** | + Monitor | Automatic lifecycle, stuck detection |
-| **+ Refinery** | + Merge queue | MR review, code integration |
-| **+ Mayor** | + Coordinator | Cross-project coordination |
+| **Agents only** | Workers | Manual spawning, no monitoring |
+| **+ QA Engineer** | + Monitor | Automatic lifecycle, stuck detection |
+| **+ Release Engineer** | + Merge queue | MR review, code integration |
+| **+ Product Manager** | + Coordinator | Cross-project coordination |
 
 ## Troubleshooting
 
@@ -246,21 +246,21 @@ source ~/.bashrc  # or restart terminal
 
 ### `bd: command not found`
 
-Beads CLI not installed:
+Tickets CLI not installed:
 
 ```bash
-go install github.com/steveyegge/beads/cmd/bd@latest
+go install github.com/steveyegge/tickets/cmd/bd@latest
 ```
 
 ### `gt doctor` shows errors
 
-Run with `--fix` to auto-repair common issues:
+Run with `--fix` to auto-repair common tickets:
 
 ```bash
 gt doctor --fix
 ```
 
-For persistent issues, check specific errors:
+For persistent tickets, check specific errors:
 
 ```bash
 gt doctor --verbose
@@ -275,7 +275,7 @@ tmux -V                    # Should show version
 tmux new-session -d -s test && tmux kill-session -t test  # Quick test
 ```
 
-### Git authentication issues
+### Git authentication tickets
 
 Ensure SSH keys or credentials are configured:
 
@@ -287,24 +287,24 @@ ssh -T git@github.com
 git config --global credential.helper cache
 ```
 
-### Beads issues
+### Tickets tickets
 
-If experiencing beads problems:
+If experiencing tickets problems:
 
 ```bash
-cd ~/gt/myproject/mayor/rig
+cd ~/gt/myproject/product manager/feature
 bd status                  # Check database health
-bd doctor                  # Run beads health check
+bd doctor                  # Run tickets health check
 ```
 
 ## Updating
 
-To update Gas Town and Beads:
+To update Gas Town and Tickets:
 
 ```bash
 go install github.com/steveyegge/gastown/cmd/gt@latest
-go install github.com/steveyegge/beads/cmd/bd@latest
-gt doctor --fix            # Fix any post-update issues
+go install github.com/steveyegge/tickets/cmd/bd@latest
+gt doctor --fix            # Fix any post-update tickets
 ```
 
 ## Uninstalling
@@ -322,7 +322,7 @@ rm -rf ~/gt
 After installation:
 
 1. **Read the README** - Core concepts and workflows
-2. **Try a simple workflow** - `bd create "Test task"` then `gt convoy create "Test" <bead-id>`
+2. **Try a simple workflow** - `bd create "Test task"` then `gt convoy create "Test" <ticket-id>`
 3. **Explore docs** - `docs/reference.md` for command reference
 4. **Run doctor regularly** - `gt doctor` catches problems early
 5. **Join the Wasteland** - `gt wl join hop/wl-commons` to browse and claim federated work (see [WASTELAND.md](WASTELAND.md))

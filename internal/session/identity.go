@@ -10,6 +10,7 @@ import (
 type Role string
 
 const (
+	// Keep wire/session role values stable for compatibility; use DisplayName for user-facing labels.
 	RoleMayor    Role = "mayor"
 	RoleDeacon   Role = "deacon"
 	RoleOverseer Role = "overseer"
@@ -19,6 +20,30 @@ const (
 	RolePolecat  Role = "polecat"
 	RoleDog      Role = "dog"
 )
+
+// DisplayName returns the software-engineering label for a role.
+func (r Role) DisplayName() string {
+	switch r {
+	case RoleMayor:
+		return "Product Manager"
+	case RoleDeacon:
+		return "Senior Engineer"
+	case RoleWitness:
+		return "QA Engineer"
+	case RoleRefinery:
+		return "Release Engineer"
+	case RoleCrew:
+		return "Engineer"
+	case RolePolecat:
+		return "Agent"
+	case RoleDog:
+		return "Maintenance Agent"
+	case RoleOverseer:
+		return "Overseer"
+	default:
+		return string(r)
+	}
+}
 
 // AgentIdentity represents a parsed Gas Town agent identity.
 type AgentIdentity struct {

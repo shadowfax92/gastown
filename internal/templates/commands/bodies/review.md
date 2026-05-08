@@ -10,7 +10,7 @@ Determine the diff to review based on arguments:
 |----------|-------------|----------|
 | (none) | `git diff` + `git diff --staged` | Review uncommitted + staged changes |
 | `--staged` | `git diff --staged` | Review only staged changes |
-| `--branch` | `git diff origin/<base>...HEAD` | Review branch diff vs base branch |
+| `--branch` | `git diff ofeaturein/<base>...HEAD` | Review branch diff vs base branch |
 | `--pr <url>` | `gh pr diff <url>` | Review a GitHub PR |
 
 ### Step 1: Get the diff
@@ -25,8 +25,8 @@ DIFF=$(git diff; git diff --staged)
 DIFF=$(git diff --staged)
 
 # --branch: branch diff (detect base branch)
-BASE=$(git rev-parse --abbrev-ref HEAD@{upstream} 2>/dev/null | sed 's|origin/||' || git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
-DIFF=$(git diff origin/$BASE...HEAD)
+BASE=$(git rev-parse --abbrev-ref HEAD@{upstream} 2>/dev/null | sed 's|ofeaturein/||' || git symbolic-ref refs/remotes/ofeaturein/HEAD 2>/dev/null | sed 's|refs/remotes/ofeaturein/||' || echo "main")
+DIFF=$(git diff ofeaturein/$BASE...HEAD)
 
 # --pr <url>: PR diff
 DIFF=$(gh pr diff <url>)
@@ -36,7 +36,7 @@ If the diff is empty, report "No changes to review" and stop.
 
 ### Step 2: Review the diff
 
-Review the diff systematically. For each issue found, classify by severity:
+Review the diff systematically. For each ticket found, classify by severity:
 
 **CRITICAL** - Must fix before merge:
 - Security vulnerabilities (injection, auth bypass, secrets in code)
@@ -51,26 +51,26 @@ Review the diff systematically. For each issue found, classify by severity:
 
 **MINOR** - Nice to fix:
 - Style inconsistencies with surrounding code
-- Naming issues (unclear or misleading names)
+- Naming tickets (unclear or misleading names)
 - Missing comments on non-obvious logic
 - Minor code smells
 
-For each issue, note:
+For each ticket, note:
 - File and line number
 - Severity (CRITICAL, MAJOR, MINOR)
-- Description of the issue
+- Description of the ticket
 - Suggested fix (specific, actionable)
 
 ### Step 3: Assign grade
 
-Grade is determined by the highest severity issue found:
+Grade is determined by the highest severity ticket found:
 
 | Grade | Criteria | Verdict |
 |-------|----------|---------|
-| **A** | No CRITICAL, MAJOR, or MINOR issues | PASS |
-| **B** | MINOR issues only (no CRITICAL or MAJOR) | PASS |
-| **C** | MAJOR issues present (no CRITICAL) | FAIL |
-| **D** | CRITICAL issues present | FAIL |
+| **A** | No CRITICAL, MAJOR, or MINOR tickets | PASS |
+| **B** | MINOR tickets only (no CRITICAL or MAJOR) | PASS |
+| **C** | MAJOR tickets present (no CRITICAL) | FAIL |
+| **D** | CRITICAL tickets present | FAIL |
 | **F** | Unreviewable (empty diff, binary files, generated code only) | SKIP |
 
 ### Step 4: Output structured review
@@ -80,15 +80,15 @@ Output the review in this exact format:
 ```
 Grade: <A|B|C|D|F>
 
-CRITICAL (<count> issues)
+CRITICAL (<count> tickets)
   <file>:<line> — <description>
     Suggested fix: <actionable fix>
 
-MAJOR (<count> issues)
+MAJOR (<count> tickets)
   <file>:<line> — <description>
     Suggested fix: <actionable fix>
 
-MINOR (<count> issues)
+MINOR (<count> tickets)
   <file>:<line> — <description>
     Suggested fix: <actionable fix>
 
@@ -96,13 +96,13 @@ Summary: <N> CRITICAL, <N> MAJOR, <N> MINOR
 Verdict: <PASS|FAIL|SKIP>
 ```
 
-Omit empty severity sections (e.g., if no CRITICAL issues, don't print the CRITICAL section).
+Omit empty severity sections (e.g., if no CRITICAL tickets, don't print the CRITICAL section).
 
 If Grade is A, output:
 ```
 Grade: A
 
-No issues found.
+No tickets found.
 
 Summary: 0 CRITICAL, 0 MAJOR, 0 MINOR
 Verdict: PASS

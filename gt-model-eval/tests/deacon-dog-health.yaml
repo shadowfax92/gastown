@@ -1,12 +1,12 @@
-# Deacon Patrol: Dog Health and Pool Maintenance
+# Senior Engineer Patrol: Dog Health and Pool Maintenance
 # Tests whether the model correctly applies timeout duration matrix
 # and manages the dog pool (spawn/retire decisions).
 
 - description: "Dog working within normal time"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon monitoring dog health. Dogs have expected timeouts for their
+      You are the Senior Engineer monitoring dog health. Dogs have expected timeouts for their
       tasks. The duration matrix: <2x timeout = normal (log), 2-5x = file warrant,
       >5x = force clear + escalate. You also manage the dog pool: minimum 1 idle dog,
       maximum 4 total, retire dogs idle >24h.
@@ -31,9 +31,9 @@
 
 - description: "Dog working 1.5x timeout (amber zone — watch)"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon monitoring dog health. Duration matrix: <2x = log/watch,
+      You are the Senior Engineer monitoring dog health. Duration matrix: <2x = log/watch,
       2-5x = file warrant, >5x = force clear.
     formula_step: dog-health-check
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -60,9 +60,9 @@
 
 - description: "Dog working 3x timeout (warrant zone)"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon monitoring dog health. Duration matrix: <2x = log/watch,
+      You are the Senior Engineer monitoring dog health. Duration matrix: <2x = log/watch,
       2-5x = file warrant, >5x = force clear + escalate.
     formula_step: dog-health-check
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -85,9 +85,9 @@
 
 - description: "Dog working >5x timeout (force clear zone)"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon monitoring dog health. Duration matrix: >5x timeout = force
+      You are the Senior Engineer monitoring dog health. Duration matrix: >5x timeout = force
       clear + escalate. This dog is severely over time.
     formula_step: dog-health-check
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -108,11 +108,11 @@
         const d = JSON.parse(output);
         return d.action === "force-clear";
 
-- description: "Dog session dead but bead shows working (zombie dog)"
+- description: "Dog session dead but ticket shows working (zombie dog)"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon monitoring dog health. If a dog's tmux session is dead but
+      You are the Senior Engineer monitoring dog health. If a dog's tmux session is dead but
       its status shows working, it's a zombie dog. File a warrant.
     formula_step: dog-health-check
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -136,9 +136,9 @@
 
 - description: "Pool: zero idle dogs + pending work — spawn"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon managing the dog pool. Rules: minimum 1 idle dog, maximum 4
+      You are the Senior Engineer managing the dog pool. Rules: minimum 1 idle dog, maximum 4
       total. Spawn when no idle dogs and pending work exists.
     formula_step: dog-pool-maintenance
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -160,9 +160,9 @@
 
 - description: "Pool: zero idle dogs + no pending work — no action"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon managing the dog pool. All dogs busy but no pending work.
+      You are the Senior Engineer managing the dog pool. All dogs busy but no pending work.
       No need to spawn — there's nothing for a new dog to do.
     formula_step: dog-pool-maintenance
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -184,9 +184,9 @@
 
 - description: "Pool: dog idle >24h — retire"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon managing the dog pool. Dogs idle for >24h should be retired
+      You are the Senior Engineer managing the dog pool. Dogs idle for >24h should be retired
       to free resources — unless they are the last remaining dog (minimum 1).
     formula_step: dog-pool-maintenance
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -211,9 +211,9 @@
 
 - description: "Pool: only 1 dog, idle >24h — keep (minimum 1)"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon managing the dog pool. Minimum 1 dog must always exist.
+      You are the Senior Engineer managing the dog pool. Minimum 1 dog must always exist.
       Even if the only dog is idle >24h, do NOT retire it.
     formula_step: dog-pool-maintenance
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'
@@ -238,9 +238,9 @@
 
 - description: "Pool: max dogs reached + pending work — at capacity"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon managing the dog pool. Maximum 4 dogs. Even with pending work,
+      You are the Senior Engineer managing the dog pool. Maximum 4 dogs. Even with pending work,
       do not exceed the maximum. Wait for current dogs to finish.
     formula_step: dog-pool-maintenance
     allowed_actions: '["no-op", "log-and-watch", "file-warrant", "force-clear", "spawn-dog", "retire-dog"]'

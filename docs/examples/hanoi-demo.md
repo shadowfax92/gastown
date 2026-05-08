@@ -5,7 +5,7 @@ sequential workflows with crash recovery and session cycling.
 
 ## What This Proves
 
-1. **Large Molecule Creation**: Creating 1000+ issues in a single workflow
+1. **Large Molecule Creation**: Creating 1000+ tickets in a single workflow
 2. **Sequential Execution**: Dependencies chain properly across many steps
 3. **Crash Recovery**: Work resumes correctly after session restart
 4. **Nondeterministic Idempotence**: Different sessions, same outcome
@@ -24,7 +24,7 @@ Towers of Hanoi requires `2^n - 1` moves for `n` disks:
 
 ## Pre-Generated Formulas
 
-Located in `.beads/formulas/`:
+Located in `.tickets/formulas/`:
 
 - `towers-of-hanoi-7.formula.toml` - 127 moves (quick test)
 - `towers-of-hanoi-9.formula.toml` - 511 moves (medium test)
@@ -42,7 +42,7 @@ bd mol wisp towers-of-hanoi-7 --json | jq -r '.new_epic_id'
 # Get all child IDs
 bd list --parent=gt-eph-xxx --limit=200 --json | jq -r '.[].id' > /tmp/ids.txt
 
-# Close all issues (serial)
+# Close all tickets (serial)
 while read id; do bd close "$id" >/dev/null; done < /tmp/ids.txt
 
 # Burn the wisp (cleanup)
@@ -86,7 +86,7 @@ The demo uses wisps (ephemeral molecules) because:
 
 ### `bd ready` Excludes Wisps
 
-By design, `bd ready` filters out ephemeral issues:
+By design, `bd ready` filters out ephemeral tickets:
 ```go
 "(i.ephemeral = 0 OR i.ephemeral IS NULL)", // Exclude wisps
 ```
@@ -123,10 +123,10 @@ Use the generator script:
 
 ```bash
 # Generate 15-disk formula (32K moves)
-python3 scripts/gen_hanoi.py 15 > .beads/formulas/towers-of-hanoi-15.formula.toml
+python3 scripts/gen_hanoi.py 15 > .tickets/formulas/towers-of-hanoi-15.formula.toml
 ```
 
-**Warning**: 20-disk formula is ~163MB and creates 1M+ issues. Only for
+**Warning**: 20-disk formula is ~163MB and creates 1M+ tickets. Only for
 stress testing post-launch.
 
 ## Monitoring Progress
@@ -134,7 +134,7 @@ stress testing post-launch.
 For long-running executions:
 
 ```bash
-# Count closed issues
+# Count closed tickets
 bd list --parent=$WISP --status=closed --json | jq 'length'
 
 # Count remaining
@@ -151,9 +151,9 @@ echo "$CLOSED / $TOTAL = $((CLOSED * 100 / TOTAL))%"
 The beauty of this demo: you can stop at any time and resume later.
 
 ```bash
-# Session 1: Start the wisp, close some issues
+# Session 1: Start the wisp, close some tickets
 WISP=$(bd mol wisp towers-of-hanoi-10 --json | jq -r '.new_epic_id')
-# ... close some issues ...
+# ... close some tickets ...
 # Context fills, need to cycle
 
 gt handoff -s "Hanoi demo" -m "Wisp: $WISP, progress: 400/1025"

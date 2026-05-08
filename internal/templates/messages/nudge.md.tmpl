@@ -1,6 +1,6 @@
-# Nudge: Check-in on {{ .Issue }}
+# Nudge: Check-in on {{ .Ticket }}
 
-Hey {{ .Polecat }},
+Hey {{ .Agent }},
 
 This is nudge **{{ .NudgeCount }}/{{ .MaxNudges }}** for your current work.
 
@@ -10,7 +10,7 @@ This is nudge **{{ .NudgeCount }}/{{ .MaxNudges }}** for your current work.
 
 ## Current Status
 
-Issue: {{ .Issue }}
+Ticket: {{ .Ticket }}
 Status: {{ .Status }}
 
 ## Action Needed
@@ -18,15 +18,15 @@ Status: {{ .Status }}
 Please either:
 
 1. **If making progress**: Continue working and signal when done with `{{ cmd }} done`
-2. **If blocked**: File a blocking issue with `bd create --title="Blocked: <reason>" --type=task`
+2. **If blocked**: File a blocking ticket with `bd create --title="Blocked: <reason>" --type=task`
 3. **If done**: Make sure to run:
-   - `bd close {{ .Issue }}`
+   - `bd close {{ .Ticket }}`
    - `{{ cmd }} done`
 
 ## Important
 
-After {{ .MaxNudges }} nudges without progress, this will be escalated to the Mayor.
+After {{ .MaxNudges }} nudges without progress, this will be escalated to the Product Manager.
 
 Please respond or take action.
 
-—Witness
+—QA Engineer

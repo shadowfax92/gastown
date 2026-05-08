@@ -1,8 +1,8 @@
-# Cursor runtime plan — Beads tasks (handoff)
+# Cursor runtime plan — Tickets tasks (handoff)
 
-These issues track **Cursor runtime parity**, **user-facing documentation clarity** (preset `cursor` vs CLI `cursor-agent` / `agent`), and **`.cursor/` onboarding**. Issue IDs vary by database.
+These tickets track **Cursor runtime parity**, **user-facing documentation clarity** (preset `cursor` vs CLI `cursor-agent` / `agent`), and **`.cursor/` onboarding**. Ticket IDs vary by database.
 
-**Create issues (idempotent — skips if open `cursor-runtime`+`plan` issues exist):**
+**Create tickets (idempotent — skips if open `cursor-runtime`+`plan` tickets exist):**
 
 ```bash
 ./scripts/cursor-runtime-bd-tasks.sh
@@ -16,6 +16,6 @@ These issues track **Cursor runtime parity**, **user-facing documentation clarit
 - **README** prerequisites — optional **Cursor Agent CLI** install; clarify **preset `cursor`** vs binaries.
 - **docs/INSTALLING.md**, **docs/reference.md** — same built-in lists as README; short note on **`cursor`** → `cursor-agent`.
 
-**Contributing:** [`CONTRIBUTING.md`](../CONTRIBUTING.md). Do not add `.beads/issues.jsonl` at repo root (CI). `bd vc commit` when persisting beads DB changes.
+**Contributing:** [`CONTRIBUTING.md`](../CONTRIBUTING.md). Do not add `.tickets/tickets.jsonl` at repo root (CI). `bd vc commit` when persisting tickets DB changes.
 
 **Migration:** If you seeded tasks with an older script, **retitle T5** in `bd` to match the table in the plan §10a, or close duplicates.

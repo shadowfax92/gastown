@@ -5,8 +5,8 @@ contributors and operators can drop into their own Gas Town setup to customize
 agent behavior — without patching the framework.
 
 These examples are not active by default. They are starting points you copy
-into your own `~/gt/<rig>/directives/` or `~/gt/<rig>/formula-overlays/`
-directory and adapt to your rig's needs.
+into your own `~/gt/<feature>/directives/` or `~/gt/<feature>/formula-overlays/`
+directory and adapt to your feature's needs.
 
 See [`docs/design/directives-and-overlays.md`](../design/directives-and-overlays.md)
 for the design of the extension surface (how directives and overlays are
@@ -17,7 +17,7 @@ reference is `~/gt/docs/PRIMING.md` § "Role Directives and Formula Overlays".
 
 | Harness | What it does |
 |---------|--------------|
-| [`polecat-pr-flow/`](polecat-pr-flow/) | Makes polecats open a GitHub PR for their branch before running `gt done`. For rigs that use a PR-review workflow instead of the canonical Refinery merge-queue flow. |
+| [`agent-pr-flow/`](agent-pr-flow/) | Makes agents open a GitHub PR for their branch before running `gt done`. For features that use a PR-review workflow instead of the canonical Release Engineer merge-queue flow. |
 
 ## Scope
 

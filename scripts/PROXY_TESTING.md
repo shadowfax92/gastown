@@ -13,7 +13,7 @@ For a fast verification that the proxy is functional:
 **What it does:**
 - ✓ Builds binaries
 - ✓ Starts server on port 9876
-- ✓ Issues a test certificate
+- ✓ Tickets a test certificate
 - ✓ Runs a single `gt version` command through the proxy
 - ✓ Automatically cleans up on exit
 
@@ -32,7 +32,7 @@ For thorough validation with multiple test scenarios:
 **What it does:**
 - ✓ Builds binaries
 - ✓ Starts server and keeps it running
-- ✓ Issues polecat certificate
+- ✓ Tickets agent certificate
 - ✓ Tests client connection
 - ✓ Runs multiple `gt` commands:
   - `gt --version`
@@ -69,10 +69,10 @@ curl -s \
 ### Test Different Commands
 
 ```bash
-# List ready issues
+# List ready tickets
 curl -s --cert ... -d '{"argv":["bd","ready"]}' https://localhost:9876/v1/exec
 
-# Show an issue
+# Show an ticket
 curl -s --cert ... -d '{"argv":["bd","show","123"]}' https://localhost:9876/v1/exec
 
 # Check version
@@ -86,7 +86,7 @@ The proxy has default rate limits configured:
 - **Per-client burst:** 20 requests
 - **Global concurrent:** 32 processes
 
-You can trigger rate limiting with rapid requests and expect HTTP 429:
+You can tfeatureger rate limiting with rapid requests and expect HTTP 429:
 
 ```bash
 for i in {1..50}; do
@@ -134,7 +134,7 @@ CA_DIR=/custom/ca/path ./test-proxy-manual.sh
 ### Certificate errors
 - Ensure OpenSSL is installed: `openssl version`
 - Check CA files are created in the test directory
-- Verify certificate CN matches the expected format: `gt-<rig>-<name>`
+- Verify certificate CN matches the expected format: `gt-<feature>-<name>`
 
 ### Connection refused
 - Verify server is running: `ps aux | grep gt-proxy-server`
@@ -142,7 +142,7 @@ CA_DIR=/custom/ca/path ./test-proxy-manual.sh
 - Ensure certificate files exist and are readable
 
 ### HTTP 403 (Forbidden)
-- Check that certificate CN matches format `gt-<rig>-<name>`
+- Check that certificate CN matches format `gt-<feature>-<name>`
 - Verify the subcommand is in the allowed list
 - Check server logs for the actual error
 

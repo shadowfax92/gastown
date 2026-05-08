@@ -27,7 +27,7 @@
     "directory": "npm-package"
   },
   "bugs": {
-    "url": "https://github.com/gastownhall/gastown/issues"
+    "url": "https://github.com/gastownhall/gastown/tickets"
   },
   "homepage": "https://github.com/gastownhall/gastown#readme",
   "engines": {

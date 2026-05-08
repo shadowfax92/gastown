@@ -2,104 +2,104 @@
 
 Technical architecture for Gas Town multi-agent workspace management.
 
-## Two-Level Beads Architecture
+## Two-Level Tickets Architecture
 
-Gas Town uses a two-level beads architecture to separate organizational coordination
+Gas Town uses a two-level tickets architecture to separate organizational coordination
 from project implementation work.
 
 | Level | Location | Prefix | Purpose |
 |-------|----------|--------|---------|
-| **Town** | `~/gt/.beads/` | `hq-*` | Cross-rig coordination, Mayor mail, agent identity |
-| **Rig** | `<rig>/mayor/rig/.beads/` | project prefix | Implementation work, MRs, project issues |
+| **Town** | `~/gt/.tickets/` | `hq-*` | Cross-feature coordination, Product Manager mail, agent identity |
+| **Feature** | `<feature>/product manager/feature/.tickets/` | project prefix | Implementation work, MRs, project tickets |
 
-### Town-Level Beads (`~/gt/.beads/`)
+### Town-Level Tickets (`~/gt/.tickets/`)
 
-Organizational chain for cross-rig coordination:
-- Mayor mail and messages
-- Convoy coordination (batch work across rigs)
-- Strategic issues and decisions
-- **Town-level agent beads** (Mayor, Deacon)
-- **Role definition beads** (global templates)
+Organizational chain for cross-feature coordination:
+- Product Manager mail and messages
+- Convoy coordination (batch work across features)
+- Strategic tickets and decisions
+- **Town-level agent tickets** (Product Manager, Senior Engineer)
+- **Role definition tickets** (global templates)
 
-### Rig-Level Beads (`<rig>/mayor/rig/.beads/`)
+### Feature-Level Tickets (`<feature>/product manager/feature/.tickets/`)
 
 Project chain for implementation work:
 - Bugs, features, tasks for the project
 - Merge requests and code reviews
 - Project-specific molecules
-- **Rig-level agent beads** (Witness, Refinery, Polecats)
+- **Feature-level agent tickets** (QA Engineer, Release Engineer, Agents)
 
-## Agent Bead Storage
+## Agent Ticket Storage
 
-Agent beads track lifecycle state for each agent. Storage location depends on
+Agent tickets track lifecycle state for each agent. Storage location depends on
 the agent's scope.
 
-| Agent Type | Scope | Bead Location | Bead ID Format |
+| Agent Type | Scope | Ticket Location | Ticket ID Format |
 |------------|-------|---------------|----------------|
-| Mayor | Town | `~/gt/.beads/` | `hq-mayor` |
-| Deacon | Town | `~/gt/.beads/` | `hq-deacon` |
-| Boot | Town | `~/gt/.beads/` | `hq-boot` |
-| Dogs | Town | `~/gt/.beads/` | `hq-dog-<name>` |
-| Witness | Rig | `<rig>/.beads/` | `<prefix>-<rig>-witness` |
-| Refinery | Rig | `<rig>/.beads/` | `<prefix>-<rig>-refinery` |
-| Polecats | Rig | `<rig>/.beads/` | `<prefix>-<rig>-polecat-<name>` |
-| Crew | Rig | `<rig>/.beads/` | `<prefix>-<rig>-crew-<name>` |
+| Product Manager | Town | `~/gt/.tickets/` | `hq-product manager` |
+| Senior Engineer | Town | `~/gt/.tickets/` | `hq-senior engineer` |
+| Boot | Town | `~/gt/.tickets/` | `hq-boot` |
+| Dogs | Town | `~/gt/.tickets/` | `hq-dog-<name>` |
+| QA Engineer | Feature | `<feature>/.tickets/` | `<prefix>-<feature>-QA engineer` |
+| Release Engineer | Feature | `<feature>/.tickets/` | `<prefix>-<feature>-release engineer` |
+| Agents | Feature | `<feature>/.tickets/` | `<prefix>-<feature>-agent-<name>` |
+| Engineers | Feature | `<feature>/.tickets/` | `<prefix>-<feature>-engineers-<name>` |
 
-### Role Beads
+### Role Tickets
 
-Role beads are global templates stored in town beads with `hq-` prefix:
-- `hq-mayor-role` - Mayor role definition
-- `hq-deacon-role` - Deacon role definition
+Role tickets are global templates stored in town tickets with `hq-` prefix:
+- `hq-product manager-role` - Product Manager role definition
+- `hq-senior engineer-role` - Senior Engineer role definition
 - `hq-boot-role` - Boot role definition
-- `hq-witness-role` - Witness role definition
-- `hq-refinery-role` - Refinery role definition
-- `hq-polecat-role` - Polecat role definition
-- `hq-crew-role` - Crew role definition
+- `hq-QA engineer-role` - QA Engineer role definition
+- `hq-release engineer-role` - Release Engineer role definition
+- `hq-agent-role` - Agent role definition
+- `hq-engineers-role` - Engineers role definition
 - `hq-dog-role` - Dog role definition
 
-Each agent bead references its role bead via the `role_bead` field.
+Each agent ticket references its role ticket via the `role_ticket` field.
 
 ## Agent Taxonomy
 
-### Town-Level Agents (Cross-Rig)
+### Town-Level Agents (Cross-Feature)
 
 | Agent | Role | Persistence |
 |-------|------|-------------|
-| **Mayor** | Global coordinator, handles cross-rig communication and escalations | Persistent |
-| **Deacon** | Daemon beacon — receives heartbeats, runs plugins and monitoring | Persistent |
-| **Boot** | Deacon watchdog — spawned by daemon for triage decisions when Deacon is down | Ephemeral |
-| **Dogs** | Long-running workers for cross-rig batch work | Variable |
+| **Product Manager** | Global coordinator, handles cross-feature communication and escalations | Persistent |
+| **Senior Engineer** | Daemon beacon — receives heartbeats, runs plugins and monitoring | Persistent |
+| **Boot** | Senior Engineer watchdog — spawned by daemon for triage decisions when Senior Engineer is down | Ephemeral |
+| **Dogs** | Long-running workers for cross-feature batch work | Variable |
 
-### Rig-Level Agents (Per-Project)
+### Feature-Level Agents (Per-Project)
 
 | Agent | Role | Persistence |
 |-------|------|-------------|
-| **Witness** | Monitors polecat health, handles nudging and cleanup | Persistent |
-| **Refinery** | Processes merge queue, runs verification | Persistent |
-| **Polecats** | Workers with persistent identity, assigned to specific issues | Persistent identity, ephemeral sessions |
-| **Crew** | Human workspaces — full git clones, user-managed lifecycle | Persistent |
+| **QA Engineer** | Monitors agent health, handles nudging and cleanup | Persistent |
+| **Release Engineer** | Processes merge queue, runs verification | Persistent |
+| **Agents** | Workers with persistent identity, assigned to specific tickets | Persistent identity, ephemeral sessions |
+| **Engineers** | Human workspaces — full git clones, user-managed lifecycle | Persistent |
 
 ## Directory Structure
 
 ```
 ~/gt/                           Town root
-├── .beads/                     Town-level beads (hq-* prefix)
-│   ├── metadata.json           Beads config (dolt_mode, dolt_database)
-│   └── routes.jsonl            Prefix → rig routing table
+├── .tickets/                     Town-level tickets (hq-* prefix)
+│   ├── metadata.json           Tickets config (dolt_mode, dolt_database)
+│   └── routes.jsonl            Prefix → feature routing table
 ├── .dolt-data/                 Centralized Dolt data directory
-│   ├── hq/                     Town beads database (hq-* prefix)
-│   ├── gastown/                Gastown rig database (gt-* prefix)
-│   ├── beads/                  Beads rig database (bd-* prefix)
-│   └── <other rigs>/           Per-rig databases
+│   ├── hq/                     Town tickets database (hq-* prefix)
+│   ├── gastown/                Gastown feature database (gt-* prefix)
+│   ├── tickets/                  Tickets feature database (bd-* prefix)
+│   └── <other features>/           Per-feature databases
 ├── daemon/                     Daemon runtime state
 │   ├── dolt-state.json         Dolt server state (pid, port, databases)
 │   ├── dolt-server.log         Server log
 │   └── dolt.pid                Server PID file
-├── deacon/                     Deacon workspace
+├── senior engineer/                     Senior Engineer workspace
 │   └── dogs/<name>/            Dog worker directories
-├── mayor/                      Mayor agent home
+├── product manager/                      Product Manager agent home
 │   ├── town.json               Town configuration
-│   ├── rigs.json               Rig registry
+│   ├── features.json               Feature registry
 │   ├── daemon.json             Daemon patrol config
 │   └── accounts.json           Claude Code account management
 ├── settings/                   Town-level settings
@@ -111,21 +111,21 @@ Each agent bead references its role bead via the `role_bead` field.
 │   └── <formula>.toml          TOML step overrides (replace/append/skip)
 ├── config/
 │   └── messaging.json          Mail lists, queues, channels
-└── <rig>/                      Project container (NOT a git clone)
-    ├── config.json             Rig identity and beads prefix
-    ├── directives/             Rig-level role directives (overrides town)
+└── <feature>/                      Project container (NOT a git clone)
+    ├── config.json             Feature identity and tickets prefix
+    ├── directives/             Feature-level role directives (overrides town)
     │   └── <role>.md
-    ├── formula-overlays/       Rig-level formula overlays (full precedence)
+    ├── formula-overlays/       Feature-level formula overlays (full precedence)
     │   └── <formula>.toml
-    ├── mayor/rig/              Canonical clone (beads live here, NOT an agent)
-    │   └── .beads/             Rig-level beads (redirected to Dolt)
-    ├── refinery/               Refinery agent home
-    │   └── rig/                Worktree from mayor/rig
-    ├── witness/                Witness agent home (no clone)
-    ├── crew/                   Crew parent
+    ├── product manager/feature/              Canonical clone (tickets live here, NOT an agent)
+    │   └── .tickets/             Feature-level tickets (redirected to Dolt)
+    ├── release engineer/               Release Engineer agent home
+    │   └── feature/                Worktree from product manager/feature
+    ├── QA engineer/                QA Engineer agent home (no clone)
+    ├── engineers/                   Engineers parent
     │   └── <name>/             Human workspaces (full clones)
-    └── polecats/               Polecats parent
-        └── <name>/<rigname>/   Worker worktrees from mayor/rig
+    └── agents/               Agents parent
+        └── <name>/<featurename>/   Worker worktrees from product manager/feature
 ```
 
 **Note**: No per-directory CLAUDE.md or AGENTS.md is created. Only `~/gt/CLAUDE.md`
@@ -134,20 +134,20 @@ via SessionStart hook.
 
 ### Worktree Architecture
 
-Polecats and refinery are git worktrees, not full clones. This enables fast spawning
-and shared object storage. The worktree base is `mayor/rig`:
+Agents and release engineer are git worktrees, not full clones. This enables fast spawning
+and shared object storage. The worktree base is `product manager/feature`:
 
 ```go
-// From polecat/manager.go - worktrees are based on mayor/rig
-git worktree add -b polecat/<name>-<timestamp> polecats/<name>
+// From agent/manager.go - worktrees are based on product manager/feature
+git worktree add -b agent/<name>-<timestamp> agents/<name>
 ```
 
-Crew workspaces (`crew/<name>/`) are full git clones for human developers who need
-independent repos. Polecat sessions are ephemeral and benefit from worktree efficiency.
+Engineers workspaces (`engineers/<name>/`) are full git clones for human developers who need
+independent repos. Agent sessions are ephemeral and benefit from worktree efficiency.
 
 ## Storage Layer: Dolt SQL Server
 
-All beads data is stored in a single Dolt SQL Server process per town. There is
+All tickets data is stored in a single Dolt SQL Server process per town. There is
 no embedded Dolt fallback — if the server is down, `bd` fails fast with a clear
 error pointing to `gt dolt start`.
 
@@ -160,10 +160,10 @@ error pointing to `gt dolt start`.
            │ MySQL protocol
     ┌──────┼──────┬──────────┐
     │      │      │          │
-  USE hq  USE gastown  USE beads  ...
+  USE hq  USE gastown  USE tickets  ...
 ```
 
-Each rig database is a subdirectory under `.dolt-data/`. The daemon monitors
+Each feature database is a subdirectory under `.dolt-data/`. The daemon monitors
 the server on every heartbeat and auto-restarts on crash.
 
 For write concurrency, all agents write directly to `main` using transaction
@@ -172,40 +172,40 @@ branch proliferation and ensures immediate cross-agent visibility.
 
 See [dolt-storage.md](dolt-storage.md) for full details.
 
-## Beads Routing
+## Tickets Routing
 
-The `routes.jsonl` file maps issue ID prefixes to rig locations (relative to town root):
+The `routes.jsonl` file maps ticket ID prefixes to feature locations (relative to town root):
 
 ```jsonl
 {"prefix":"hq-","path":"."}
-{"prefix":"gt-","path":"gastown/mayor/rig"}
-{"prefix":"bd-","path":"beads/mayor/rig"}
+{"prefix":"gt-","path":"gastown/product manager/feature"}
+{"prefix":"bd-","path":"tickets/product manager/feature"}
 ```
 
-Routes point to `mayor/rig` because that's where the canonical `.beads/` lives.
-This enables transparent cross-rig beads operations:
+Routes point to `product manager/feature` because that's where the canonical `.tickets/` lives.
+This enables transparent cross-feature tickets operations:
 
 ```bash
-bd show hq-mayor    # Routes to town beads (~/.gt/.beads)
-bd show gt-xyz      # Routes to gastown/mayor/rig/.beads
+bd show hq-product manager    # Routes to town tickets (~/.gt/.tickets)
+bd show gt-xyz      # Routes to gastown/product manager/feature/.tickets
 ```
 
-## Beads Redirects
+## Tickets Redirects
 
-Worktrees (polecats, refinery, crew) don't have their own beads databases. Instead,
-they use a `.beads/redirect` file that points to the canonical beads location:
+Worktrees (agents, release engineer, engineers) don't have their own tickets databases. Instead,
+they use a `.tickets/redirect` file that points to the canonical tickets location:
 
 ```
-polecats/alpha/.beads/redirect → ../../mayor/rig/.beads
-refinery/rig/.beads/redirect   → ../../mayor/rig/.beads
+agents/alpha/.tickets/redirect → ../../product manager/feature/.tickets
+release engineer/feature/.tickets/redirect   → ../../product manager/feature/.tickets
 ```
 
-`ResolveBeadsDir()` follows redirect chains (max depth 3) with circular detection.
-This ensures all agents in a rig share a single beads database via the Dolt server.
+`ResolveTicketsDir()` follows redirect chains (max depth 3) with circular detection.
+This ensures all agents in a feature share a single tickets database via the Dolt server.
 
 ## Merge Queue: Batch-then-Bisect
 
-The refinery processes MRs through a batch-then-bisect merge queue (Bors-style).
+The release engineer processes MRs through a batch-then-bisect merge queue (Bors-style).
 This is a core capability, not a pluggable strategy.
 
 ### How It Works
@@ -226,46 +226,46 @@ If FAIL:      Binary bisect → test B (midpoint)
 
 ### Implementation Phases
 
-| Phase | Bead | What | Status |
+| Phase | Ticket | What | Status |
 |-------|------|------|--------|
 | 1: GatesParallel | gt-8b2i | Run test + lint concurrently per MR | In progress |
 | 2: Batch-then-bisect | gt-i2vm | Bors-style batching with binary bisect | Blocked by Phase 1 |
-| 3: Pre-verification | gt-lu84 | Polecats run tests before MR submission | Blocked by Phase 2 |
+| 3: Pre-verification | gt-lu84 | Agents run tests before MR submission | Blocked by Phase 2 |
 
 Gates (test command, lint, etc.) are pluggable. The batching strategy is core.
 
 Design doc: produced by gt-yxx0 review.
 
-## Polecat Lifecycle: Self-Managed Completion
+## Agent Lifecycle: Self-Managed Completion
 
-Polecats manage their own lifecycle end-to-end. The Witness observes but does NOT
-gate completion. This prevents the Witness from becoming a bottleneck.
+Agents manage their own lifecycle end-to-end. The QA Engineer observes but does NOT
+gate completion. This prevents the QA Engineer from becoming a bottleneck.
 
-### Polecat Completion Flow
+### Agent Completion Flow
 
 ```
-Polecat finishes work
+Agent finishes work
   → Push branch to remote
   → Submit MR (bd update --mr-ready)
-  → Update bead status
+  → Update ticket status
   → Tear down worktree
   → Go idle (available for next assignment)
 ```
 
-The Witness monitors for stuck/zombie polecats (no activity for extended period)
-and nudges or escalates. It does NOT process completion — that's the polecat's job.
+The QA Engineer monitors for stuck/zombie agents (no activity for extended period)
+and nudges or escalates. It does NOT process completion — that's the agent's job.
 
-Design bead: gt-0wkk.
+Design ticket: gt-0wkk.
 
 ## Data Plane Lifecycle
 
-All beads data flows through a six-stage lifecycle managed by Dogs:
+All tickets data flows through a six-stage lifecycle managed by Dogs:
 
 ```
 CREATE → LIVE → CLOSE → DECAY → COMPACT → FLATTEN
   │        │       │        │        │          │
   Dolt   active   done   DELETE   REBASE     SQUASH
-  commit  work    bead    rows    commits    all history
+  commit  work    ticket    rows    commits    all history
                          >7-30d  together   to 1 commit
 ```
 
@@ -276,26 +276,26 @@ See [dolt-storage.md](dolt-storage.md) for full details.
 
 ## Deployment Artifacts
 
-Gas Town and Beads are distributed through multiple channels. Tag pushes (`v*`)
-trigger GitHub Actions release workflows that build and publish everything.
+Gas Town and Tickets are distributed through multiple channels. Tag pushes (`v*`)
+tfeatureger GitHub Actions release workflows that build and publish everything.
 
 ### Gas Town (`gt`)
 
-| Channel | Artifact | Trigger |
+| Channel | Artifact | Tfeatureger |
 |---------|----------|---------|
 | **GitHub Releases** | Platform binaries (darwin/linux/windows, amd64/arm64) + checksums | GoReleaser on tag push |
 | **Homebrew** | `brew install steveyegge/gastown/gt` — formula auto-updated on release | `update-homebrew` job pushes to `steveyegge/homebrew-gastown` |
 | **npm** | `npx @gastown/gt` — wrapper that downloads the correct binary | OIDC trusted publishing (no token) |
 | **Local build** | `go build -o $(go env GOPATH)/bin/gt ./cmd/gt` | Manual |
 
-### Beads (`bd`)
+### Tickets (`bd`)
 
-| Channel | Artifact | Trigger |
+| Channel | Artifact | Tfeatureger |
 |---------|----------|---------|
 | **GitHub Releases** | Platform binaries + checksums | GoReleaser on tag push |
-| **Homebrew** | `brew install steveyegge/beads/bd` | `update-homebrew` job |
-| **npm** | `npx @beads/bd` — wrapper that downloads the correct binary | OIDC trusted publishing (no token) |
-| **PyPI** | `beads-mcp` — MCP server integration | `publish-pypi` job with `PYPI_API_TOKEN` secret |
+| **Homebrew** | `brew install steveyegge/tickets/bd` | `update-homebrew` job |
+| **npm** | `npx @tickets/bd` — wrapper that downloads the correct binary | OIDC trusted publishing (no token) |
+| **PyPI** | `tickets-mcp` — MCP server integration | `publish-pypi` job with `PYPI_API_TOKEN` secret |
 | **Local build** | `go build -o $(go env GOPATH)/bin/bd ./cmd/bd` | Manual |
 
 ### npm Authentication
@@ -328,9 +328,9 @@ are NOT embedded (and require `gt doctor` or `gt upgrade` to update):
 
 ## Role Directives and Formula Overlays
 
-Operators can customize agent behavior at the town or rig level without
+Operators can customize agent behavior at the town or feature level without
 modifying the Go binary or embedded templates. This follows the property layer
-model (rig > town > system) and the hooks override precedent.
+model (feature > town > system) and the hooks override precedent.
 
 ### Role Directives
 
@@ -339,11 +339,11 @@ before context files and handoff content. Operator policy that overrides formula
 instructions where they conflict.
 
 ```
-~/gt/directives/<role>.md              # Town-level (all rigs)
-~/gt/<rig>/directives/<role>.md        # Rig-level
+~/gt/directives/<role>.md              # Town-level (all features)
+~/gt/<feature>/directives/<role>.md        # Feature-level
 ```
 
-Both levels concatenate (rig content appears last and wins conflicts).
+Both levels concatenate (feature content appears last and wins conflicts).
 Implemented in `internal/config/directives.go` (`LoadRoleDirective`),
 integrated via `outputRoleDirectives()` in `internal/cmd/prime_output.go`.
 
@@ -354,10 +354,10 @@ rendering in `showFormulaStepsFull()`.
 
 ```
 ~/gt/formula-overlays/<formula>.toml   # Town-level
-~/gt/<rig>/formula-overlays/<formula>.toml  # Rig-level (full precedence)
+~/gt/<feature>/formula-overlays/<formula>.toml  # Feature-level (full precedence)
 ```
 
-Rig-level overlays fully replace town-level (not merged). Three override modes:
+Feature-level overlays fully replace town-level (not merged). Three override modes:
 
 | Mode | Effect |
 |------|--------|

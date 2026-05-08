@@ -17,7 +17,7 @@ Consensus and model-aware molecules are **complementary layers** that share the 
 | **Pattern** | Fan-out | DAG routing |
 | **Shape** | Same prompt → N agents → compare | N steps → best model per step |
 | **Session infra** | `GT_AGENT` + `AgentPresetInfo` readiness | Same — reused, not rebuilt |
-| **Routing goal** | Diversity (multiple perspectives) | Optimality (right model for each step) |
+| **Routing goal** | Diversity (multiple perspectives) | Optimality (featureht model for each step) |
 
 The provider resolution pipeline that Consensus v2 established — `GT_AGENT` env lookup → `AgentPresetInfo` → readiness detection (prompt polling or delay fallback) — is exactly the session awareness the molecule router needs for dispatch. See §5.3 (Two-Phase Routing).
 
@@ -259,7 +259,7 @@ type RoutingDecision struct {
     SWEScore     float64
 
     // Session resolution (Phase 2) — nil when no live session found
-    SessionID    string   // tmux session name, e.g. "gt-gastown-polecat-Toast"
+    SessionID    string   // tmux session name, e.g. "gt-gastown-agent-Toast"
     AgentPreset  string   // resolved GT_AGENT value, e.g. "claude", "gemini"
 }
 

@@ -20,8 +20,8 @@ severity = "medium"
 # Compactor Dog
 
 Monitors Dolt commit growth across all production databases and escalates to
-the Mayor when history compaction or flatten is needed. This is a judgment
-call, not a hard threshold trigger.
+the Product Manager when history compaction or flatten is needed. This is a judgment
+call, not a hard threshold tfeatureger.
 
 **You are a dog agent (Claude). Gather the data below, then use your judgment
 to decide if maintenance is needed.** Consider:
@@ -29,7 +29,7 @@ to decide if maintenance is needed.** Consider:
 - Commit count per DB (absolute size)
 - Growth rate (commits per hour since last check)
 - Time since last flatten or compaction
-- Current swarm activity (more polecats = faster growth)
+- Current swarm activity (more agents = faster growth)
 - Whether growth is "normal busy" or "runaway"
 
 ## Config
@@ -53,7 +53,7 @@ PROD_DBS=$(dolt sql -q "SHOW DATABASES" \
   --host "$DOLT_HOST" --port "$DOLT_PORT" -u "$DOLT_USER" \
   --result-format csv 2>/dev/null \
   | tail -n +2 \
-  | grep -v -E '^(information_schema|mysql|dolt_cluster|testdb_|beads_t|beads_pt|doctest_)' \
+  | grep -v -E '^(information_schema|mysql|dolt_cluster|testdb_|tickets_t|tickets_pt|doctest_)' \
   | tr -d '\r')
 
 if [ -z "$PROD_DBS" ]; then
@@ -115,7 +115,7 @@ echo "Total commits across all DBs: $TOTAL_COMMITS"
 
 ## Step 3: Check swarm activity
 
-Count active polecats and dogs to gauge expected commit velocity:
+Count active agents and dogs to gauge expected commit velocity:
 
 ```bash
 echo ""
@@ -123,12 +123,12 @@ echo "=== Swarm Activity ==="
 
 # Count active tmux sessions (proxy for agent activity)
 POLECAT_SESSIONS=$(tmux list-sessions -F '#{session_name}' 2>/dev/null \
-  | grep -c 'polecat\|pcat' || echo 0)
+  | grep -c 'agent\|pcat' || echo 0)
 DOG_SESSIONS=$(tmux list-sessions -F '#{session_name}' 2>/dev/null \
   | grep -c 'dog' || echo 0)
 TOTAL_SESSIONS=$(tmux list-sessions 2>/dev/null | wc -l | tr -d ' ')
 
-echo "  Active polecats: $POLECAT_SESSIONS"
+echo "  Active agents: $POLECAT_SESSIONS"
 echo "  Active dogs: $DOG_SESSIONS"
 echo "  Total sessions: $TOTAL_SESSIONS"
 ```
@@ -149,7 +149,7 @@ else
   LAST_CHECK="{}"
 fi
 
-# Check for recent compactor-dog or flatten runs in beads
+# Check for recent compactor-dog or flatten runs in tickets
 RECENT_RUNS=$(bd list --label plugin:compactor-dog --status closed --json 2>/dev/null \
   | jq -r '.[0].created_at // "never"' 2>/dev/null || echo "unknown")
 echo "  Last compactor run: $RECENT_RUNS"
@@ -182,7 +182,7 @@ cat > "$STATE_FILE" << STATEOF
 {
   "checked_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "total_commits": $TOTAL_COMMITS,
-  "active_polecats": $POLECAT_SESSIONS,
+  "active_agents": $POLECAT_SESSIONS,
   "active_dogs": $DOG_SESSIONS
 }
 STATEOF
@@ -206,7 +206,7 @@ gathered above and decide whether to escalate.
 | Time since flatten | <2 weeks | 2-4 weeks | >4 weeks |
 
 **But override the table if context warrants it:**
-- 400 commits after a 10-polecat swarm = normal, will settle
+- 400 commits after a 10-agent swarm = normal, will settle
 - 200 commits growing at 50/hr with no swarm = something's wrong
 - Any DB over 1000 commits = escalate regardless
 
@@ -219,7 +219,7 @@ gt escalate "Dolt compaction recommended" \
 $REPORT
 
 Total: $TOTAL_COMMITS commits across all DBs
-Active polecats: $POLECAT_SESSIONS
+Active agents: $POLECAT_SESSIONS
 Recommendation: Run compaction on databases exceeding comfort threshold.
 See dolt-storage.md for procedure."
 ```
@@ -233,7 +233,7 @@ echo "All databases within comfortable commit ranges. No action needed."
 ## Record Result
 
 ```bash
-SUMMARY="Compactor check: $TOTAL_COMMITS total commits across $(echo "$PROD_DBS" | wc -l | tr -d ' ') DBs, $POLECAT_SESSIONS active polecats"
+SUMMARY="Compactor check: $TOTAL_COMMITS total commits across $(echo "$PROD_DBS" | wc -l | tr -d ' ') DBs, $POLECAT_SESSIONS active agents"
 echo "=== $SUMMARY ==="
 ```
 
@@ -248,7 +248,7 @@ On escalation:
 ```bash
 bd create "compactor-dog: ESCALATED - $SUMMARY" -t chore --ephemeral \
   -l type:plugin-run,plugin:compactor-dog,result:warning \
-  -d "Escalated to Mayor for compaction. $SUMMARY" --silent 2>/dev/null || true
+  -d "Escalated to Product Manager for compaction. $SUMMARY" --silent 2>/dev/null || true
 ```
 
 On failure:

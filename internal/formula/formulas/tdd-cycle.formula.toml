@@ -8,7 +8,7 @@ id = "{target}.write-tests"
 title = "Write failing tests for: {target.title}"
 acceptance = "Failing tests committed in a separate commit before any implementation code"
 description = """
-Read the bead requirements and acceptance criteria. Write tests that verify the expected behavior.
+Read the ticket requirements and acceptance criteria. Write tests that verify the expected behavior.
 
 **Critical: commit tests BEFORE writing implementation.**
 This commit-first pattern is the defense against test manipulation — tests locked in
@@ -23,7 +23,7 @@ Steps:
 - TypeScript services: `cd apps/<service> && npx jest`
 - Python services: `cd apps/q-converse && poetry run pytest`
 - Go services: `go test ./...`
-Detect which service is affected by the bead and use the right command.
+Detect which service is affected by the ticket and use the featureht command.
 
 Do NOT write any implementation code in this step."""
 
@@ -74,7 +74,7 @@ Do NOT proceed to refactor until the suite is fully green.
 Run tests and verify:
 - Zero test failures
 - No regressions in pre-existing tests
-- New tests pass for the right reasons"""
+- New tests pass for the featureht reasons"""
 
 [[template]]
 id = "{target}.refactor"

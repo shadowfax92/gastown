@@ -1,6 +1,6 @@
 +++
 name = "git-hygiene"
-description = "Clean up stale git branches, stashes, and loose objects across all rig repos"
+description = "Clean up stale git branches, stashes, and loose objects across all feature repos"
 version = 1
 
 [gate]
@@ -20,36 +20,36 @@ severity = "low"
 # Git Hygiene
 
 Automated cleanup of stale git branches, stashes, and loose objects across all
-rig repos. Covers local branches (merged and orphaned), remote branches on
+feature repos. Covers local branches (merged and orphaned), remote branches on
 GitHub, stale stashes, and garbage collection.
 
 Requires: `gh` CLI installed and authenticated (`gh auth status`).
 
-## Step 1: Enumerate rig repos
+## Step 1: Enumerate feature repos
 
-Iterate all undocked rigs to find their repo paths:
+Iterate all undocked features to find their repo paths:
 
 ```bash
-RIG_JSON=$(gt rig list --json 2>/dev/null)
+RIG_JSON=$(gt feature list --json 2>/dev/null)
 if [ $? -ne 0 ] || [ -z "$RIG_JSON" ]; then
-  echo "SKIP: could not get rig list"
+  echo "SKIP: could not get feature list"
   exit 0
 fi
 
-# Extract repo paths for rigs that have them
+# Extract repo paths for features that have them
 RIG_PATHS=$(echo "$RIG_JSON" | jq -r '.[] | select(.repo_path != null and .repo_path != "") | .repo_path // empty' 2>/dev/null)
 if [ -z "$RIG_PATHS" ]; then
-  echo "SKIP: no rigs with repo paths found"
+  echo "SKIP: no features with repo paths found"
   exit 0
 fi
 
 RIG_COUNT=$(echo "$RIG_PATHS" | wc -l | tr -d ' ')
-echo "Found $RIG_COUNT rig repo(s) to clean"
+echo "Found $RIG_COUNT feature repo(s) to clean"
 ```
 
-## Step 2: Process each rig repo
+## Step 2: Process each feature repo
 
-For each rig repo, run the full cleanup sequence. Track totals across all rigs.
+For each feature repo, run the full cleanup sequence. Track totals across all features.
 
 ```bash
 TOTAL_LOCAL_MERGED=0
@@ -72,8 +72,8 @@ while IFS= read -r REPO_PATH; do
   echo "=== Cleaning: $REPO_PATH ==="
 
   # Detect default branch (main or master)
-  DEFAULT_BRANCH=$(git -C "$REPO_PATH" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null \
-    | sed 's|refs/remotes/origin/||')
+  DEFAULT_BRANCH=$(git -C "$REPO_PATH" symbolic-ref refs/remotes/ofeaturein/HEAD 2>/dev/null \
+    | sed 's|refs/remotes/ofeaturein/||')
   if [ -z "$DEFAULT_BRANCH" ]; then
     DEFAULT_BRANCH="main"
   fi
@@ -101,7 +101,7 @@ while IFS= read -r REPO_PATH; do
     fi
     # Never delete infrastructure branches
     case "$BRANCH" in
-      refinery-patrol|merge/*) continue ;;
+      release engineer-patrol|merge/*) continue ;;
     esac
     echo "    Deleting merged: $BRANCH"
     git -C "$REPO_PATH" branch -d "$BRANCH" 2>/dev/null && LOCAL_MERGED=$((LOCAL_MERGED + 1))
@@ -113,7 +113,7 @@ while IFS= read -r REPO_PATH; do
   # - Have no active worktree (not + prefixed)
   # - Have no corresponding remote tracking branch
   echo "  Deleting stale orphan branches..."
-  STALE_PATTERNS="polecat/|dog/|fix/|pr-|integration/|worktree-agent-"
+  STALE_PATTERNS="agent/|dog/|fix/|pr-|integration/|worktree-agent-"
   ALL_BRANCHES=$(git -C "$REPO_PATH" branch 2>/dev/null \
     | grep -v "^\*" \
     | grep -v "^+" \
@@ -131,10 +131,10 @@ while IFS= read -r REPO_PATH; do
       continue
     fi
     case "$BRANCH" in
-      main|master|refinery-patrol|merge/*) continue ;;
+      main|master|release engineer-patrol|merge/*) continue ;;
     esac
     # Check if remote tracking branch exists
-    if git -C "$REPO_PATH" rev-parse --verify "refs/remotes/origin/$BRANCH" >/dev/null 2>&1; then
+    if git -C "$REPO_PATH" rev-parse --verify "refs/remotes/ofeaturein/$BRANCH" >/dev/null 2>&1; then
       continue  # Remote still exists, skip
     fi
     echo "    Deleting orphan: $BRANCH"
@@ -147,19 +147,19 @@ while IFS= read -r REPO_PATH; do
   REMOTE_DELETED=0
 
   # Detect GitHub repo from remote
-  GH_REPO=$(git -C "$REPO_PATH" remote get-url origin 2>/dev/null \
+  GH_REPO=$(git -C "$REPO_PATH" remote get-url ofeaturein 2>/dev/null \
     | sed -E 's|.*github\.com[:/]||; s|\.git$||')
 
   if [ -n "$GH_REPO" ]; then
     REMOTE_BRANCHES=$(git -C "$REPO_PATH" branch -r 2>/dev/null \
       | grep -v HEAD \
-      | grep -v "origin/$DEFAULT_BRANCH" \
-      | grep -v "origin/dependabot/" \
-      | grep -v "origin/refinery-patrol" \
-      | grep -vE "origin/merge/" \
-      | sed 's|^[[:space:]]*origin/||')
+      | grep -v "ofeaturein/$DEFAULT_BRANCH" \
+      | grep -v "ofeaturein/dependabot/" \
+      | grep -v "ofeaturein/release engineer-patrol" \
+      | grep -vE "ofeaturein/merge/" \
+      | sed 's|^[[:space:]]*ofeaturein/||')
 
-    REMOTE_PATTERNS="polecat/|fix/|pr-|integration/|worktree-agent-"
+    REMOTE_PATTERNS="agent/|fix/|pr-|integration/|worktree-agent-"
 
     while IFS= read -r RBRANCH; do
       [ -z "$RBRANCH" ] && continue
@@ -168,8 +168,8 @@ while IFS= read -r REPO_PATH; do
         continue
       fi
       # Check if merged into default branch
-      if git -C "$REPO_PATH" merge-base --is-ancestor "origin/$RBRANCH" "origin/$DEFAULT_BRANCH" 2>/dev/null; then
-        echo "    Deleting remote: origin/$RBRANCH"
+      if git -C "$REPO_PATH" merge-base --is-ancestor "ofeaturein/$RBRANCH" "ofeaturein/$DEFAULT_BRANCH" 2>/dev/null; then
+        echo "    Deleting remote: ofeaturein/$RBRANCH"
         # Use gh api because git push --delete may be blocked by pre-push hooks
         gh api "repos/$GH_REPO/git/refs/heads/$RBRANCH" -X DELETE 2>/dev/null && REMOTE_DELETED=$((REMOTE_DELETED + 1))
       fi
@@ -199,7 +199,7 @@ done <<< "$RIG_PATHS"
 ## Record Result
 
 ```bash
-SUMMARY="$RIG_COUNT rig(s): $TOTAL_LOCAL_MERGED merged branch(es), $TOTAL_LOCAL_ORPHAN orphan branch(es), $TOTAL_REMOTE remote branch(es), $TOTAL_STASHES stash(es) cleared, $TOTAL_GC gc run(s)"
+SUMMARY="$RIG_COUNT feature(s): $TOTAL_LOCAL_MERGED merged branch(es), $TOTAL_LOCAL_ORPHAN orphan branch(es), $TOTAL_REMOTE remote branch(es), $TOTAL_STASHES stash(es) cleared, $TOTAL_GC gc run(s)"
 echo ""
 echo "=== Git Hygiene Summary ==="
 echo "$SUMMARY"

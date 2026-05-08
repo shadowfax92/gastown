@@ -1,7 +1,7 @@
 ---
-name: crew-commit
+name: engineers-commit
 description: >
-  Canonical commit workflow for Gas Town crew members: pre-flight checks,
+  Canonical commit workflow for Gas Town engineers members: pre-flight checks,
   branch creation, gt commit with agent identity, push, and PR creation.
   Use when ready to commit and submit work for review.
 allowed-tools: "Bash(git *), Bash(gt *), Bash(gh *)"
@@ -9,18 +9,18 @@ version: "1.0.0"
 author: "Gas Town"
 ---
 
-# Crew Commit — Canonical Git Workflow
+# Engineers Commit — Canonical Git Workflow
 
-This skill guides crew members through the standard Gas Town commit workflow:
+This skill guides engineers members through the standard Gas Town commit workflow:
 pre-flight → branch → stage → commit → push → PR.
 
-> **⚠️ NEVER commit directly to `main`.** All crew work goes through branches
-> and pull requests. The Refinery handles merges to main.
+> **⚠️ NEVER commit directly to `main`.** All engineers work goes through branches
+> and pull requests. The Release Engineer handles merges to main.
 
 ## Usage
 
 ```
-/crew-commit
+/engineers-commit
 ```
 
 Run this when you have changes ready to commit. The skill walks you through
@@ -30,11 +30,11 @@ each step in order.
 
 ## Step 1: Pre-flight Checks
 
-Before touching anything, sync with origin and verify your state.
+Before touching anything, sync with ofeaturein and verify your state.
 
 ```bash
-# Fetch latest from origin
-git fetch origin
+# Fetch latest from ofeaturein
+git fetch ofeaturein
 
 # Check current branch and status
 git status
@@ -43,10 +43,10 @@ git branch --show-current
 # If you're on main, STOP — create a branch first (Step 2)
 ```
 
-**If you're behind origin/main**, rebase now:
+**If you're behind ofeaturein/main**, rebase now:
 
 ```bash
-git rebase origin/main
+git rebase ofeaturein/main
 ```
 
 If there are conflicts, resolve them carefully before proceeding.
@@ -72,8 +72,8 @@ Types:
 # Create and switch to feature branch
 git checkout -b feat/my-feature-description
 
-# Or use the crew/<name> prefix for crew-specific branches
-git checkout -b crew/<your-name>/description
+# Or use the engineers/<name> prefix for engineers-specific branches
+git checkout -b engineers/<your-name>/description
 ```
 
 ---
@@ -81,7 +81,7 @@ git checkout -b crew/<your-name>/description
 ## Step 3: Submodule Warning
 
 **Check for submodules before staging.** Accidentally committing a submodule
-pointer change causes cascading failures for other crew members.
+pointer change causes cascading failures for other engineers members.
 
 ```bash
 # Check if repo has submodules
@@ -149,18 +149,18 @@ EOF
 ```
 feat: add retry logic to webhook delivery
 fix: prevent nil pointer when session token expires
-docs: clarify crew commit workflow in CONTRIBUTING.md
+docs: clarify engineers commit workflow in CONTRIBUTING.md
 ```
 
 ---
 
-## Step 6: Push Branch to Origin
+## Step 6: Push Branch to Ofeaturein
 
 ```bash
-git push origin <your-branch-name>
+git push ofeaturein <your-branch-name>
 
 # Or, if branch doesn't exist on remote yet:
-git push -u origin <your-branch-name>
+git push -u ofeaturein <your-branch-name>
 ```
 
 ---
@@ -203,12 +203,12 @@ notify "PR ready: <brief description> — #<PR number>"
 
 ## Completion Checklist
 
-- [ ] Synced with origin/main (git fetch + rebase)
+- [ ] Synced with ofeaturein/main (git fetch + rebase)
 - [ ] On a feature branch (NOT main)
 - [ ] Submodules NOT accidentally staged
 - [ ] Specific files staged (no secrets, no debug code)
 - [ ] Used `gt commit` (not `git commit`)
-- [ ] Branch pushed to origin
+- [ ] Branch pushed to ofeaturein
 - [ ] PR created via `gh pr create`
 
 ---
@@ -217,7 +217,7 @@ notify "PR ready: <brief description> — #<PR number>"
 
 | ❌ Don't | ✅ Do instead |
 |----------|--------------|
-| `git push origin main` | Push feature branch, create PR |
+| `git push ofeaturein main` | Push feature branch, create PR |
 | `git commit` directly | `gt commit` (sets agent identity) |
 | `git add .` blindly | Stage specific files, verify with `git status` |
 | Include `shared/` or `config/` without intent | Check `git submodule status` first |
@@ -229,6 +229,6 @@ notify "PR ready: <brief description> — #<PR number>"
 ## If You Get Stuck
 
 - **Rebase conflicts**: resolve carefully, then `git rebase --continue`
-- **Pushed wrong branch**: ask before force-pushing; usually `git push origin <branch>` is fine
+- **Pushed wrong branch**: ask before force-pushing; usually `git push ofeaturein <branch>` is fine
 - **Need to undo last commit**: `git reset HEAD~1` (keeps changes staged)
 - **Committed to main by mistake**: stop immediately, ask for help

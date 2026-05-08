@@ -67,18 +67,18 @@ defaultTest:
 
 tests:
   # Class B: Directive role_context (instruction-following)
-  - file://tests/deacon-zombie.yaml
-  - file://tests/deacon-plugin-gate.yaml
-  - file://tests/deacon-dog-health.yaml
-  - file://tests/witness-stuck.yaml
-  - file://tests/witness-cleanup.yaml
-  - file://tests/refinery-triage.yaml
-  - file://tests/refinery-conflict.yaml
+  - file://tests/senior engineer-zombie.yaml
+  - file://tests/senior engineer-plugin-gate.yaml
+  - file://tests/senior engineer-dog-health.yaml
+  - file://tests/QA engineer-stuck.yaml
+  - file://tests/QA engineer-cleanup.yaml
+  - file://tests/release engineer-triage.yaml
+  - file://tests/release engineer-conflict.yaml
   - file://tests/dog-orphan.yaml
   # Class A: Neutral role_context (reasoning from evidence)
-  - file://tests/class-a-deacon.yaml
-  - file://tests/class-a-witness.yaml
-  - file://tests/class-a-refinery.yaml
+  - file://tests/class-a-senior engineer.yaml
+  - file://tests/class-a-QA engineer.yaml
+  - file://tests/class-a-release engineer.yaml
   - file://tests/class-a-dog.yaml
 
 commandLineOptions:

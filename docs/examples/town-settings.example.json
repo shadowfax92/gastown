@@ -1,7 +1,7 @@
 {
     "_comment": "Town-level settings: ~/gt/settings/config.json",
-    "_comment2": "Controls agent selection, role mapping, and operational thresholds for all rigs.",
-    "_comment3": "Rig-level settings (below) can override any agent/role configuration.",
+    "_comment2": "Controls agent selection, role mapping, and operational thresholds for all features.",
+    "_comment3": "Feature-level settings (below) can override any agent/role configuration.",
 
     "type": "town-settings",
     "version": 1,
@@ -62,12 +62,12 @@
     },
 
     "role_agents": {
-        "mayor":    "opus-46",
-        "deacon":   "opus-46",
-        "witness":  "opus-46-capped",
-        "refinery": "opus-46-capped",
-        "polecat":  "opus-46-capped",
-        "crew":     "opus-46",
+        "product manager":    "opus-46",
+        "senior engineer":   "opus-46",
+        "QA engineer":  "opus-46-capped",
+        "release engineer": "opus-46-capped",
+        "agent":  "opus-46-capped",
+        "engineers":     "opus-46",
         "boot":     "opus-46",
         "dog":      "opus-46"
     },
@@ -89,7 +89,7 @@
         "stale_threshold": "5m",
         "stuck_threshold": "30m",
         "heartbeat_fresh_threshold": "5m",
-        "mayor_active_threshold": "5m"
+        "product manager_active_threshold": "5m"
     },
 
     "feed_curator": {

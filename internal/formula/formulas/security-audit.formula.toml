@@ -8,7 +8,7 @@ target = "implement"
 [advice.around]
 
 [[advice.around.after]]
-description = "Post-implementation security scan. Scan new code for vulnerabilities (SAST). Check for hardcoded secrets. Review for OWASP Top 10 issues."
+description = "Post-implementation security scan. Scan new code for vulnerabilities (SAST). Check for hardcoded secrets. Review for OWASP Top 10 tickets."
 id = "{step.id}-security-postscan"
 title = "Security postscan for {step.id}"
 

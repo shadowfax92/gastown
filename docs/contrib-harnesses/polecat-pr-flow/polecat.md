@@ -1,20 +1,20 @@
-## PR-Flow Polecat Policy
+## PR-Flow Agent Policy
 
-> **Rig Policy — overrides formula instructions where they conflict.**
+> **Feature Policy — overrides formula instructions where they conflict.**
 
-This rig uses a **polecat → GitHub PR → human review** flow. After pushing
+This feature uses a **agent → GitHub PR → human review** flow. After pushing
 your branch, you MUST ensure a GitHub PR is open for it before running
 `gt done`.
 
-This overrides the canonical Refinery merge-queue assumption embedded in
-`mol-polecat-work`. `gt done` is still the completion signal — but in this
-rig, a visible PR is the gating artifact for review.
+This overrides the canonical Release Engineer merge-queue assumption embedded in
+`mol-agent-work`. `gt done` is still the completion signal — but in this
+feature, a visible PR is the gating artifact for review.
 
 ### Required steps after implementation
 
 1. Push the branch explicitly (do not rely on `gt done` to push):
    ```bash
-   git push -u origin HEAD
+   git push -u ofeaturein HEAD
    ```
 2. Check whether a PR already exists for the branch:
    ```bash
@@ -35,10 +35,10 @@ rig, a visible PR is the gating artifact for review.
 ### If `gh` commands fail
 
 Auth, rate-limit, missing PR template, or unknown base branch — do NOT skip
-PR creation to unblock yourself. Escalate to your Witness:
+PR creation to unblock yourself. Escalate to your QA Engineer:
 
 ```bash
-gt mail send <rig>/witness -s "HELP: gh pr create failed" -m "Branch: $(git branch --show-current)
+gt mail send <feature>/QA engineer -s "HELP: gh pr create failed" -m "Branch: $(git branch --show-current)
 Error: <paste>
 Tried: <what you attempted>"
 ```

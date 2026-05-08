@@ -1,33 +1,33 @@
 description = """
-Self-test formula run by a polecat to validate its own Gas Town integration.
+Self-test formula run by a agent to validate its own Gas Town integration.
 
-When slung to a rig, the polecat verifies that it received correct Gas Town
+When slung to a feature, the agent verifies that it received correct Gas Town
 context injection, has work on its hook, can use Gas Town CLI tools, confirms
-mail delivery by replying to the mayor, and executes a test task.
+mail delivery by replying to the product manager, and executes a test task.
 
-## Prerequisites (Mayor / Overseer)
+## Prerequisites (Product Manager / Overseer)
 
 Before slinging this formula, configure the target agent:
 
-**1. Set the polecat agent in town settings** (`~/gt/settings/config.json`):
+**1. Set the agent agent in town settings** (`~/gt/settings/config.json`):
 ```json
 {
     "role_agents": {
-        "polecat": "pi"
+        "agent": "pi"
     }
 }
 ```
 
-Or override at rig level (`~/gt/<rig>/settings/config.json`):
+Or override at feature level (`~/gt/<feature>/settings/config.json`):
 ```json
 {
     "role_agents": {
-        "polecat": "pi"
+        "agent": "pi"
     }
 }
 ```
 
-See `docs/examples/town-settings.example.json` and `docs/examples/rig-settings.example.json`
+See `docs/examples/town-settings.example.json` and `docs/examples/feature-settings.example.json`
 for full configuration examples.
 
 **2. Ensure agent authentication is configured:**
@@ -42,77 +42,77 @@ which pi       # Should resolve to ~/.bun/bin/pi
 which claude   # Should resolve to ~/.local/bin/claude
 ```
 
-**4. Clean up stale beads before slinging:**
-Polecat names are recycled from the namepool. If a previous polecat with the
-same name left beads in HOOKED or IN_PROGRESS state, the new polecat will pick
+**4. Clean up stale tickets before slinging:**
+Agent names are recycled from the namepool. If a previous agent with the
+same name left tickets in HOOKED or IN_PROGRESS state, the new agent will pick
 those up instead of the formula wisps.
 
 ```bash
 # Check what name will be allocated (or sling and note the name)
-# Then close any stale beads assigned to that polecat:
-bd list --status=open --assignee=sfgastown/polecats/<name> 2>/dev/null
+# Then close any stale tickets assigned to that agent:
+bd list --status=open --assignee=sfgastown/agents/<name> 2>/dev/null
 # Close any that appear:
-bd close <stale-id> --reason "stale bead from previous polecat session"
+bd close <stale-id> --reason "stale ticket from previous agent session"
 ```
 
-**5. Sling and run the mayor-side validation protocol:**
+**5. Sling and run the product manager-side validation protocol:**
 
 `gt sling` "cooks" the formula: it reads the [[steps]] below, creates a parent
-epic bead (the formula itself) with one child wisp per step, wires up the
-dependency chain from the `needs` fields, hooks the epic to a fresh polecat,
-and nudges it to start. The polecat then autonomously works through the wisps
+epic ticket (the formula itself) with one child wisp per step, wires up the
+dependency chain from the `needs` fields, hooks the epic to a fresh agent,
+and nudges it to start. The agent then autonomously works through the wisps
 in dependency order.
 
 ```bash
 # 1. Sling the formula (this cooks it into an epic + child wisps automatically)
 gt sling agent-validation sfgastown
-# Note the polecat name from the output (e.g., "obsidian")
+# Note the agent name from the output (e.g., "obsidian")
 
-# 2. Wait for polecat to boot (~30s for pi, ~15s for claude)
+# 2. Wait for agent to boot (~30s for pi, ~15s for claude)
 sleep 30
 
-# 3. Send the polecat a test mail
-gt mail send sfgastown/polecats/<name> -s "VALIDATION: mail test" -m "Reply with your identity to confirm you received Gas Town context."
+# 3. Send the agent a test mail
+gt mail send sfgastown/agents/<name> -s "VALIDATION: mail test" -m "Reply with your identity to confirm you received Gas Town context."
 
-# 4. Wait for the polecat's reply (check inbox)
-#    The reply should contain: role, name, rig, agent runtime, hooked bead
+# 4. Wait for the agent's reply (check inbox)
+#    The reply should contain: role, name, feature, agent runtime, hooked ticket
 gt mail inbox   # Look for "VALIDATION: identity confirmed"
 gt mail read <reply-id>
 
 # 5. Verify the reply contains VALIDATION_MAIL_OK and correct identity info
 
-# 6. Wait for the polecat to complete and hand off
-#    The polecat will run gt done when finished. Check:
-gt polecat status sfgastown/<name>   # Should show "done" or session ended
+# 6. Wait for the agent to complete and hand off
+#    The agent will run gt done when finished. Check:
+gt agent status sfgastown/<name>   # Should show "done" or session ended
 gt mail inbox                        # Look for handoff mail
 ```
 
 **Validation is complete when:**
-- Polecat replied with correct identity (role, rig, agent runtime)
-- Polecat completed all formula steps
-- Polecat handed off via gt done
+- Agent replied with correct identity (role, feature, agent runtime)
+- Agent completed all formula steps
+- Agent handed off via gt done
 
 ## Usage
 
 ```bash
 # Set agent, then sling
-# In ~/gt/settings/config.json: "role_agents": {"polecat": "pi"}
+# In ~/gt/settings/config.json: "role_agents": {"agent": "pi"}
 gt sling agent-validation sfgastown
 
 # Or for Claude (default):
-# "role_agents": {"polecat": "opus-46"}
+# "role_agents": {"agent": "opus-46"}
 gt sling agent-validation sfgastown
 ```
 
 ## What it does
 
 1. **Context**: Verifies Gas Town identity, role, and startup context are present
-2. **Lifecycle**: Checks tmux session for deacon boot and witness nudge messages
-3. **Hook**: Confirms work is hooked and the bead is accessible
+2. **Lifecycle**: Checks tmux session for senior engineer boot and QA engineer nudge messages
+3. **Hook**: Confirms work is hooked and the ticket is accessible
 4. **Tools**: Validates gt and bd CLI tools are functional
-5. **Mail**: Waits for mail from the mayor, reads it, and replies to confirm receipt
+5. **Mail**: Waits for mail from the product manager, reads it, and replies to confirm receipt
 6. **Task**: Executes an optional test task to prove agent responsiveness
-7. **Report**: Prints pass/fail summary and completes the bead
+7. **Report**: Prints pass/fail summary and completes the ticket
 """
 formula = "agent-validation"
 type = "workflow"
@@ -138,12 +138,12 @@ echo "GT_POLECAT=$GT_POLECAT"
 echo "GT_ROOT=$GT_ROOT"
 ```
 
-At minimum, GT_ROLE should be set (typically "polecat").
+At minimum, GT_ROLE should be set (typically "agent").
 
 **2. Verify you know your identity:**
 Report the following from your injected context:
-- Your role (polecat, crew, etc.)
-- The rig you're working in
+- Your role (agent, engineers, etc.)
+- The feature you're working in
 - The town name (Gas Town)
 
 **3. Check that gt prime output was captured:**
@@ -157,30 +157,30 @@ Record pass/fail for each check.
 
 [[steps]]
 id = "verify-lifecycle"
-title = "Verify deacon boot and witness nudge were received"
+title = "Verify senior engineer boot and QA engineer nudge were received"
 needs = ["verify-context"]
 description = """
-Confirm that the Gas Town lifecycle infrastructure (witness and deacon) fired
+Confirm that the Gas Town lifecycle infrastructure (QA engineer and senior engineer) fired
 correctly during your startup. You should have received these as messages in
 your session before you started working.
 
-**1. Witness nudge:**
-Check if you received a message from the witness during startup. It looks like:
-`[GAS TOWN] <rig>/polecats/<name> <- witness • <timestamp> • assigned`
+**1. QA Engineer nudge:**
+Check if you received a message from the QA engineer during startup. It looks like:
+`[GAS TOWN] <feature>/agents/<name> <- QA engineer • <timestamp> • assigned`
 followed by `Run gt prime --hook and begin work on your hook.`
 
-Report whether you saw this witness nudge in your conversation. PASS if yes.
+Report whether you saw this QA engineer nudge in your conversation. PASS if yes.
 
-**2. Deacon boot:**
-Check if the deacon (boot agent) sent you a message or ran any commands in
-your session before you started. The deacon handles initial session setup.
+**2. Senior Engineer boot:**
+Check if the senior engineer (boot agent) sent you a message or ran any commands in
+your session before you started. The senior engineer handles initial session setup.
 
-Report whether deacon activity was visible. PASS if yes, SKIP if not seen
-(the deacon may run silently or be disabled).
+Report whether senior engineer activity was visible. PASS if yes, SKIP if not seen
+(the senior engineer may run silently or be disabled).
 
 **3. gt prime execution:**
 Confirm that `gt prime` was executed during your startup (either by you, by
-the witness nudge instruction, or by a startup hook). The output should have
+the QA engineer nudge instruction, or by a startup hook). The output should have
 included your Gas Town role and context.
 
 ```bash
@@ -189,33 +189,33 @@ gt prime 2>/dev/null | head -3
 
 PASS if gt prime output includes your role and `[GAS TOWN]` header.
 
-**Exit criteria:** Witness nudge confirmed received. Deacon boot noted. gt prime ran."""
+**Exit criteria:** QA Engineer nudge confirmed received. Senior Engineer boot noted. gt prime ran."""
 
 [[steps]]
 id = "verify-hook"
 title = "Verify work is on your hook"
 needs = ["verify-lifecycle"]
 description = """
-Confirm that this validation bead is hooked to you.
+Confirm that this validation ticket is hooked to you.
 
 **1. Check your hook:**
 ```bash
 gt hook
 ```
 
-The output should show a hooked bead (the validation bead that triggered this formula).
+The output should show a hooked ticket (the validation ticket that tfeaturegered this formula).
 
-**2. Verify the bead is accessible:**
+**2. Verify the ticket is accessible:**
 ```bash
 bd show $(gt hook --id 2>/dev/null || echo "unknown")
 ```
 
-If `gt hook --id` isn't available, check `gt hook` output for the bead ID and use that.
+If `gt hook --id` isn't available, check `gt hook` output for the ticket ID and use that.
 
-**3. Verify bead status:**
-The hooked bead should be in_progress.
+**3. Verify ticket status:**
+The hooked ticket should be in_progress.
 
-**Exit criteria:** Hook shows assigned work, bead is accessible via bd."""
+**Exit criteria:** Hook shows assigned work, ticket is accessible via bd."""
 
 [[steps]]
 id = "verify-tools"
@@ -234,12 +234,12 @@ gt --version
 bd --version
 ```
 
-**3. Check rig status:**
+**3. Check feature status:**
 ```bash
-gt rig list
+gt feature list
 ```
 
-**4. Check beads access:**
+**4. Check tickets access:**
 ```bash
 bd stats
 ```
@@ -250,13 +250,13 @@ Record pass/fail for each tool check.
 
 [[steps]]
 id = "verify-mail"
-title = "Wait for mail from mayor and reply to confirm"
+title = "Wait for mail from product manager and reply to confirm"
 needs = ["verify-tools"]
 description = """
-The mayor will send you a test mail after you boot. Wait for it, read it, and
+The product manager will send you a test mail after you boot. Wait for it, read it, and
 reply to confirm receipt. This validates the full mail round-trip.
 
-**1. Check your inbox for mail from the mayor:**
+**1. Check your inbox for mail from the product manager:**
 ```bash
 gt mail inbox
 ```
@@ -269,7 +269,7 @@ for i in $(seq 1 18); do
         echo "Mail received"
         break
     fi
-    echo "Waiting for mail from mayor... ($i/18)"
+    echo "Waiting for mail from product manager... ($i/18)"
     sleep 5
 done
 ```
@@ -281,21 +281,21 @@ gt mail inbox
 gt mail read <mail-id>
 ```
 
-**4. Reply to the mayor confirming your identity and receipt:**
+**4. Reply to the product manager confirming your identity and receipt:**
 Your reply MUST include identity details extracted from your injected Gas Town prompt:
-- Your role (e.g., polecat)
+- Your role (e.g., agent)
 - Your name (e.g., obsidian)
-- The rig you're in (e.g., sfgastown)
+- The feature you're in (e.g., sfgastown)
 - The agent runtime you're using (e.g., Claude Opus 4.6, Pi/Gemini, OpenCode)
-- Your hooked bead ID
+- Your hooked ticket ID
 
 ```bash
-gt mail send mayor/ -s "VALIDATION: identity confirmed" -m "VALIDATION_MAIL_OK
+gt mail send product manager/ -s "VALIDATION: identity confirmed" -m "VALIDATION_MAIL_OK
 Role: <your role from prompt>
-Name: <your polecat name>
-Rig: <your rig>
+Name: <your agent name>
+Feature: <your feature>
 Agent: <your agent runtime/model>
-Hooked bead: <bead ID>
+Hooked ticket: <ticket ID>
 I received your test mail and confirm my Gas Town identity."
 ```
 
@@ -309,7 +309,7 @@ gt mail mark-read <mail-id>
 
 Record pass/fail. If no mail arrives within 90 seconds, record FAIL but continue.
 
-**Exit criteria:** Mail received, read, and reply sent to mayor (or timeout recorded)."""
+**Exit criteria:** Mail received, read, and reply sent to product manager (or timeout recorded)."""
 
 [[steps]]
 id = "execute-task"
@@ -330,7 +330,7 @@ id = "report-and-complete"
 title = "Report results and complete"
 needs = ["execute-task"]
 description = """
-Print a summary of all validation checks and complete the bead.
+Print a summary of all validation checks and complete the ticket.
 
 **1. Print summary:**
 ```
@@ -338,19 +338,19 @@ Print a summary of all validation checks and complete the bead.
 
 Gas Town context:     [PASS/FAIL]
   - Role awareness:   [PASS/FAIL]
-  - Rig identity:     [PASS/FAIL]
+  - Feature identity:     [PASS/FAIL]
   - Startup context:  [PASS/FAIL]
 Lifecycle:            [PASS/FAIL]
-  - Witness nudge:    [PASS/FAIL]
-  - Deacon boot:      [PASS/FAIL/SKIP]
+  - QA Engineer nudge:    [PASS/FAIL]
+  - Senior Engineer boot:      [PASS/FAIL/SKIP]
   - gt prime fired:   [PASS/FAIL]
 Hook assignment:      [PASS/FAIL]
   - Work hooked:      [PASS/FAIL]
-  - Bead accessible:  [PASS/FAIL]
+  - Ticket accessible:  [PASS/FAIL]
 CLI tools:            [PASS/FAIL]
   - gt available:     [PASS/FAIL]
   - bd available:     [PASS/FAIL]
-  - Rig list:         [PASS/FAIL]
+  - Feature list:         [PASS/FAIL]
 Mail round-trip:      [PASS/FAIL]
   - Mail received:    [PASS/FAIL]
   - Identity reply:   [PASS/FAIL]
@@ -361,12 +361,12 @@ VALIDATION_OK
 
 Include VALIDATION_OK in the output if all critical checks pass.
 
-**2. Add results to bead notes:**
+**2. Add results to ticket notes:**
 ```bash
-bd update <bead-id> --notes "Validation complete. All checks passed."
+bd update <ticket-id> --notes "Validation complete. All checks passed."
 ```
 
-**3. Complete the bead:**
-The bead will be closed when you finish (via gt done or bd close).
+**3. Complete the ticket:**
+The ticket will be closed when you finish (via gt done or bd close).
 
-**Exit criteria:** Results summarized, bead completed."""
+**Exit criteria:** Results summarized, ticket completed."""

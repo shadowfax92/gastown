@@ -31,7 +31,7 @@ where losing progress would be costly (e.g., release workflows).
 | **Formula** | Source TOML template defining workflow steps |
 | **Protomolecule** | Frozen template ready for instantiation |
 | **Molecule** | Active workflow instance (root wisp only) |
-| **Wisp** | Ephemeral molecule for patrols and polecat work (never synced) |
+| **Wisp** | Ephemeral molecule for patrols and agent work (never synced) |
 | **Root-only** | Only root wisp created; steps read from embedded formula |
 | **Pour** | Formula flag (`pour = true`); steps materialized as sub-wisps with checkpoint recovery |
 
@@ -41,7 +41,7 @@ Agents do NOT use `bd mol current` or `bd close <step-id>` for formula workflows
 Instead, formula steps are rendered inline when the agent runs `gt prime`:
 
 ```
-**Formula Checklist** (10 steps from mol-polecat-work):
+**Formula Checklist** (10 steps from mol-agent-work):
 
 ### Step 1: Load context and verify assignment
 Initialize your session and understand your assignment...
@@ -50,12 +50,12 @@ Initialize your session and understand your assignment...
 Ensure you're on a clean feature branch...
 ```
 
-The agent works through the checklist and runs `gt done` (polecats) or
+The agent works through the checklist and runs `gt done` (agents) or
 `gt patrol report` (patrol agents) when complete.
 
 ## Molecule Commands
 
-### Beads Operations (bd)
+### Tickets Operations (bd)
 
 ```bash
 # Formulas
@@ -76,27 +76,27 @@ bd mol bond <proto> <parent> # Attach to existing mol
 # Hook management
 gt hook                    # What's on MY hook?
 gt prime                   # Shows inline formula checklist
-gt mol attach <bead> <mol>   # Pin molecule to bead
-gt mol detach <bead>         # Unpin molecule from bead
+gt mol attach <ticket> <mol>   # Pin molecule to ticket
+gt mol detach <ticket>         # Unpin molecule from ticket
 
 # Patrol lifecycle
 gt patrol new              # Create patrol wisp and hook it
 gt patrol report --summary "..."  # Close current patrol, start next cycle
 ```
 
-## Polecat Workflow
+## Agent Workflow
 
-Polecats receive work via their hook — a root wisp attached to an issue.
+Agents receive work via their hook — a root wisp attached to an ticket.
 They see the formula checklist inline when they run `gt prime` and work
 through each step in order.
 
-### Polecat Workflow Summary
+### Agent Workflow Summary
 
 ```
 1. Spawn with work on hook
 2. gt prime               # Shows formula checklist inline
 3. Work through each step
-4. Persist findings: bd update <issue> --notes "..."
+4. Persist findings: bd update <ticket> --notes "..."
 5. gt done                # Submit, nuke sandbox, exit
 ```
 
@@ -104,15 +104,15 @@ through each step in order.
 
 | Type | Storage | Use Case |
 |------|---------|----------|
-| **Root-only Wisp** (`pour = false`) | `.beads/` (ephemeral) | Polecat work, patrols — high frequency, cheap steps |
-| **Poured Wisp** (`pour = true`) | `.beads/` (sub-wisps) | Releases, long workflows — low frequency, expensive steps |
+| **Root-only Wisp** (`pour = false`) | `.tickets/` (ephemeral) | Agent work, patrols — high frequency, cheap steps |
+| **Poured Wisp** (`pour = true`) | `.tickets/` (sub-wisps) | Releases, long workflows — low frequency, expensive steps |
 
 **Heuristic**: If you would curse losing the progress after a crash, set `pour = true`.
 High frequency + cheap steps = inline (default). Low frequency + expensive steps = pour.
 
 ## Patrol Workflow
 
-Patrol agents (Deacon, Witness, Refinery) cycle through patrol formulas:
+Patrol agents (Senior Engineer, QA Engineer, Release Engineer) cycle through patrol formulas:
 
 ```
 1. gt patrol new          # Create root-only patrol wisp
@@ -126,7 +126,7 @@ a new one for the next cycle.
 
 ## Best Practices
 
-1. **Persist findings early** — `bd update <issue> --notes "..."` before session death
-2. **Run `gt done` when complete** — mandatory for polecats (pushes, submits to MQ, nukes)
+1. **Persist findings early** — `bd update <ticket> --notes "..."` before session death
+2. **Run `gt done` when complete** — mandatory for agents (pushes, submits to MQ, nukes)
 3. **Use `gt patrol report`** — for patrol agents to cycle (replaces squash+new pattern)
 4. **File discovered work** — `bd create` for bugs found, don't fix them yourself

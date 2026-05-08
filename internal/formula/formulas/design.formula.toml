@@ -1,11 +1,11 @@
 # Design Convoy Formula
 #
-# A convoy-style formula that spawns multiple polecats in parallel,
+# A convoy-style formula that spawns multiple agents in parallel,
 # each exploring a different dimension of a design problem. Results
 # are synthesized into a unified design document.
 #
 # Usage:
-#   gt formula run design --problem="Add notification levels to mayor"
+#   gt formula run design --problem="Add notification levels to product manager"
 #   gt formula run design --problem="Redesign the merge queue"
 
 description = """
@@ -23,8 +23,8 @@ are collected and synthesized into a unified design proposal with options.
 - **integration**: How it fits existing system, compatibility
 
 ## Execution Model
-1. Each leg spawns as a separate polecat
-2. Polecats work in parallel
+1. Each leg spawns as a separate agent
+2. Agents work in parallel
 3. Each writes analysis to their designated output
 4. Synthesis step combines all analyses into unified design
 
@@ -121,7 +121,7 @@ directory = ".designs/{{.design_id}}"
 leg_pattern = "{{.leg.id}}.md"
 synthesis = "design-doc.md"
 
-# Leg definitions - each spawns a parallel polecat
+# Leg definitions - each spawns a parallel agent
 [[legs]]
 id = "api"
 title = "API & Interface Design"

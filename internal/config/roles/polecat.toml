@@ -1,20 +1,20 @@
-# Polecat role definition
-# Persistent identity, ephemeral sessions. Batch work dispatch. Multiple per rig.
+# Agent role definition
+# Persistent identity, ephemeral sessions. Batch work dispatch. Multiple per feature.
 
-role = "polecat"
-scope = "rig"
+role = "agent"
+scope = "feature"
 nudge = "Check your hook for work assignments."
-prompt_template = "polecat.md.tmpl"
+prompt_template = "agent.md.tmpl"
 
 [session]
 pattern = "{prefix}-{name}"
-work_dir = "{town}/{rig}/polecats/{name}"
+work_dir = "{town}/{feature}/agents/{name}"
 needs_pre_sync = false
 start_command = "exec claude --dangerously-skip-permissions"
 
 [env]
-GT_ROLE = "{rig}/polecats/{name}"
-GT_SCOPE = "rig"
+GT_ROLE = "{feature}/agents/{name}"
+GT_SCOPE = "feature"
 
 [health]
 ping_timeout = "30s"

@@ -1,25 +1,25 @@
-# Class A Reasoning Tests: Deacon
+# Class A Reasoning Tests: Senior Engineer
 # These tests use a FIXED neutral role_context with NO answer hints.
 # They measure whether the model can derive the correct action from evidence alone.
-# Compare against deacon-zombie.yaml / deacon-plugin-gate.yaml (Class B) which
+# Compare against senior engineer-zombie.yaml / senior engineer-plugin-gate.yaml (Class B) which
 # provide directive context.
 
 # Shared neutral context — describes the role without hinting at any decision.
 # Promptfoo doesn't support YAML anchors across list items, so this is repeated.
 
-- description: "[Class A] Deacon zombie: dead session + running state + stale"
+- description: "[Class A] Senior Engineer zombie: dead session + running state + stale"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon — the mayor's background daemon. You patrol rig health by
+      You are the Senior Engineer — the product manager's background daemon. You patrol feature health by
       running diagnostic shell commands and interpreting their output. Your responsibilities
-      include monitoring polecat session health, evaluating plugin readiness, and
+      include monitoring agent session health, evaluating plugin readiness, and
       managing the dog worker pool. You make decisions based on the evidence in the
       shell output below.
     formula_step: zombie-scan
-    allowed_actions: '["file-warrant", "no-op", "nudge", "log-and-watch", "escalate-to-mayor", "create-cleanup-wisp"]'
+    allowed_actions: '["file-warrant", "no-op", "nudge", "log-and-watch", "escalate-to-product manager", "create-cleanup-wisp"]'
     shell_output: |
-      $ tmux has-session -t bd-polecat-Toast 2>/dev/null; echo $?
+      $ tmux has-session -t bd-agent-Toast 2>/dev/null; echo $?
       1
 
       $ bd show agent-Toast --json
@@ -28,7 +28,7 @@
       $ date -u +%Y-%m-%dT%H:%M:%SZ
       2026-02-15T14:55:00Z
 
-      $ git -C /town/gastown/polecats/Toast status --porcelain
+      $ git -C /town/gastown/agents/Toast status --porcelain
       (empty - clean worktree)
     context: ""
   assert:
@@ -37,19 +37,19 @@
         const d = JSON.parse(output);
         return d.action === "file-warrant";
 
-- description: "[Class A] Deacon zombie: alive session + running + recent activity"
+- description: "[Class A] Senior Engineer zombie: alive session + running + recent activity"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon — the mayor's background daemon. You patrol rig health by
+      You are the Senior Engineer — the product manager's background daemon. You patrol feature health by
       running diagnostic shell commands and interpreting their output. Your responsibilities
-      include monitoring polecat session health, evaluating plugin readiness, and
+      include monitoring agent session health, evaluating plugin readiness, and
       managing the dog worker pool. You make decisions based on the evidence in the
       shell output below.
     formula_step: zombie-scan
-    allowed_actions: '["file-warrant", "no-op", "nudge", "log-and-watch", "escalate-to-mayor", "create-cleanup-wisp"]'
+    allowed_actions: '["file-warrant", "no-op", "nudge", "log-and-watch", "escalate-to-product manager", "create-cleanup-wisp"]'
     shell_output: |
-      $ tmux has-session -t bd-polecat-Crispy 2>/dev/null; echo $?
+      $ tmux has-session -t bd-agent-Crispy 2>/dev/null; echo $?
       0
 
       $ bd show agent-Crispy --json
@@ -58,7 +58,7 @@
       $ date -u +%Y-%m-%dT%H:%M:%SZ
       2026-02-15T14:55:00Z
 
-      $ tmux capture-pane -t bd-polecat-Crispy -p | tail -3
+      $ tmux capture-pane -t bd-agent-Crispy -p | tail -3
       Running tests... 42 passed, 0 failed
       ✓ All checks complete
       $
@@ -73,19 +73,19 @@
         const d = JSON.parse(output);
         return d.action !== "file-warrant" && d.action !== "nuke";
 
-- description: "[Class A] Deacon zombie: dead session + idle state + clean git"
+- description: "[Class A] Senior Engineer zombie: dead session + idle state + clean git"
   vars:
-    role: deacon
+    role: senior engineer
     role_context: >
-      You are the Deacon — the mayor's background daemon. You patrol rig health by
+      You are the Senior Engineer — the product manager's background daemon. You patrol feature health by
       running diagnostic shell commands and interpreting their output. Your responsibilities
-      include monitoring polecat session health, evaluating plugin readiness, and
+      include monitoring agent session health, evaluating plugin readiness, and
       managing the dog worker pool. You make decisions based on the evidence in the
       shell output below.
     formula_step: zombie-scan
-    allowed_actions: '["file-warrant", "no-op", "nudge", "log-and-watch", "escalate-to-mayor", "create-cleanup-wisp"]'
+    allowed_actions: '["file-warrant", "no-op", "nudge", "log-and-watch", "escalate-to-product manager", "create-cleanup-wisp"]'
     shell_output: |
-      $ tmux has-session -t bd-polecat-Waffles 2>/dev/null; echo $?
+      $ tmux has-session -t bd-agent-Waffles 2>/dev/null; echo $?
       1
 
       $ bd show agent-Waffles --json
@@ -94,7 +94,7 @@
       $ date -u +%Y-%m-%dT%H:%M:%SZ
       2026-02-15T14:55:00Z
 
-      $ git -C /town/gastown/polecats/Waffles status --porcelain
+      $ git -C /town/gastown/agents/Waffles status --porcelain
       (empty - clean worktree)
     context: ""
   assert:

@@ -8,10 +8,10 @@
 
 Formulas currently exist in multiple locations with no clear precedence:
 - `internal/formula/formulas/` (source of truth, embedded in binary)
-- `.beads/formulas/` (provisioned at runtime by `gt install`)
-- Crew directories have their own `.beads/formulas/` (diverging copies)
+- `.tickets/formulas/` (provisioned at runtime by `gt install`)
+- Engineers directories have their own `.tickets/formulas/` (diverging copies)
 
-When an agent runs `bd cook mol-polecat-work`, which version do they get?
+When an agent runs `bd cook mol-agent-work`, which version do they get?
 
 ## Design Goals
 
@@ -29,32 +29,32 @@ When an agent runs `bd cook mol-polecat-work`, which version do they get?
 │                    (most specific wins)                          │
 └─────────────────────────────────────────────────────────────────┘
 
-TIER 1: PROJECT (rig-level)
-  Location: <project>/.beads/formulas/
+TIER 1: PROJECT (feature-level)
+  Location: <project>/.tickets/formulas/
   Source:   Committed to project repo
   Use case: Project-specific workflows (deploy, test, release)
-  Example:  ~/gt/gastown/.beads/formulas/mol-gastown-release.formula.toml
+  Example:  ~/gt/gastown/.tickets/formulas/mol-gastown-release.formula.toml
 
 TIER 2: TOWN (user-level)
-  Location: ~/gt/.beads/formulas/
+  Location: ~/gt/.tickets/formulas/
   Source:   Mol Mall installs, user customizations
   Use case: Cross-project workflows, personal preferences
-  Example:  ~/gt/.beads/formulas/mol-polecat-work.formula.toml (customized)
+  Example:  ~/gt/.tickets/formulas/mol-agent-work.formula.toml (customized)
 
 TIER 3: SYSTEM (embedded)
   Location: Compiled into gt binary
   Source:   internal/formula/formulas/ at build time
   Use case: Defaults, blessed patterns, fallback
-  Example:  mol-polecat-work.formula.toml (factory default)
+  Example:  mol-agent-work.formula.toml (factory default)
 ```
 
 ### Resolution Algorithm
 
 ```go
 func ResolveFormula(name string, cwd string) (Formula, Tier, error) {
-    // Tier 1: Project-level (walk up from cwd to find .beads/formulas/)
+    // Tier 1: Project-level (walk up from cwd to find .tickets/formulas/)
     if projectDir := findProjectRoot(cwd); projectDir != "" {
-        path := filepath.Join(projectDir, ".beads", "formulas", name+".formula.toml")
+        path := filepath.Join(projectDir, ".tickets", "formulas", name+".formula.toml")
         if f, err := loadFormula(path); err == nil {
             return f, TierProject, nil
         }
@@ -62,7 +62,7 @@ func ResolveFormula(name string, cwd string) (Formula, Tier, error) {
 
     // Tier 2: Town-level
     townDir := getTownRoot() // ~/gt or $GT_HOME
-    path := filepath.Join(townDir, ".beads", "formulas", name+".formula.toml")
+    path := filepath.Join(townDir, ".tickets", "formulas", name+".formula.toml")
     if f, err := loadFormula(path); err == nil {
         return f, TierTown, nil
     }
@@ -98,7 +98,7 @@ func ResolveFormula(name string, cwd string) (Formula, Tier, error) {
 ### Current Format
 
 ```toml
-formula = "mol-polecat-work"
+formula = "mol-agent-work"
 version = 4
 description = "..."
 ```
@@ -107,14 +107,14 @@ description = "..."
 
 ```toml
 [formula]
-name = "mol-polecat-work"
+name = "mol-agent-work"
 version = "4.0.0"                          # Semver
 author = "steve@gastown.io"                # Author identity
 license = "MIT"
 repository = "https://github.com/steveyegge/gastown"
 
 [formula.registry]
-uri = "hop://molmall.gastown.io/formulas/mol-polecat-work@4.0.0"
+uri = "hop://molmall.gastown.io/formulas/mol-agent-work@4.0.0"
 checksum = "sha256:abc123..."              # Integrity verification
 signed_by = "steve@gastown.io"             # Optional signing
 
@@ -129,39 +129,39 @@ secondary = ["git", "ci-cd"]
 When multiple versions exist:
 
 ```bash
-bd cook mol-polecat-work          # Resolves per tier order
-bd cook mol-polecat-work@4        # Specific major version
-bd cook mol-polecat-work@4.0.0    # Exact version
-bd cook mol-polecat-work@latest   # Explicit latest
+bd cook mol-agent-work          # Resolves per tier order
+bd cook mol-agent-work@4        # Specific major version
+bd cook mol-agent-work@4.0.0    # Exact version
+bd cook mol-agent-work@latest   # Explicit latest
 ```
 
-## Crew Directory Problem
+## Engineers Directory Problem
 
 ### Current State
 
-Crew directories (`gastown/crew/max/`) are git worktrees of the rigged repo. They have:
-- Their own `.beads/formulas/` (from the worktree)
-- These can diverge from `mayor/rig/.beads/formulas/`
+Engineers directories (`gastown/engineers/max/`) are git worktrees of the featureged repo. They have:
+- Their own `.tickets/formulas/` (from the worktree)
+- These can diverge from `product manager/feature/.tickets/formulas/`
 
 ### The Fix
 
-Crew should NOT have their own formula copies. Options:
+Engineers should NOT have their own formula copies. Options:
 
 **Option A: Symlink/Redirect**
 ```bash
-# crew/max/.beads/formulas -> ../../mayor/rig/.beads/formulas
+# engineers/max/.tickets/formulas -> ../../product manager/feature/.tickets/formulas
 ```
-All crew share the rig's formulas.
+All engineers share the feature's formulas.
 
 **Option B: Provision on Demand**
-Crew directories don't have `.beads/formulas/`. Resolution falls through to:
-1. Town-level (~/gt/.beads/formulas/)
+Engineers directories don't have `.tickets/formulas/`. Resolution falls through to:
+1. Town-level (~/gt/.tickets/formulas/)
 2. System (embedded)
 
 **Option C: Gitignore Exclusion**
-Exclude `.beads/formulas/` from crew worktrees via `.gitignore`.
+Exclude `.tickets/formulas/` from engineers worktrees via `.gitignore`.
 
-**Recommendation: Option B** - Crew shouldn't need project-level formulas. They work on the project, they don't define its workflows.
+**Recommendation: Option B** - Engineers shouldn't need project-level formulas. They work on the project, they don't define its workflows.
 
 ## Commands
 
@@ -178,25 +178,25 @@ bd cook <formula>            # Formula → Proto
 ```bash
 # List with tier information
 bd formula list
-  mol-polecat-work          v4    [project]
-  mol-polecat-code-review   v1    [town]
-  mol-witness-patrol        v2    [system]
+  mol-agent-work          v4    [project]
+  mol-agent-code-review   v1    [town]
+  mol-QA engineer-patrol        v2    [system]
 
 # Show resolution path
-bd formula show mol-polecat-work --resolve
-  Resolving: mol-polecat-work
-  ✓ Found at: ~/gt/gastown/.beads/formulas/mol-polecat-work.formula.toml
+bd formula show mol-agent-work --resolve
+  Resolving: mol-agent-work
+  ✓ Found at: ~/gt/gastown/.tickets/formulas/mol-agent-work.formula.toml
   Tier: project
   Version: 4
 
   Resolution path checked:
-  1. [project] ~/gt/gastown/.beads/formulas/ ← FOUND
-  2. [town]    ~/gt/.beads/formulas/
+  1. [project] ~/gt/gastown/.tickets/formulas/ ← FOUND
+  2. [town]    ~/gt/.tickets/formulas/
   3. [system]  <embedded>
 
 # Override tier for testing
-bd cook mol-polecat-work --tier=system    # Force embedded version
-bd cook mol-polecat-work --tier=town      # Force town version
+bd cook mol-agent-work --tier=system    # Force embedded version
+bd cook mol-agent-work --tier=town      # Force town version
 ```
 
 ### Future (Mol Mall)
@@ -209,8 +209,8 @@ gt formula install hop://acme.corp/formulas/mol-deploy
 
 # Manage installed formulas
 gt formula list --installed              # What's in town-level
-gt formula upgrade mol-polecat-work      # Update to latest
-gt formula pin mol-polecat-work@4.0.0    # Lock version
+gt formula upgrade mol-agent-work      # Update to latest
+gt formula pin mol-agent-work@4.0.0    # Lock version
 gt formula uninstall mol-code-review-strict
 ```
 
@@ -221,11 +221,11 @@ gt formula uninstall mol-code-review-strict
 1. Implement three-tier resolution in `bd cook`
 2. Add `--resolve` flag to show resolution path
 3. Update `bd formula list` to show tiers
-4. Fix crew directories (Option B)
+4. Fix engineers directories (Option B)
 
 ### Phase 2: Town-Level Formulas
 
-1. Establish `~/gt/.beads/formulas/` as town formula location
+1. Establish `~/gt/.tickets/formulas/` as town formula location
 2. Add `gt formula` commands for managing town formulas
 3. Support manual installation (copy file, track in `.installed.json`)
 

@@ -4,7 +4,7 @@ type = "expansion"
 version = 1
 
 [[template]]
-description = "Initial attempt at: {target.description}. Don't aim for perfection. Get the shape right. Breadth over depth."
+description = "Initial attempt at: {target.description}. Don't aim for perfection. Get the shape featureht. Breadth over depth."
 id = "{target}.draft"
 title = "Draft: {target.title}"
 

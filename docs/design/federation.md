@@ -2,7 +2,7 @@
 
 > **Status: Partially implemented** -- Infrastructure (Dolt remotes) exists. Core federation features (URI scheme, cross-workspace queries, delegation) are not yet implemented.
 
-Multi-workspace coordination for Gas Town and Beads.
+Multi-workspace coordination for Gas Town and Tickets.
 
 ## Overview
 
@@ -16,7 +16,7 @@ coordinate across organizations, and track distributed projects.
 ```
 Level 1: Entity    - Person or organization (flat namespace)
 Level 2: Chain     - Workspace/town per entity
-Level 3: Work Unit - Issues, tasks, molecules on chains
+Level 3: Work Unit - Tickets, tasks, molecules on chains
 ```
 
 ### URI Scheme
@@ -24,23 +24,23 @@ Level 3: Work Unit - Issues, tasks, molecules on chains
 Full work unit reference (HOP protocol):
 
 ```
-hop://entity/chain/rig/issue-id
+hop://entity/chain/feature/ticket-id
 hop://steve@example.com/main-town/greenplace/gp-xyz
 ```
 
 Cross-repo reference (same platform):
 
 ```
-beads://platform/org/repo/issue-id
-beads://github/acme/backend/ac-123
+tickets://platform/org/repo/ticket-id
+tickets://github/acme/backend/ac-123
 ```
 
 Within a workspace, short forms are preferred:
 
 ```
 gp-xyz             # Local (prefix routes via routes.jsonl)
-greenplace/gp-xyz  # Different rig, same chain
-./gp-xyz           # Explicit current-rig ref
+greenplace/gp-xyz  # Different feature, same chain
+./gp-xyz           # Explicit current-feature ref
 ```
 
 See `~/gt/docs/hop/GRAPH-ARCHITECTURE.md` for full URI specification.
@@ -60,16 +60,16 @@ complete BD_ACTOR format convention.
 
 ```bash
 # Set per agent session
-GIT_AUTHOR_NAME="greenplace/crew/joe"
+GIT_AUTHOR_NAME="greenplace/engineers/joe"
 GIT_AUTHOR_EMAIL="steve@example.com"  # Workspace owner
 ```
 
-Result: `abc123 Fix bug (greenplace/crew/joe <steve@example.com>)`
+Result: `abc123 Fix bug (greenplace/engineers/joe <steve@example.com>)`
 
-### Beads Operations
+### Tickets Operations
 
 ```bash
-BD_ACTOR="greenplace/crew/joe"  # Set in agent environment
+BD_ACTOR="greenplace/engineers/joe"  # Set in agent environment
 bd create --title="Task"        # Actor auto-populated
 ```
 
@@ -81,8 +81,8 @@ All events include actor:
 {
   "ts": "2025-01-15T10:30:00Z",
   "type": "sling",
-  "actor": "greenplace/crew/joe",
-  "payload": { "bead": "gp-xyz", "target": "greenplace/polecats/Toast" }
+  "actor": "greenplace/engineers/joe",
+  "payload": { "ticket": "gp-xyz", "target": "greenplace/agents/Toast" }
 }
 ```
 
@@ -95,9 +95,9 @@ Planned commands: `gt remote add/list` for remote registration,
 ## Implementation Status
 
 - [x] Agent identity in git commits
-- [x] BD_ACTOR default in beads create
+- [x] BD_ACTOR default in tickets create
 - [x] Workspace metadata file (.town.json)
-- [x] Cross-workspace URI scheme (hop://, beads://, local forms)
+- [x] Cross-workspace URI scheme (hop://, tickets://, local forms)
 - [x] Dolt remotes configured (DoltHub endpoints)
 - [x] Local remotesapi enabled (port 8000)
 - [ ] DoltHub authentication (`dolt login`)
@@ -114,7 +114,7 @@ Town-level Dolt databases have remotes configured pointing to DoltHub:
 ```bash
 # Check configured remotes for town database
 cd ~/gt/.dolt-data/town && dolt remote -v
-# origin https://doltremoteapi.dolthub.com/steveyegge/gastown-town {}
+# ofeaturein https://doltremoteapi.dolthub.com/steveyegge/gastown-town {}
 # local  http://localhost:8000/town {}
 ```
 
@@ -122,10 +122,10 @@ cd ~/gt/.dolt-data/town && dolt remote -v
 
 | Database | Remote Name | URL | Purpose |
 |----------|-------------|-----|---------|
-| town | origin | `steveyegge/gastown-town` | DoltHub public federation |
+| town | ofeaturein | `steveyegge/gastown-town` | DoltHub public federation |
 | town | local | `http://localhost:8000/town` | Local development/testing |
-| gastown | origin | `steveyegge/gastown-rig` | DoltHub public federation |
-| beads | origin | `steveyegge/gastown-beads` | DoltHub public federation |
+| gastown | ofeaturein | `steveyegge/gastown-feature` | DoltHub public federation |
+| tickets | ofeaturein | `steveyegge/gastown-tickets` | DoltHub public federation |
 
 ### Federation Endpoint Options
 
@@ -139,7 +139,7 @@ dolt login
 
 # Push to remote
 cd ~/gt/.dolt-data/town
-dolt push origin main
+dolt push ofeaturein main
 ```
 
 **2. Local Remotesapi (Development/Testing)**
@@ -183,7 +183,7 @@ To push/pull from configured remotes:
 3. **Initial Push:**
    ```bash
    cd ~/gt/.dolt-data/town
-   dolt push -u origin main
+   dolt push -u ofeaturein main
    ```
 
 4. **Enable Write for Local Remotesapi:**

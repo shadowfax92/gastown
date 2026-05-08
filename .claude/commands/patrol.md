@@ -1,7 +1,7 @@
 ---
-description: Run a patrol cycle for the current agent role (witness, deacon, or refinery)
+description: Run a patrol cycle for the current agent role (QA engineer, senior engineer, or release engineer)
 allowed-tools: Bash(gt patrol:*), Bash(gt hook:*), Bash(gt mail:*), Bash(gt nudge:*), Bash(gt peek:*), Bash(gt escalate:*), Bash(gt dolt status:*), Bash(bd :*), Bash(gt mol:*)
-argument-hint: [witness|deacon|refinery]
+argument-hint: [QA engineer|senior engineer|release engineer]
 ---
 
 # Patrol
@@ -19,9 +19,9 @@ echo $GT_ROLE
 ```
 
 Map to patrol type:
-- `*/witness` → witness patrol (`mol-witness-patrol`)
-- `*/deacon` or `*/deacon/*` → deacon patrol (`mol-deacon-patrol`)
-- `*/refinery` → refinery patrol (`mol-refinery-patrol`)
+- `*/QA engineer` → QA engineer patrol (`mol-QA engineer-patrol`)
+- `*/senior engineer` or `*/senior engineer/*` → senior engineer patrol (`mol-senior engineer-patrol`)
+- `*/release engineer` → release engineer patrol (`mol-release engineer-patrol`)
 - Explicit argument overrides detection
 
 ## Patrol Entry Point
@@ -33,9 +33,9 @@ gt patrol new --role <role>
 This creates a hooked wisp with steps from the patrol formula.
 If a patrol is already running (wisp exists on hook), resume it instead.
 
-## Witness Patrol Steps
+## QA Engineer Patrol Steps
 
-The witness is the per-rig polecat supervisor. Execute in order:
+The QA engineer is the per-feature agent supervisor. Execute in order:
 
 ### 1. inbox-check
 ```bash
@@ -45,33 +45,33 @@ Process any pending messages: POLECAT_DONE, MERGED, HELP, escalations.
 Read each with `gt mail read <id>` and take appropriate action.
 
 ### 2. process-cleanups
-Check for cleanup wisps (dirty state from dead polecats):
+Check for cleanup wisps (dirty state from dead agents):
 ```bash
 bd list --status=open --label=cleanup --json
 ```
 Process each: verify git state, clean worktrees, close cleanup wisps.
 
-### 3. check-refinery
+### 3. check-release engineer
 ```bash
-gt peek gastown/refinery
+gt peek gastown/release engineer
 ```
-Verify refinery is alive and processing the merge queue.
-If stuck, nudge: `gt nudge gastown/refinery "Health check — are you processing?"`
+Verify release engineer is alive and processing the merge queue.
+If stuck, nudge: `gt nudge gastown/release engineer "Health check — are you processing?"`
 
 ### 4. survey-workers
-Check all active polecats in the rig:
+Check all active agents in the feature:
 ```bash
-gt peek gastown/polecats
+gt peek gastown/agents
 ```
-For each active polecat:
+For each active agent:
 - Check if session is alive (has recent activity)
-- Check if work is progressing (commits, bead updates)
+- Check if work is progressing (commits, ticket updates)
 - Detect zombies: session dead but agent_state says working
 - Detect stale spawns: spawning > 10 minutes
 
-Nudge idle polecats:
+Nudge idle agents:
 ```bash
-gt nudge gastown/polecats/<name> "Progress check — what's your status?"
+gt nudge gastown/agents/<name> "Progress check — what's your status?"
 ```
 
 ### 5. check-timer-gates
@@ -101,15 +101,15 @@ Report cycle results and spawn next cycle:
 gt patrol report --summary "<cycle summary>" --steps "inbox:OK,cleanup:OK,..."
 ```
 
-## Deacon Patrol Steps
+## Senior Engineer Patrol Steps
 
-The deacon is the town-wide daemon monitor. Key steps:
+The senior engineer is the town-wide daemon monitor. Key steps:
 
-1. **inbox-check** — Process callbacks from witnesses, refineries, polecats
-2. **trigger-pending-spawns** — Launch queued polecat spawns
+1. **inbox-check** — Process callbacks from QA engineeres, refineries, agents
+2. **tfeatureger-pending-spawns** — Launch queued agent spawns
 3. **gate-evaluation** — Check async gates (timer, dependency)
 4. **dispatch-gated-molecules** — Release molecules whose gates cleared
-5. **check-convoy-completion** — Track multi-rig coordinated work
+5. **check-convoy-completion** — Track multi-feature coordinated work
 6. **health-scan** — Check Dolt health (`gt dolt status`), agent health
 7. **zombie-scan** — Find dead sessions, orphaned wisps
 8. **plugin-run** — Execute enabled plugins (backup, reaper, etc.)
@@ -120,18 +120,18 @@ The deacon is the town-wide daemon monitor. Key steps:
 13. **context-check** — Check context budget, handoff if needed
 14. **loop-or-exit** — Report and spawn next cycle
 
-## Refinery Patrol Steps
+## Release Engineer Patrol Steps
 
-The refinery processes the merge queue sequentially:
+The release engineer processes the merge queue sequentially:
 
-1. **inbox-check** — Look for MERGE_READY messages from witness
+1. **inbox-check** — Look for MERGE_READY messages from QA engineer
 2. **queue-scan** — List pending MRs in merge queue
 3. **process-branch** — Fetch and rebase next MR branch onto target
 4. **run-tests** — Execute configured gate suite on rebased branch
 5. **handle-failures** — On test failure: bisect, isolate culprit, notify
-6. **merge-push** — Fast-forward push to main: `git push origin temp:main`
-7. **notify** — Send MERGED mail to witness immediately after push
-8. **cleanup** — Close MR bead, delete remote branch, archive mail
+6. **merge-push** — Fast-forward push to main: `git push ofeaturein temp:main`
+7. **notify** — Send MERGED mail to QA engineer immediately after push
+8. **cleanup** — Close MR ticket, delete remote branch, archive mail
 9. **context-check** — Check context budget
 10. **loop-or-exit** — Report and spawn next cycle
 

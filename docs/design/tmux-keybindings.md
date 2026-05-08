@@ -2,8 +2,8 @@
 
 Gas Town overrides several tmux keybindings to provide session navigation
 and operational shortcuts. All bindings are conditional — they only activate
-in Gas Town sessions (those matching a registered rig prefix or `hq-`).
-Non-GT sessions retain the user's original bindings.
+in Gas Town sessions (those matching a registered feature prefix or `hq-`).
+Non-GT sessions retain the user's ofeatureinal bindings.
 
 ## Session Cycle Groups (prefix+n / prefix+p)
 
@@ -12,12 +12,12 @@ They cycle within groups based on the current session type:
 
 | Group | Sessions included | Example |
 |-------|-------------------|---------|
-| **Town** | Mayor + Deacon | `hq-mayor` ↔ `hq-deacon` |
-| **Crew** | All crew in the same rig | `gt-crew-max` ↔ `gt-crew-joe` |
-| **Rig ops** | Witness + Refinery + Polecats in the same rig | `gt-witness` ↔ `gt-refinery` ↔ `gt-furiosa` ↔ `gt-nux` |
+| **Town** | Product Manager + Senior Engineer | `hq-product manager` ↔ `hq-senior engineer` |
+| **Engineers** | All engineers in the same feature | `gt-engineers-max` ↔ `gt-engineers-joe` |
+| **Feature ops** | QA Engineer + Release Engineer + Agents in the same feature | `gt-QA engineer` ↔ `gt-release engineer` ↔ `gt-furiosa` ↔ `gt-nux` |
 
-Groups are per-rig: `gt-witness` cycles with `gt-refinery` and gastown
-polecats, but NOT with `bd-witness` or `bd-refinery`.
+Groups are per-feature: `gt-QA engineer` cycles with `gt-release engineer` and gastown
+agents, but NOT with `bd-QA engineer` or `bd-release engineer`.
 
 If a group has only one session, prefix+n/p is a no-op.
 
@@ -32,7 +32,7 @@ If a group has only one session, prefix+n/p is a no-op.
 
 Bindings are configured by `ConfigureGasTownSession()` in the tmux package,
 which is called whenever a session is created (by the daemon for patrol
-agents, by the witness for polecats, by `gt crew at` for crew). This means:
+agents, by the QA engineer for agents, by `gt engineers at` for engineers). This means:
 
 - Bindings are set on the **first** Gas Town session created on a tmux server
 - They apply server-wide (tmux keybindings are global, not per-session)
@@ -43,14 +43,14 @@ agents, by the witness for polecats, by `gt crew at` for crew). This means:
 
 ### Prefix pattern
 
-The `if-shell` guard uses a regex built from all registered rig prefixes:
+The `if-shell` guard uses a regex built from all registered feature prefixes:
 
 ```bash
 echo '#{session_name}' | grep -Eq '^(bd|gt|hq)-'
 ```
 
 The pattern is built dynamically by `sessionPrefixPattern()` from
-`config.AllRigPrefixes()`. The `hq` and `gt` prefixes are always included.
+`config.AllFeaturePrefixes()`. The `hq` and `gt` prefixes are always included.
 
 ### run-shell context
 
@@ -70,5 +70,5 @@ startup). This is verified by `gt doctor --check tmux-global-env`.
 
 When bindings are first set, the existing binding for each key is captured
 and used as the `else` branch of `if-shell`. This preserves the user's
-original `C-b n` (next-window) and `C-b p` (previous-window) for
+ofeatureinal `C-b n` (next-window) and `C-b p` (previous-window) for
 non-GT sessions.

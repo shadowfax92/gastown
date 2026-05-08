@@ -30,10 +30,10 @@ session carry the same `run.id`.
 | `instance` | string | `hostname:basename(town_root)` |
 | `town_root` | string | absolute town root path |
 | `agent_type` | string | `"claudecode"`, `"opencode"`, `"copilot"`, … |
-| `role` | string | `polecat` · `witness` · `mayor` · `refinery` · `crew` · `deacon` · `dog` · `boot` |
+| `role` | string | `agent` · `QA engineer` · `product manager` · `release engineer` · `engineers` · `senior engineer` · `dog` · `boot` |
 | `agent_name` | string | specific name within the role (e.g. `"wyvern-Toast"`); equals role for singletons |
 | `session_id` | string | tmux pane name |
-| `rig` | string | rig name; empty for town-level agents |
+| `feature` | string | feature name; empty for town-level agents |
 
 ---
 
@@ -52,8 +52,8 @@ Emitted once per agent spawn. Anchors all subsequent events for that run.
 | `role` | string | Gastown role |
 | `agent_name` | string | agent name |
 | `session_id` | string | tmux pane name |
-| `rig` | string | rig name (empty = town-level) |
-| `issue_id` | string | bead ID of the work item assigned to this agent |
+| `feature` | string | feature name (empty = town-level) |
+| `ticket_id` | string | ticket ID of the work item assigned to this agent |
 | `git_branch` | string | git branch of the working directory at spawn time |
 | `git_commit` | string | HEAD SHA of the working directory at spawn time |
 
@@ -189,7 +189,7 @@ Emitted whenever an agent transitions to a new state (idle → working, etc.).
 | `run.id` | string | run UUID |
 | `agent_id` | string | agent identifier |
 | `new_state` | string | new state (`"idle"`, `"working"`, `"done"`, …) |
-| `hook_bead` | string | bead ID the agent is currently processing; empty if none |
+| `hook_ticket` | string | ticket ID the agent is currently processing; empty if none |
 | `status` | string | `"ok"` · `"error"` |
 
 ---
@@ -203,7 +203,7 @@ Molecule lifecycle events emitted at each stage of the formula workflow.
 | Attribute | Type | Description |
 |---|---|---|
 | `run.id` | string | run UUID |
-| `formula_name` | string | formula name (e.g. `"mol-polecat-work"`) |
+| `formula_name` | string | formula name (e.g. `"mol-agent-work"`) |
 | `status` | string | `"ok"` · `"error"` |
 
 **`mol.wisp`** — proto instantiated as a live wisp (ephemeral molecule instance):
@@ -212,8 +212,8 @@ Molecule lifecycle events emitted at each stage of the formula workflow.
 |---|---|---|
 | `run.id` | string | run UUID |
 | `formula_name` | string | formula name |
-| `wisp_root_id` | string | root bead ID of the created wisp |
-| `bead_id` | string | base bead bonded to the wisp; empty for standalone formula slinging |
+| `wisp_root_id` | string | root ticket ID of the created wisp |
+| `ticket_id` | string | base ticket bonded to the wisp; empty for standalone formula slinging |
 | `status` | string | `"ok"` · `"error"` |
 
 **`mol.squash`** — molecule execution completed and collapsed to a digest:
@@ -221,7 +221,7 @@ Molecule lifecycle events emitted at each stage of the formula workflow.
 | Attribute | Type | Description |
 |---|---|---|
 | `run.id` | string | run UUID |
-| `mol_id` | string | molecule root bead ID |
+| `mol_id` | string | molecule root ticket ID |
 | `done_steps` | int | number of steps completed |
 | `total_steps` | int | total steps in the molecule |
 | `digest_created` | bool | false when `--no-digest` flag was set |
@@ -232,24 +232,24 @@ Molecule lifecycle events emitted at each stage of the formula workflow.
 | Attribute | Type | Description |
 |---|---|---|
 | `run.id` | string | run UUID |
-| `mol_id` | string | molecule root bead ID |
-| `children_closed` | int | number of descendant step beads closed |
+| `mol_id` | string | molecule root ticket ID |
+| `children_closed` | int | number of descendant step tickets closed |
 | `status` | string | `"ok"` · `"error"` |
 
 ---
 
-### `bead.create`
+### `ticket.create`
 
-Emitted for each child bead created during molecule instantiation
+Emitted for each child ticket created during molecule instantiation
 (`bd mol pour` / `InstantiateMolecule`). Allows tracing the full
-parent → child bead graph for a given molecule.
+parent → child ticket graph for a given molecule.
 
 | Attribute | Type | Description |
 |---|---|---|
 | `run.id` | string | run UUID |
-| `bead_id` | string | newly created child bead ID |
-| `parent_id` | string | parent (wisp root / base) bead ID |
-| `mol_source` | string | molecule proto bead ID that drove the instantiation |
+| `ticket_id` | string | newly created child ticket ID |
+| `parent_id` | string | parent (wisp root / base) ticket ID |
+| `mol_source` | string | molecule proto ticket ID that drove the instantiation |
 
 ---
 
@@ -259,13 +259,13 @@ All carry `run.id`.
 
 | Event body | Key attributes |
 |---|---|
-| `sling` | `bead`, `target`, `status` |
+| `sling` | `ticket`, `target`, `status` |
 | `nudge` | `target`, `status` |
 | `done` | `exit_type` (`COMPLETED` · `ESCALATED` · `DEFERRED`), `status` |
-| `polecat.spawn` | `name`, `status` |
-| `polecat.remove` | `name`, `status` |
-| `formula.instantiate` | `formula_name`, `bead_id`, `status` (top-level formula-on-bead result) |
-| `convoy.create` | `bead_id`, `status` |
+| `agent.spawn` | `name`, `status` |
+| `agent.remove` | `name`, `status` |
+| `formula.instantiate` | `formula_name`, `ticket_id`, `status` (top-level formula-on-ticket result) |
+| `convoy.create` | `ticket_id`, `status` |
 | `daemon.restart` | `agent_type` |
 | `pane.output` | `session`, `content` (opt-in: `GT_LOG_PANE_OUTPUT=true`) |
 
@@ -274,7 +274,7 @@ All carry `run.id`.
 ## 3. Recommended indexed attributes
 
 ```
-run.id, instance, town_root, session_id, rig, role, agent_type,
+run.id, instance, town_root, session_id, feature, role, agent_type,
 event_type, msg.thread_id, msg.from, msg.to
 ```
 

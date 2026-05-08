@@ -1,17 +1,17 @@
 description = """
-Feed stranded convoys by dispatching ready work to available polecats.
+Feed stranded convoys by dispatching ready work to available agents.
 
-Dogs execute this formula when the Deacon detects a stranded convoy. A convoy
-is stranded when it has ready issues (open, unblocked, no assignee) but no
+Dogs execute this formula when the Senior Engineer detects a stranded convoy. A convoy
+is stranded when it has ready tickets (open, unblocked, no assignee) but no
 workers are processing them.
 
 ## Dog Contract
 
 This is infrastructure work. You:
 1. Receive convoy ID via variable
-2. Load convoy and find ready issues
-3. Check idle polecat capacity across rigs
-4. Dispatch min(ready_issues, idle_polecats) using gt sling
+2. Load convoy and find ready tickets
+3. Check idle agent capacity across features
+4. Dispatch min(ready_tickets, idle_agents) using gt sling
 5. Report actions taken
 6. Return to kennel
 
@@ -24,38 +24,38 @@ This is infrastructure work. You:
 ## Single Pass Design
 
 Dog doesn't babysit or wait for completion. The workflow is:
-1. Find ready issues in convoy
-2. Dispatch each to an available polecat
+1. Find ready tickets in convoy
+2. Dispatch each to an available agent
 3. Exit immediately
 
-If convoy is still stranded next Deacon patrol cycle, another dog will be
+If convoy is still stranded next Senior Engineer patrol cycle, another dog will be
 dispatched. This keeps the system stateless and batch-oriented.
 
 ## Failure Modes
 
 | Situation | Action |
 |-----------|--------|
-| Convoy not found | Exit with error, notify Deacon |
-| No ready issues | Exit success (false positive, convoy is fine) |
-| No idle polecats | Exit success, note in report (will retry next cycle) |
-| Sling fails | Continue with remaining issues, note failures |"""
+| Convoy not found | Exit with error, notify Senior Engineer |
+| No ready tickets | Exit success (false positive, convoy is fine) |
+| No idle agents | Exit success, note in report (will retry next cycle) |
+| Sling fails | Continue with remaining tickets, note failures |"""
 formula = "mol-convoy-feed"
 version = 1
 
 [squash]
-trigger = "on_complete"
+tfeatureger = "on_complete"
 template_type = "work"
 include_metrics = true
 
 [[steps]]
 id = "load-convoy"
-title = "Load convoy and identify ready issues"
+title = "Load convoy and identify ready tickets"
 description = """
-Load the convoy and find issues ready for dispatch.
+Load the convoy and find tickets ready for dispatch.
 
 **1. Check assignment:**
 ```bash
-gt hook               # Shows convoy in hook_bead or vars
+gt hook               # Shows convoy in hook_ticket or vars
 ```
 
 **2. Load convoy details:**
@@ -63,14 +63,14 @@ gt hook               # Shows convoy in hook_bead or vars
 gt convoy status {{convoy}} --json
 ```
 
-**3. Identify ready issues:**
+**3. Identify ready tickets:**
 
-For each tracked issue in the convoy:
+For each tracked ticket in the convoy:
 ```bash
-bd show <issue-id> --json
+bd show <ticket-id> --json
 ```
 
-An issue is "ready" if ALL of these are true:
+An ticket is "ready" if ALL of these are true:
 - status = "open" (NOT in_progress, closed, or hooked)
 - not in blocked list (check: bd blocked --json)
 - assignee is empty OR assignee session is dead
@@ -78,98 +78,98 @@ An issue is "ready" if ALL of these are true:
 Check blocked status:
 ```bash
 bd blocked --json
-# If issue ID appears here, it's blocked (skip it)
+# If ticket ID appears here, it's blocked (skip it)
 ```
 
 Check assignee session if set:
 ```bash
-# If assignee like "gastown/polecats/nux"
-tmux has-session -t gt-gastown-polecat-nux 2>/dev/null && echo "alive" || echo "dead"
+# If assignee like "gastown/agents/nux"
+tmux has-session -t gt-gastown-agent-nux 2>/dev/null && echo "alive" || echo "dead"
 ```
 
 **4. Build ready list:**
-Collect all ready issues with their metadata:
-- Issue ID
+Collect all ready tickets with their metadata:
+- Ticket ID
 - Title
 - Priority
-- Rig (extracted from prefix)
+- Feature (extracted from prefix)
 
 Sort by priority (P0 first) for dispatch order.
 
-**Exit criteria:** Ready issues identified and prioritized."""
+**Exit criteria:** Ready tickets identified and prioritized."""
 
 [[steps]]
 id = "check-capacity"
-title = "Check polecat capacity across rigs"
+title = "Check agent capacity across features"
 needs = ["load-convoy"]
 description = """
-Determine how many polecats are available for dispatch.
+Determine how many agents are available for dispatch.
 
-**1. For each rig that has ready issues:**
+**1. For each feature that has ready tickets:**
 ```bash
-gt polecats <rig>
-# Shows polecat status: idle, working, etc.
+gt agents <feature>
+# Shows agent status: idle, working, etc.
 ```
 
 **2. Count available capacity:**
-Available polecats are those that:
-- Exist in the rig's polecat pool
+Available agents are those that:
+- Exist in the feature's agent pool
 - Currently idle (no hooked work)
 - Session is running
 
 **3. Calculate dispatch count:**
 ```
-dispatch_count = min(ready_issues, available_polecats)
+dispatch_count = min(ready_tickets, available_agents)
 ```
 
 If dispatch_count = 0:
 - Log: "No capacity available, will retry next cycle"
 - Proceed to report step (no dispatches to make)
 
-**4. Match issues to rigs:**
-For each ready issue, determine target rig from issue prefix:
-- gt-* issues → gastown rig
-- bd-* issues → beads rig
+**4. Match tickets to features:**
+For each ready ticket, determine target feature from ticket prefix:
+- gt-* tickets → gastown feature
+- bd-* tickets → tickets feature
 - etc.
 
-**Exit criteria:** Dispatch plan created with issue→rig mappings."""
+**Exit criteria:** Dispatch plan created with ticket→feature mappings."""
 
 [[steps]]
 id = "dispatch-work"
-title = "Dispatch ready issues to polecats"
+title = "Dispatch ready tickets to agents"
 needs = ["check-capacity"]
 description = """
-Sling each ready issue to an available polecat.
+Sling each ready ticket to an available agent.
 
-**For each issue in dispatch plan:**
+**For each ticket in dispatch plan:**
 
 ```bash
-# Dispatch issue to the appropriate rig
-# This spawns a fresh polecat or assigns to idle one
-gt sling <issue-id> <rig>
+# Dispatch ticket to the appropriate feature
+# This spawns a fresh agent or assigns to idle one
+gt sling <ticket-id> <feature>
 
 # Example:
 gt sling gt-abc123 gastown
-gt sling bd-xyz789 beads
+gt sling bd-xyz789 tickets
 ```
 
 **Track results:**
 For each dispatch:
-- Success: Note issue ID, target rig, polecat assigned
-- Failure: Note issue ID, error message
+- Success: Note ticket ID, target feature, agent assigned
+- Failure: Note ticket ID, error message
 
 **Important notes:**
-- `gt sling` handles polecat selection automatically
-- It will spawn a new polecat if none available
-- The polecat gets the issue hooked and starts immediately
-- Don't wait for polecat to complete - fire and forget
+- `gt sling` handles agent selection automatically
+- It will spawn a new agent if none available
+- The agent gets the ticket hooked and starts immediately
+- Don't wait for agent to complete - fire and forget
 
 **If sling fails:**
-- Continue with remaining issues
+- Continue with remaining tickets
 - Note the failure for the report
 - Don't escalate individual failures (will retry next cycle)
 
-**Exit criteria:** All dispatchable issues have been slung."""
+**Exit criteria:** All dispatchable tickets have been slung."""
 
 [[steps]]
 id = "report-results"
@@ -182,19 +182,19 @@ Create summary report of convoy feeding actions.
 ```markdown
 ## Convoy Feed Report: {{convoy}}
 
-**Ready issues found**: {{ready_count}}
-**Polecats available**: {{available_count}}
-**Issues dispatched**: {{dispatch_count}}
+**Ready tickets found**: {{ready_count}}
+**Agents available**: {{available_count}}
+**Tickets dispatched**: {{dispatch_count}}
 
 ### Dispatched Work
 {{#each dispatched}}
-- {{issue_id}}: {{title}} → {{rig}}/{{polecat}}
+- {{ticket_id}}: {{title}} → {{feature}}/{{agent}}
 {{/each}}
 
 ### Skipped (no capacity)
 {{#if skipped}}
 {{#each skipped}}
-- {{issue_id}}: {{title}} (will retry next cycle)
+- {{ticket_id}}: {{title}} (will retry next cycle)
 {{/each}}
 {{else}}
 (none)
@@ -203,19 +203,19 @@ Create summary report of convoy feeding actions.
 ### Errors
 {{#if errors}}
 {{#each errors}}
-- {{issue_id}}: {{error}}
+- {{ticket_id}}: {{error}}
 {{/each}}
 {{else}}
 (none)
 {{/if}}
 ```
 
-**2. Send to Deacon:**
+**2. Send to Senior Engineer:**
 ```bash
-gt mail send deacon/ -s "Convoy fed: {{convoy}}" -m "$(cat <<EOF
+gt mail send senior engineer/ -s "Convoy fed: {{convoy}}" -m "$(cat <<EOF
 Convoy {{convoy}} feeding complete.
 
-Dispatched: {{dispatch_count}}/{{ready_count}} issues
+Dispatched: {{dispatch_count}}/{{ready_count}} tickets
 {{#if errors}}Errors: {{error_count}}{{/if}}
 
 {{report_summary}}
@@ -236,9 +236,9 @@ needs = ["report-results"]
 description = """
 Signal work complete and return to available pool.
 
-**1. Signal completion to Deacon:**
+**1. Signal completion to Senior Engineer:**
 ```bash
-gt mail send deacon/ -s "DOG_DONE $(hostname)" -m "Task: convoy-feed
+gt mail send senior engineer/ -s "DOG_DONE $(hostname)" -m "Task: convoy-feed
 Convoy: {{convoy}}
 Ready: {{ready_count}}
 Dispatched: {{dispatch_count}}
@@ -248,10 +248,10 @@ Ready for next assignment."
 ```
 
 **2. Return to kennel:**
-Dog returns to available state in the pool. Deacon will assign next work
+Dog returns to available state in the pool. Senior Engineer will assign next work
 or retire the dog if pool is oversized.
 
-**Exit criteria:** Deacon notified, dog ready for next work or retirement."""
+**Exit criteria:** Senior Engineer notified, dog ready for next work or retirement."""
 
 [vars]
 [vars.convoy]
@@ -259,11 +259,11 @@ description = "The convoy ID to feed"
 required = true
 
 [vars.available_count]
-description = "Number of available polecats (computed during execution)"
+description = "Number of available agents (computed during execution)"
 default = ""
 
 [vars.dispatch_count]
-description = "Number of issues dispatched (computed during execution)"
+description = "Number of tickets dispatched (computed during execution)"
 default = ""
 
 [vars.error]
@@ -274,26 +274,26 @@ default = ""
 description = "Number of dispatch errors (computed during execution)"
 default = ""
 
-[vars.issue_id]
-description = "Issue ID being dispatched (computed during execution)"
+[vars.ticket_id]
+description = "Ticket ID being dispatched (computed during execution)"
 default = ""
 
-[vars.polecat]
-description = "Polecat assigned to work (computed during execution)"
+[vars.agent]
+description = "Agent assigned to work (computed during execution)"
 default = ""
 
 [vars.ready_count]
-description = "Number of ready issues found (computed during execution)"
+description = "Number of ready tickets found (computed during execution)"
 default = ""
 
 [vars.report_summary]
 description = "Summary text for the feeding report (computed during execution)"
 default = ""
 
-[vars.rig]
-description = "Target rig for dispatch (computed during execution)"
+[vars.feature]
+description = "Target feature for dispatch (computed during execution)"
 default = ""
 
 [vars.title]
-description = "Issue title (computed during execution)"
+description = "Ticket title (computed during execution)"
 default = ""

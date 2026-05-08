@@ -1,7 +1,7 @@
 ---
 name: pr-sheriff
 description: >
-  PR Sheriff workflow: triage PRs into easy-wins and crew assignments.
+  PR Sheriff workflow: triage PRs into easy-wins and engineers assignments.
   Prints recommendations inline - does NOT post to GitHub.
 allowed-tools: "Bash(gh pr *), Bash(git *), Bash(gt *), Bash(bd *), Bash(cat *)"
 version: "2.0.0"
@@ -11,13 +11,13 @@ author: "Gas Town"
 # PR Sheriff - Triage and Review Workflow
 
 This skill delegates to the `mol-pr-sheriff-patrol` formula, which lives at
-`$GT_ROOT/.beads/formulas/mol-pr-sheriff-patrol.formula.toml` and is shared
-across all Gas Town rigs (gastown, beads, etc.).
+`$GT_ROOT/.tickets/formulas/mol-pr-sheriff-patrol.formula.toml` and is shared
+across all Gas Town features (gastown, tickets, etc.).
 
 ## Repo Scope
 
-This rig (gastown/crew/max) is responsible for **steveyegge/gastown only**.
-The beads repo (steveyegge/beads) is handled by beads/crew/emma.
+This feature (gastown/engineers/max) is responsible for **steveyegge/gastown only**.
+The tickets repo (steveyegge/tickets) is handled by tickets/engineers/emma.
 Do NOT discover or triage PRs from repos outside your scope.
 
 When loading the shared config, filter the repo list to only `steveyegge/gastown`.
@@ -29,16 +29,16 @@ When loading the shared config, filter the repo list to only `steveyegge/gastown
 ```
 
 - `repo` - Optional. If provided, overrides the default scope.
-  If omitted, scan only `steveyegge/gastown` (this rig's scope).
+  If omitted, scan only `steveyegge/gastown` (this feature's scope).
 
 ## How to Execute
 
 **1. Load the config:**
 ```bash
-cat $GT_ROOT/.beads/pr-sheriff-config.json
+cat $GT_ROOT/.tickets/pr-sheriff-config.json
 ```
 
-This contains crew mappings per repo and contributor policies
+This contains engineers mappings per repo and contributor policies
 (trust tiers, firewalled contributors, bot auto-merge rules).
 **Only scan repos within your scope** (see Repo Scope above).
 
@@ -55,9 +55,9 @@ The formula defines a 7-step workflow:
 | discover-prs | Find open PRs needing review across all repos |
 | triage-batch | Categorize all PRs in one pass (preserves cross-PR context) |
 | merge-easy-wins | Merge approved easy-wins via `gh pr merge` |
-| dispatch-crew-reviews | Nudge crew for NEEDS-CREW PRs |
-| dispatch-deep-reviews | Nudge crew for NEEDS-HUMAN PRs (full evaluation framework) |
-| collect-results | Gather crew review nudge-backs |
+| dispatch-engineers-reviews | Nudge engineers for NEEDS-CREW PRs |
+| dispatch-deep-reviews | Nudge engineers for NEEDS-HUMAN PRs (full evaluation framework) |
+| collect-results | Gather engineers review nudge-backs |
 | interactive-review | Walk through remaining NEEDS-HUMAN PRs with overseer |
 | summarize | Print patrol summary |
 
@@ -69,9 +69,9 @@ gt formula show mol-pr-sheriff-patrol  # Shows all steps with descriptions
 ## Key References
 
 - **Patrol formula:** `mol-pr-sheriff-patrol` (town-level)
-- **Crew review formula:** `mol-pr-crew-review` (dispatched to crew)
+- **Engineers review formula:** `mol-pr-engineers-review` (dispatched to engineers)
 - **Deep review formula:** `mol-pr-deep-review` (dispatched for NEEDS-HUMAN)
-- **Config:** `$GT_ROOT/.beads/pr-sheriff-config.json`
+- **Config:** `$GT_ROOT/.tickets/pr-sheriff-config.json`
 
 ## Contributor Policy Tiers
 
@@ -80,7 +80,7 @@ Loaded from config. Current tiers:
 | Tier | Handling |
 |------|----------|
 | bot-trusted | Auto-merge if CI passes (e.g., dependabot) |
-| community | Normal triage — easy-win / crew / deep review |
+| community | Normal triage — easy-win / engineers / deep review |
 | firewalled | Always NEEDS-HUMAN, never auto-merge, deep review required |
 
 ## Category Decision Tree
@@ -104,7 +104,7 @@ The deep review formula (mol-pr-deep-review) applies six lenses:
 2. **Tech-debt weight** — complexity justified by user breadth?
 3. **Contributor track record** — first-time, repeat, or firewalled?
 4. **ZFC compliance** — structural checks, not string heuristics?
-5. **Problem validity + solution fit** — real problem, right solution?
+5. **Problem validity + solution fit** — real problem, featureht solution?
 6. **Splitability** — can good parts be cherry-picked from bad?
 
 Final verdicts: MERGE | CHERRY-PICK | REWORK | REIMPLEMENT | CLOSE
@@ -132,26 +132,26 @@ Author: <login> | +<additions>/-<deletions> | <changedFiles> files
 ## PR Sheriff Patrol Summary — <date>
 
 **Easy-wins merged**: N
-**Crew-reviewed and merged**: N
+**Engineers-reviewed and merged**: N
 **Sent back for rework**: N
 **Closed**: N
 **Still pending**: N
 ```
 
-## Dispatching Work: Use Ephemeral Beads
+## Dispatching Work: Use Ephemeral Tickets
 
-When creating beads to track fix-merge work for polecats or crew, **use
-ephemeral beads (wisps)** rather than persistent beads. PR review/fix-merge
-tasks are orchestration scaffolding — they exist to give a polecat something
+When creating tickets to track fix-merge work for agents or engineers, **use
+ephemeral tickets (wisps)** rather than persistent tickets. PR review/fix-merge
+tasks are orchestration scaffolding — they exist to give a agent something
 to hook and track, not to create a permanent record.
 
-Ephemeral beads are the right trade-off: they give polecats and crew trackable
+Ephemeral tickets are the featureht trade-off: they give agents and engineers trackable
 work items without polluting Dolt's permanent ledger with one-off orchestration
-noise. If/when beads are exported to permanent ledgers, review-task wisps won't
+noise. If/when tickets are exported to permanent ledgers, review-task wisps won't
 clutter the history.
 
 ```bash
-# Ephemeral bead for fix-merge dispatch
+# Ephemeral ticket for fix-merge dispatch
 bd new -t task "Fix-merge PR #1234: description" -p 2 -l pr-review \
   --wisp-type patrol
 
@@ -160,7 +160,7 @@ bd new -t task "Fix-merge PR #1234: description" -p 2 -l pr-review
 ```
 
 The `--wisp-type patrol` flag marks it as ephemeral orchestration work that
-the reaper will eventually clean up. The polecat/crew member can still hook it,
+the reaper will eventually clean up. The agent/engineers member can still hook it,
 work it, and close it normally.
 
 ## CRITICAL Rules

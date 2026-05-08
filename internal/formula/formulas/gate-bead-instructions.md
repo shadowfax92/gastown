@@ -1,6 +1,6 @@
-# Gate Bead Instruction Template
+# Gate Ticket Instruction Template
 
-This file defines the prose template embedded in every gate bead's description.
+This file defines the prose template embedded in every gate ticket's description.
 The `mol-decompose-with-gates` formula reads this template, populates the
 placeholders, and passes it as the `--description` to `bd create`.
 
@@ -8,24 +8,24 @@ placeholders, and passes it as the `--description` to `bd create`.
 
 | Placeholder | Source | Description |
 |-------------|--------|-------------|
-| `{{gate_id}}` | Formula runtime | The ID of this gate bead (filled after creation) |
-| `{{plan_title}}` | Plan bead title | Human-readable name of the plan/epic |
-| `{{plan_bead}}` | Formula var | The bead ID of the parent plan/epic |
+| `{{gate_id}}` | Formula runtime | The ID of this gate ticket (filled after creation) |
+| `{{plan_title}}` | Plan ticket title | Human-readable name of the plan/epic |
+| `{{plan_ticket}}` | Formula var | The ticket ID of the parent plan/epic |
 | `{{review_steps}}` | Resolved config | Rendered review step sections (see below) |
 | `{{step_names}}` | Resolved config | Comma-separated list of step names for summary |
 
 ## Template
 
 Everything below the `---` is the literal template that goes into the gate
-bead description. Placeholders are substituted at creation time.
+ticket description. Placeholders are substituted at creation time.
 
 ---
 
 ## Context
 
-This is a verification gate for plan **{{plan_title}}** (`{{plan_bead}}`).
+This is a verification gate for plan **{{plan_title}}** (`{{plan_ticket}}`).
 
-You are a gate polecat. Your job is to execute the review steps listed below
+You are a gate agent. Your job is to execute the review steps listed below
 against the implementation work that was done under this plan. You have no
 memory of the implementation — everything you need is in this description and
 in the code on the current branch.
@@ -33,11 +33,11 @@ in the code on the current branch.
 **Configured review steps:** {{step_names}}
 
 **How this gate works:**
-- This bead is blocked by all implementation tasks under the plan.
-- When you receive this bead, all implementation is complete.
+- This ticket is blocked by all implementation tasks under the plan.
+- When you receive this ticket, all implementation is complete.
 - Execute each review step below in order.
-- If ALL steps pass cleanly, close this gate bead (signals plan is ready).
-- If ANY step finds issues, follow the retry loop protocol at the bottom.
+- If ALL steps pass cleanly, close this gate ticket (signals plan is ready).
+- If ANY step finds tickets, follow the retry loop protocol at the bottom.
 
 ## Review Steps
 
@@ -57,19 +57,19 @@ in the code on the current branch.
 
 ## Retry Loop Protocol
 
-When a review step finds issues, do NOT close this gate bead. Instead:
+When a review step finds tickets, do NOT close this gate ticket. Instead:
 
-**1. File one fix bead per issue found:**
+**1. File one fix ticket per ticket found:**
 
 ```bash
-bd create "Fix: <concise issue description>" \
+bd create "Fix: <concise ticket description>" \
   --type=task \
   --description="## Context
-Found during gate review of {{plan_title}} ({{plan_bead}}).
-Gate bead: {{gate_id}}
+Found during gate review of {{plan_title}} ({{plan_ticket}}).
+Gate ticket: {{gate_id}}
 Review step: <which step found this>
 
-## Issue
+## Ticket
 <detailed description of what's wrong>
 
 ## Location
@@ -82,18 +82,18 @@ Review step: <which step found this>
 - <how to verify the fix is correct>"
 ```
 
-**2. Add each fix as a blocking dependency on THIS gate bead:**
+**2. Add each fix as a blocking dependency on THIS gate ticket:**
 
 ```bash
-bd dep add {{gate_id}} <fix-bead-id>
+bd dep add {{gate_id}} <fix-ticket-id>
 ```
 
-This ensures the gate bead becomes blocked again until all fixes are closed.
+This ensures the gate ticket becomes blocked again until all fixes are closed.
 
-**3. Sling each fix to a polecat:**
+**3. Sling each fix to a agent:**
 
 ```bash
-gt sling <fix-bead-id> <rig>
+gt sling <fix-ticket-id> <feature>
 ```
 
 This dispatches the fix work to an available worker.
@@ -103,32 +103,32 @@ This dispatches the fix work to an available worker.
 Clear your assignment and let your session end. You are done for now.
 
 The system handles the rest:
-- Fix polecats work on each fix bead independently.
-- As each fix bead closes, its blocking dep on this gate is satisfied.
-- When ALL fix beads close, this gate bead becomes unblocked again.
-- The stranded-bead scan re-dispatches this gate bead to a fresh polecat
+- Fix agents work on each fix ticket independently.
+- As each fix ticket closes, its blocking dep on this gate is satisfied.
+- When ALL fix tickets close, this gate ticket becomes unblocked again.
+- The stranded-ticket scan re-dispatches this gate ticket to a fresh agent
   within 30 seconds of becoming unblocked.
-- The fresh polecat re-runs all review steps from the top.
+- The fresh agent re-runs all review steps from the top.
 
-**Important:** Do NOT attempt to fix issues yourself. Your role is gate review,
-not implementation. File precise fix beads so fix polecats can execute without
+**Important:** Do NOT attempt to fix tickets yourself. Your role is gate review,
+not implementation. File precise fix tickets so fix agents can execute without
 ambiguity.
 
 ## Clean Pass Signal
 
-When ALL review steps pass with no issues found:
+When ALL review steps pass with no tickets found:
 
 ```bash
 bd close {{gate_id}} --reason="Gate passed: all review steps clean"
 ```
 
-Closing the gate bead signals that the plan's implementation has passed
+Closing the gate ticket signals that the plan's implementation has passed
 verification and is ready for human review.
 
 **Before closing, verify:**
 - You executed every configured review step ({{step_names}})
-- No issues were found in any step
+- No tickets were found in any step
 - You are not skipping a step due to confusion or error
 
-If you are uncertain whether something is an issue, err on the side of filing
-a fix bead. False positives waste less time than missed defects.
+If you are uncertain whether something is an ticket, err on the side of filing
+a fix ticket. False positives waste less time than missed defects.
