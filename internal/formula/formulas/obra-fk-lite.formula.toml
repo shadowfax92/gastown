@@ -1,0 +1,46 @@
+description = """
+Obra FK Lite end-to-end workflow: design the best plan from a raw vision, create executable beads, then sling initial implementation work.
+
+This is the one-command-lite version for founder-mode: Nikhil describes the vision, Mayor/crew thinks critically, accepts the best design, breaks it down, removes what is unnecessary, and starts execution in the target rig.
+"""
+formula = "obra-fk-lite"
+type = "workflow"
+version = 1
+
+[inputs]
+[inputs.vision]
+description = "Raw vision/goal to turn into implementation."
+type = "string"
+required = false
+
+[inputs.target_rig]
+description = "Rig to implement in."
+type = "string"
+default = "gastown"
+
+[[steps]]
+id = "plan"
+title = "Run Obra FK Lite planning"
+description = """
+Run or sling `obra-fk-lite-plan` with the raw vision.
+
+Expected output:
+- Accepted design.
+- Feature breakdown.
+- Cleanup/removal opportunities.
+- Beads with dependencies.
+- Mayor summary and orchestration instructions.
+"""
+
+[[steps]]
+id = "start-exec"
+title = "Start first executable beads"
+needs = ["plan"]
+description = """
+Run `bd ready` in {{.target_rig}}, choose the first one or two unblocked implementation beads, and sling them:
+```bash
+gt sling <bead-id> {{.target_rig}} --formula obra-fk-lite-exec --merge=mr --args "Implement from the accepted Obra FK Lite design. Think critically, keep scope tight, remove code we do not need, commit frequently."
+```
+
+Do not over-parallelize until the initial formula path works end-to-end.
+"""

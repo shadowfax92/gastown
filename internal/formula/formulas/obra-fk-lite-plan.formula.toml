@@ -1,0 +1,141 @@
+description = """
+Obra FK Lite planning workflow: turn a raw founder vision into an accepted design, a feature breakdown, and beads ready for execution.
+
+This lightweight autonomous planner is opinionated:
+- Think critically before building.
+- Brainstorm competing designs.
+- Auto-accept the best design unless there is a hard blocker.
+- Prefer removing unnecessary code/process over adding machinery.
+- Convert the accepted design into small executable beads with dependencies.
+- Tell the Mayor the breakdown so orchestration stays visible.
+
+Use when Nikhil gives a raw product/system vision and wants Gas Town to design the best implementation path automatically.
+"""
+formula = "obra-fk-lite-plan"
+type = "workflow"
+version = 1
+
+[inputs]
+[inputs.vision]
+description = "Raw vision, requirements, pasted notes, or product goal. If empty, read the hooked bead and sling args."
+type = "string"
+required = false
+
+[inputs.context]
+description = "Additional repository, product, or operating constraints."
+type = "string"
+required = false
+
+[inputs.target_rig]
+description = "Rig/repo where implementation beads should be created."
+type = "string"
+default = "gastown"
+
+[inputs.scale_goal]
+description = "North-star scale target to pressure-test the design against."
+type = "string"
+default = "10k agents, 100-1000 PRs/day"
+
+[[steps]]
+id = "intake"
+title = "Normalize the vision into a sharp brief"
+description = """
+Read the available assignment context and produce `.obra-fk/{{.target_rig}}/vision-brief.md`.
+
+Sources, in priority order:
+- `{{.vision}}` if provided by `gt formula run --set vision=...`.
+- The hooked bead shown by `gt hook` / `bd show <issue>` if this formula was attached with `gt sling <bead> ... --formula obra-fk-lite-plan`.
+- `{{.context}}` and sling args/messages.
+
+The brief MUST include:
+- One-sentence north star.
+- User workflow: Nikhil points at code in nvim/sidekick, Mayor is open on the right, Mayor forks a worktree, agents implement/review/merge, Nikhil pulls and reviews.
+- Explicit goals and non-goals.
+- Existing Gas Town strengths to preserve: tmux persistence, agent-as-mayor, git worktrees, recoverability.
+- Missing capabilities and friction in the current system.
+- Scale assumptions for {{.scale_goal}} and which assumptions are probably false.
+- Code/process we should remove or avoid because it does not serve the vision.
+
+Be direct. Fix spelling/ambiguity from the raw note, but do not water down the ambition.
+"""
+
+[[steps]]
+id = "brainstorm"
+title = "Brainstorm competing designs"
+needs = ["intake"]
+description = """
+Write `.obra-fk/{{.target_rig}}/design-options.md` with at least three materially different designs.
+
+Required options:
+1. Minimal formula layer: add plan/exec/debug formulas on top of existing beads/sling/mayor.
+2. Mayor command center: explicit task dashboard + right-pane Mayor interface optimized for nvim/sidekick.
+3. Scale architecture: scheduler/queue/concurrency controls for thousands of agents and hundreds of PRs/day.
+
+For each option include UX flow, CLI/API shape, data model, integration points, risks, migration costs, what can be removed, what can be deferred, and why the option might be wrong.
+"""
+
+[[steps]]
+id = "choose-design"
+title = "Auto-accept the best design"
+needs = ["brainstorm"]
+description = """
+Compare the options and write `.obra-fk/{{.target_rig}}/accepted-design.md`.
+
+Auto-accept the best design using these criteria, in order:
+1. Nikhil can use it immediately from nvim/sidekick with Mayor on the right.
+2. It preserves Gas Town primitives: tmux, worktrees, recoverability, agent Mayor.
+3. It creates a path from 10 agents to 10k agents without pretending the full scale problem is solved in one PR.
+4. It supports skills/formulas as first-class work modes: design, exec, debug, debug-fix, dev-full.
+5. It makes task visibility obvious.
+6. It removes or bypasses unneeded complexity.
+
+The accepted design should usually be a phased hybrid: ship the formula/workflow layer first, then dashboard/Mayor UX, then scale controls.
+
+If there is a true blocker requiring Nikhil, create a `question` bead and stop. Otherwise proceed without asking.
+"""
+
+[[steps]]
+id = "breakdown"
+title = "Break accepted design into features and sub-tasks"
+needs = ["choose-design"]
+description = """
+Write `.obra-fk/{{.target_rig}}/feature-breakdown.md`.
+
+Break the accepted design into epics, features, concrete sub-tasks/beads, dependencies, test/verification plan, rollout order, risks, kill criteria, and code/process to remove.
+
+Keep tasks small enough that `obra-fk-lite-exec` can implement each one as a focused PR with frequent commits.
+"""
+
+[[steps]]
+id = "create-beads"
+title = "Create beads with dependencies"
+needs = ["breakdown"]
+description = """
+Create beads in {{.target_rig}} for the implementation.
+
+Rules:
+- Use `bd create` only; do not create markdown TODOs.
+- Create one epic for the vision.
+- Create feature/task beads for: formula skills, Mayor right-pane UX, task visibility, ~/llm workspace/symlink model, design-review agents, scale controls, PR/merge automation, and cleanup/removal work.
+- Add dependencies with `bd dep add` so execution order is real.
+- Each bead must have acceptance criteria and a clear scope boundary.
+- Put the accepted-design path in bead notes/design so executors can recover context.
+
+After creation, run `bd ready` and verify the first executable beads are ready.
+"""
+
+[[steps]]
+id = "tell-mayor"
+title = "Tell the Mayor the design and breakdown"
+needs = ["create-beads"]
+description = """
+Send a persistent summary to Mayor and nudge Mayor to orchestrate.
+
+Use:
+```bash
+gt mail send mayor/ -s "Obra FK Lite plan ready: {{.target_rig}}" --stdin < .obra-fk/{{.target_rig}}/mayor-summary.md
+gt nudge mayor "Obra FK Lite plan is ready for {{.target_rig}}. Please break down/own orchestration from the summary and sling executable beads with obra-fk-lite-exec."
+```
+
+The summary must include accepted design, feature breakdown, bead IDs/dependencies, recommended first sling commands, and explicit instruction: think critically, auto-accept the best design, remove code/process we do not need, keep committing, and keep implementation scoped to Nikhil's Gas Town fork.
+"""

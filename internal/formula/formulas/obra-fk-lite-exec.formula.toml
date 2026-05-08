@@ -1,0 +1,123 @@
+description = """
+Obra FK Lite execution workflow: implement one accepted, well-scoped bead as a focused PR/MR using Gas Town primitives.
+
+Use after `obra-fk-lite-plan` has produced an accepted design and executable beads. The executor should think critically, commit frequently, remove unnecessary code when it serves the bead, and avoid scope creep.
+"""
+formula = "obra-fk-lite-exec"
+type = "workflow"
+version = 1
+
+[inputs]
+[inputs.issue]
+description = "Bead/issue ID to implement. If empty, use the hooked bead."
+type = "string"
+required = false
+
+[inputs.plan]
+description = "Path to accepted design / feature breakdown."
+type = "string"
+required = false
+
+[inputs.base_branch]
+description = "Base branch to rebase against."
+type = "string"
+default = "main"
+
+[[steps]]
+id = "load-context"
+title = "Load context and verify scope"
+description = """
+Run:
+```bash
+gt prime
+gt hook
+bd show {{.issue}}
+git status --short --branch
+git fetch origin
+```
+
+If `{{.issue}}` is empty, use the hook bead from `gt hook`.
+Read {{.plan}} if provided and any bead design/notes. Persist to bead notes:
+- Exact scope.
+- Non-goals.
+- Files likely touched.
+- Verification command(s).
+- Any obvious code/process that should be removed rather than extended.
+
+If scope is unclear, mail Mayor/Witness. Do not guess beyond the bead.
+"""
+
+[[steps]]
+id = "design-check"
+title = "Critical design check before coding"
+needs = ["load-context"]
+description = """
+Before editing code, write/update bead design with:
+- Current implementation approach.
+- Simpler alternative considered.
+- Risky assumptions.
+- Why this approach is best now.
+- What code/process can be removed or avoided.
+
+Auto-accept the best local design unless a hard product decision is missing. If a better design requires splitting work, create follow-up beads and continue only with the current bead's focused scope.
+"""
+
+[[steps]]
+id = "branch"
+title = "Create/rebase implementation branch"
+needs = ["design-check"]
+description = """
+Create or reuse a clean feature branch:
+```bash
+git fetch origin
+git checkout -B obra-fk/{{.issue}} origin/{{.base_branch}}
+git status --short
+```
+
+Working tree must be clean before coding.
+"""
+
+[[steps]]
+id = "implement"
+title = "Implement with frequent commits"
+needs = ["branch"]
+description = """
+Implement the bead.
+
+Rules:
+- Keep changes scoped to {{.issue}}.
+- Commit after each logical chunk: `git add -A && git commit -m "feat: ... ({{.issue}})"`.
+- Prefer deleting dead/duplicative code over adding abstractions.
+- Persist important findings to the bead with `bd update {{.issue}} --notes` or `--design`.
+- If you discover separate work, create new beads; do not silently expand scope.
+"""
+
+[[steps]]
+id = "verify"
+title = "Verify implementation"
+needs = ["implement"]
+description = """
+Run the smallest meaningful verification first, then broader gates if available:
+```bash
+gofmt -w <changed-go-files>
+go test ./...
+git status --short
+git log --oneline origin/{{.base_branch}}..HEAD
+```
+
+If a full gate is too expensive or currently failing from main, record exact evidence and run targeted tests. Do not claim success without evidence.
+"""
+
+[[steps]]
+id = "submit"
+title = "Submit for merge queue / PR"
+needs = ["verify"]
+description = """
+Push and submit through normal Gas Town flow:
+```bash
+git push -u origin HEAD
+gt done
+```
+
+If `gt done` is unavailable for this role, create/update the merge-request bead or PR according to current rig conventions, then notify Mayor/Witness with branch, commits, tests, and remaining risks.
+"""
