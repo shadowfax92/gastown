@@ -827,18 +827,43 @@ func runDeaconHeartbeat(cmd *cobra.Command, args []string) error {
 		action = strings.Join(args, " ")
 	}
 
+	if err := refreshDeaconHeartbeatSources(townRoot, action, time.Now().UTC()); err != nil {
+		return fmt.Errorf("updating heartbeat: %w", err)
+	}
+
 	if action != "" {
-		if err := deacon.TouchWithAction(townRoot, action, 0, 0); err != nil {
-			return fmt.Errorf("updating heartbeat: %w", err)
-		}
 		fmt.Printf("%s Heartbeat updated: %s\n", style.Bold.Render("✓"), action)
 	} else {
-		if err := deacon.Touch(townRoot); err != nil {
-			return fmt.Errorf("updating heartbeat: %w", err)
-		}
 		fmt.Printf("%s Heartbeat updated\n", style.Bold.Render("✓"))
 	}
 
+	return nil
+}
+
+func refreshDeaconHeartbeatSources(townRoot, action string, timestamp time.Time) error {
+	if timestamp.IsZero() {
+		timestamp = time.Now().UTC()
+	}
+
+	beadsDir := beads.ResolveBeadsDir(townRoot)
+	if err := updateAgentHeartbeatAndIdle(beads.DeaconBeadIDTown(), beadsDir, timestamp, 0); err != nil {
+		return fmt.Errorf("updating %s labels: %w", beads.DeaconBeadIDTown(), err)
+	}
+
+	existing := deacon.ReadHeartbeat(townRoot)
+	cycle := int64(1)
+	if existing != nil {
+		cycle = existing.Cycle + 1
+	}
+
+	hb := &deacon.Heartbeat{
+		Timestamp:  timestamp,
+		Cycle:      cycle,
+		LastAction: action,
+	}
+	if err := deacon.WriteHeartbeat(townRoot, hb); err != nil {
+		return fmt.Errorf("writing heartbeat file: %w", err)
+	}
 	return nil
 }
 

@@ -320,7 +320,9 @@ func runMoleculeAwaitSignal(cmd *cobra.Command, args []string) error {
 
 // calculateEffectiveTimeout determines the timeout based on flags.
 // If backoff parameters are provided, uses exponential backoff formula:
-//   min(base * multiplier^idleCycles, max)
+//
+//	min(base * multiplier^idleCycles, max)
+//
 // Otherwise uses the simple --timeout value.
 func calculateEffectiveTimeout(idleCycles int) (time.Duration, error) {
 	// If backoff base is set, use backoff mode
@@ -458,6 +460,41 @@ func updateAgentHeartbeat(agentBead, beadsDir string) error {
 	cmd := exec.CommandContext(ctx, "bd", args...) //nolint:gosec // G204: bd is a trusted internal tool
 	cmd.Env = append(os.Environ(), "BEADS_DIR="+beadsDir)
 	return cmd.Run()
+}
+
+func updateAgentHeartbeatAndIdle(agentBead, beadsDir string, timestamp time.Time, idleCycles int) error {
+	allLabels, err := getAllAgentLabels(agentBead, beadsDir)
+	if err != nil {
+		return err
+	}
+
+	args := []string{"update", agentBead}
+	for _, label := range agentLabelsWithHeartbeatAndIdle(allLabels, timestamp, idleCycles) {
+		args = append(args, "--set-labels="+label)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), bdCallTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "bd", args...) //nolint:gosec // G204: bd is a trusted internal tool
+	cmd.Env = append(os.Environ(), "BEADS_DIR="+beadsDir)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("updating heartbeat and idle labels: %w", err)
+	}
+	return nil
+}
+
+func agentLabelsWithHeartbeatAndIdle(allLabels []string, timestamp time.Time, idleCycles int) []string {
+	newLabels := make([]string, 0, len(allLabels)+2)
+	for _, label := range allLabels {
+		if strings.HasPrefix(label, "heartbeat:") || strings.HasPrefix(label, "idle:") {
+			continue
+		}
+		newLabels = append(newLabels, label)
+	}
+	newLabels = append(newLabels, fmt.Sprintf("heartbeat:%d", timestamp.Unix()))
+	newLabels = append(newLabels, fmt.Sprintf("idle:%d", idleCycles))
+	return newLabels
 }
 
 // setAgentIdleCycles sets the idle:N label on an agent bead.
