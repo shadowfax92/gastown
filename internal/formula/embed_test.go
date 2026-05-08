@@ -982,3 +982,58 @@ func TestGetEmbeddedFormulaContent(t *testing.T) {
 		t.Error("expected error for non-existent formula")
 	}
 }
+
+func TestObraFKLiteFormulasEmbeddedAndProvisioned(t *testing.T) {
+	required := []string{
+		"obra-fk-lite.formula.toml",
+		"obra-fk-lite-plan.formula.toml",
+		"obra-fk-lite-exec.formula.toml",
+	}
+
+	embedded, err := getEmbeddedFormulas()
+	if err != nil {
+		t.Fatalf("getEmbeddedFormulas() error: %v", err)
+	}
+
+	for _, filename := range required {
+		if _, ok := embedded[filename]; !ok {
+			t.Fatalf("%s is not embedded", filename)
+		}
+
+		content, err := GetEmbeddedFormulaContent(filename)
+		if err != nil {
+			t.Fatalf("GetEmbeddedFormulaContent(%s) error: %v", filename, err)
+		}
+
+		f, err := Parse(content)
+		if err != nil {
+			t.Fatalf("Parse(%s) error: %v", filename, err)
+		}
+		if f.Type != TypeWorkflow {
+			t.Fatalf("%s type = %q, want %q", filename, f.Type, TypeWorkflow)
+		}
+		if len(f.Steps) == 0 {
+			t.Fatalf("%s has no workflow steps", filename)
+		}
+	}
+
+	tmpDir := t.TempDir()
+	if _, err := ProvisionFormulas(tmpDir); err != nil {
+		t.Fatalf("ProvisionFormulas() error: %v", err)
+	}
+
+	formulasDir := filepath.Join(tmpDir, ".beads", "formulas")
+	installed, err := loadInstalledRecord(formulasDir)
+	if err != nil {
+		t.Fatalf("loadInstalledRecord() error: %v", err)
+	}
+
+	for _, filename := range required {
+		if _, err := os.Stat(filepath.Join(formulasDir, filename)); err != nil {
+			t.Fatalf("provisioned %s: %v", filename, err)
+		}
+		if _, ok := installed.Formulas[filename]; !ok {
+			t.Fatalf("%s missing from installed formula record", filename)
+		}
+	}
+}
