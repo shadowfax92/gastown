@@ -1,9 +1,9 @@
 description = """
-QA Engineer-side tracking of a single agent's lifecycle.
+Witness-side tracking of a single polecat's lifecycle.
 
-The QA Engineer bonds this molecule for each active agent, creating a lease that
-tracks the agent from spawn through work to cleanup. This is the WITNESS'S
-view of the agent, not the agent's own work molecule.
+The Witness bonds this molecule for each active polecat, creating a lease that
+tracks the polecat from spawn through work to cleanup. This is the WITNESS'S
+view of the polecat, not the polecat's own work molecule.
 
 ## Lifecycle States
 
@@ -17,52 +17,52 @@ BOOT ─► WORKING ─► VERIFYING ─► MERGE_REQUESTED ─► DONE
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| agent | Yes | Name of the agent |
-| ticket | Yes | The ticket assigned to the agent |
-| feature | Yes | The feature this agent belongs to |"""
-formula = "mol-agent-lease"
+| polecat | Yes | Name of the polecat |
+| bead | Yes | The bead assigned to the polecat |
+| rig | Yes | The rig this polecat belongs to |"""
+formula = "mol-polecat-lease"
 version = 2
 
 [[steps]]
 id = "boot"
-title = "Verify agent boots successfully"
+title = "Verify polecat boots successfully"
 description = """
-Agent has been spawned. Verify it initializes and starts working.
+Polecat has been spawned. Verify it initializes and starts working.
 
 **Check if alive:**
 ```bash
-tmux capture-pane -t gt-{{feature}}-{{agent}} -p | tail -20
+tmux capture-pane -t gt-{{rig}}-{{polecat}} -p | tail -20
 ```
 
 Look for:
 - Claude prompt visible ("> " at start of line)
 - `gt prime` output
-- Signs of reading the assigned ticket
+- Signs of reading the assigned bead
 
 **If idle for >60 seconds:**
 ```bash
-gt nudge {{feature}}/agents/{{agent}} "Begin work on {{ticket}}."
+gt nudge {{rig}}/polecats/{{polecat}} "Begin work on {{bead}}."
 ```
 
 **If still no response after nudge:**
 ```bash
-gt nudge {{feature}}/agents/{{agent}} "Are you there? Please acknowledge."
+gt nudge {{rig}}/polecats/{{polecat}} "Are you there? Please acknowledge."
 ```
 
 After 3 failed nudges, mark as stuck and escalate.
 
-**Exit criteria:** Agent shows signs of active work on {{ticket}}."""
+**Exit criteria:** Polecat shows signs of active work on {{bead}}."""
 
 [[steps]]
 id = "working"
-title = "Monitor agent progress"
+title = "Monitor polecat progress"
 needs = ["boot"]
 description = """
-Agent is actively working. Monitor for stuck or completion.
+Polecat is actively working. Monitor for stuck or completion.
 
 **Periodic checks:**
-- Use standard nudge protocol from QA Engineer CLAUDE.md
-- Watch for POLECAT_DONE mail or agent_state=done
+- Use standard nudge protocol from Witness CLAUDE.md
+- Watch for POLECAT_DONE mail or polecat_state=done
 
 **Signs of progress:**
 - Git commits appearing
@@ -74,76 +74,76 @@ Agent is actively working. Monitor for stuck or completion.
 - Repeated errors
 - Explicit "I'm stuck" messages
 
-**If POLECAT_DONE received or agent_state=done:**
+**If POLECAT_DONE received or polecat_state=done:**
 Proceed to verifying step.
 
-**Exit criteria:** Agent signals completion (POLECAT_DONE mail or state=done)."""
+**Exit criteria:** Polecat signals completion (POLECAT_DONE mail or state=done)."""
 
 [[steps]]
 id = "verifying"
-title = "Verify agent work is merge-ready"
+title = "Verify polecat work is merge-ready"
 needs = ["working"]
 description = """
-Agent claims completion. Verify before sending to Release Engineer.
+Polecat claims completion. Verify before sending to Refinery.
 
 **1. Check git state:**
 ```bash
-cd agents/{{agent}}
+cd polecats/{{polecat}}
 git status                    # Must be "working tree clean"
 git stash list                # Must be empty
-git log ofeaturein/main..HEAD     # Should have commits
+git log origin/main..HEAD     # Should have commits
 ```
 
 **2. Verify branch is pushed:**
 ```bash
-git log ofeaturein/$(git branch --show-current)..HEAD  # Should be empty
+git log origin/$(git branch --show-current)..HEAD  # Should be empty
 ```
 
-**3. Verify ticket is closed:**
+**3. Verify bead is closed:**
 ```bash
-bd show {{ticket}}             # Status should be 'closed'
+bd show {{bead}}             # Status should be 'closed'
 ```
 
 **4. Spot-check quality (ZFC - your judgment):**
 - Commits have reasonable messages
-- Changes look related to ticket
+- Changes look related to bead
 - No obvious problems in git log
 
 **If verification fails:**
-Nudge agent to fix:
+Nudge polecat to fix:
 ```bash
 # Use --mode=queue to avoid interrupting in-flight tool calls
-gt nudge --mode=queue {{feature}}/agents/{{agent}} "Verification failed: <ticket>. Please fix."
+gt nudge --mode=queue {{rig}}/polecats/{{polecat}} "Verification failed: <bead>. Please fix."
 ```
 Return to working step.
 
 **If verification passes:**
 Proceed to merge_requested step.
 
-**Exit criteria:** Git clean, branch pushed, ticket closed, work looks legit."""
+**Exit criteria:** Git clean, branch pushed, bead closed, work looks legit."""
 
 [[steps]]
 id = "merge_requested"
-title = "Request merge from Release Engineer"
+title = "Request merge from Refinery"
 needs = ["verifying"]
 description = """
-Work verified. Send MERGE_READY to Release Engineer and wait.
+Work verified. Send MERGE_READY to Refinery and wait.
 
 **Send merge request:**
 ```bash
-gt mail send {{feature}}/release engineer -s "MERGE_READY {{agent}}" -m "Branch: $(cd agents/{{agent}} && git branch --show-current)
-Ticket: {{ticket}}
-Agent: {{agent}}
-Verified: clean git state, ticket closed"
+gt mail send {{rig}}/refinery -s "MERGE_READY {{polecat}}" -m "Branch: $(cd polecats/{{polecat}} && git branch --show-current)
+Bead: {{bead}}
+Polecat: {{polecat}}
+Verified: clean git state, bead closed"
 ```
 
 **Update cleanup wisp state:**
 ```bash
-bd update <wisp-id> --labels cleanup,agent:{{agent}},state:merge-requested
+bd update <wisp-id> --labels cleanup,polecat:{{polecat}},state:merge-requested
 ```
 
 **Wait for MERGED response:**
-The Release Engineer will:
+The Refinery will:
 1. Fetch and rebase the branch
 2. Run tests
 3. Merge to main (if pass)
@@ -152,30 +152,30 @@ The Release Engineer will:
 This may take several minutes.
 
 **If MERGED received:** Proceed to done step.
-**If merge fails:** Release Engineer notifies, return to working state.
+**If merge fails:** Refinery notifies, return to working state.
 
-**Exit criteria:** MERGED mail received from Release Engineer."""
+**Exit criteria:** MERGED mail received from Refinery."""
 
 [[steps]]
 id = "done"
-title = "Complete agent cleanup"
+title = "Complete polecat cleanup"
 needs = ["merge_requested"]
 description = """
-Merge confirmed. Clean up the agent.
+Merge confirmed. Clean up the polecat.
 
-**1. Kill the agent session:**
+**1. Kill the polecat session:**
 ```bash
-gt session kill {{feature}}/agents/{{agent}}
+gt session kill {{rig}}/polecats/{{polecat}}
 ```
 
 **2. Remove worktree (if ephemeral):**
 ```bash
-git worktree remove agents/{{agent}} --force
+git worktree remove polecats/{{polecat}} --force
 ```
 
 **3. Delete local branch (if exists):**
 ```bash
-git branch -D agent/{{agent}} 2>/dev/null || true
+git branch -D polecat/{{polecat}} 2>/dev/null || true
 ```
 
 **4. Close this lease:**
@@ -183,17 +183,17 @@ git branch -D agent/{{agent}} 2>/dev/null || true
 bd close <this-lease-id>
 ```
 
-**Exit criteria:** Agent session killed, worktree removed, lease closed."""
+**Exit criteria:** Polecat session killed, worktree removed, lease closed."""
 
 [vars]
-[vars.agent]
-description = "Name of the agent"
+[vars.polecat]
+description = "Name of the polecat"
 required = true
 
-[vars.ticket]
-description = "The ticket assigned to the agent"
+[vars.bead]
+description = "The bead assigned to the polecat"
 required = true
 
-[vars.feature]
-description = "The feature this agent belongs to"
+[vars.rig]
+description = "The rig this polecat belongs to"
 required = true

@@ -1,6 +1,6 @@
 # Code Review Convoy Formula
 #
-# A convoy-style formula that spawns multiple agents in parallel,
+# A convoy-style formula that spawns multiple polecats in parallel,
 # each focusing on a different review aspect. Results are collected
 # and synthesized into a unified review.
 #
@@ -18,7 +18,7 @@ collected and synthesized into a prioritized, actionable review.
 
 ### Analysis Legs (read and analyze code)
 - **correctness**: Logic errors, bugs, edge cases
-- **performance**: Bottlenecks, efficiency tickets
+- **performance**: Bottlenecks, efficiency beads
 - **security**: Vulnerabilities, OWASP concerns
 - **elegance**: Design clarity, abstraction quality
 - **resilience**: Error handling, failure modes
@@ -36,8 +36,8 @@ collected and synthesized into a prioritized, actionable review.
 - **custom**: Select specific legs via --legs flag
 
 ## Execution Model
-1. Each leg spawns as a separate agent
-2. Agents work in parallel
+1. Each leg spawns as a separate polecat
+2. Polecats work in parallel
 3. Each writes findings to their designated output
 4. Synthesis step combines all findings into unified review
 """
@@ -103,17 +103,17 @@ Structure your output as follows:
 ## Summary
 (1-2 paragraph overview of findings)
 
-## Critical Tickets
+## Critical Beads
 (P0 - Must fix before merge)
-- Ticket description with file:line reference
+- Bead description with file:line reference
 - Explanation of impact
 - Suggested fix
 
-## Major Tickets
+## Major Beads
 (P1 - Should fix before merge)
 - ...
 
-## Minor Tickets
+## Minor Beads
 (P2 - Nice to fix)
 - ...
 
@@ -131,7 +131,7 @@ directory = ".reviews/{{.review_id}}"
 leg_pattern = "{{.leg.id}}-findings.md"
 synthesis = "review-summary.md"
 
-# Leg definitions - each spawns a parallel agent
+# Leg definitions - each spawns a parallel polecat
 [[legs]]
 id = "correctness"
 title = "Correctness Review"
@@ -148,7 +148,7 @@ Review the code for logical errors and edge case handling.
 - Dead code or unreachable branches
 - Incorrect assumptions in comments vs code
 - Integer overflow/underflow potential
-- Floating point comparison tickets
+- Floating point comparison beads
 
 **Questions to answer:**
 - Does the code do what it claims to do?
@@ -161,7 +161,7 @@ id = "performance"
 title = "Performance Review"
 focus = "Performance bottlenecks and efficiency"
 description = """
-Review the code for performance tickets.
+Review the code for performance beads.
 
 **Look for:**
 - O(n²) or worse algorithms where O(n) is possible
@@ -264,7 +264,7 @@ Review the code for style and convention compliance.
 **Look for:**
 - Naming convention violations
 - Formatting inconsistencies
-- Import organization tickets
+- Import organization beads
 - Comment quality (missing, outdated, or obvious)
 - Documentation gaps for public APIs
 - Inconsistent patterns within the codebase
@@ -289,7 +289,7 @@ Review the code for code smells and anti-patterns.
 - Long methods (>50 lines is suspicious)
 - Deep nesting (>3 levels)
 - Shotgun surgery patterns
-- Feature envy
+- Rig envy
 - Data clumps
 - Primitive obsession
 - Temporary fields
@@ -350,14 +350,14 @@ Good commits make the codebase easier to understand, bisect, and revert.
 **Look for:**
 - Giant "WIP" or "fix" commits
   - Multiple unrelated changes in one commit
-  - Commits that touch 20+ files across different features
+  - Commits that touch 20+ files across different rigs
 
 - Poor commit messages
   - "stuff", "update", "asdf", "fix"
   - No context about WHY the change was made
 
 - Unatomic commits
-  - Feature + refactor + bugfix in same commit
+  - Rig + refactor + bugfix in same commit
   - Should be separable logical units
 
 - Missing type prefixes (if project uses conventional commits)
@@ -413,7 +413,7 @@ description = "Light review for automatic flow - fast, focused on blockers"
 legs = ["wiring", "security", "smells", "test-quality"]
 
 [presets.full]
-description = "Comprehensive review - all legs, for major features"
+description = "Comprehensive review - all legs, for major rigs"
 legs = ["correctness", "performance", "security", "elegance", "resilience", "style", "smells", "wiring", "commit-discipline", "test-quality"]
 
 [presets.security-focused]
@@ -438,16 +438,16 @@ A synthesized review at: {{.output.directory}}/{{.output.synthesis}}
 
 **Structure:**
 1. **Executive Summary** - Overall assessment, merge recommendation
-2. **Critical Tickets** - P0 items from all legs, deduplicated
-3. **Major Tickets** - P1 items, grouped by theme
-4. **Minor Tickets** - P2 items, briefly listed
+2. **Critical Beads** - P0 items from all legs, deduplicated
+3. **Major Beads** - P1 items, grouped by theme
+4. **Minor Beads** - P2 items, briefly listed
 5. **Wiring Gaps** - Dependencies added but not used (from wiring leg)
 6. **Commit Quality** - Notes on commit discipline
 7. **Test Quality** - Assessment of test meaningfulness
 8. **Positive Observations** - What's done well
 9. **Recommendations** - Actionable next steps
 
-Deduplicate tickets found by multiple legs (note which legs found them).
+Deduplicate beads found by multiple legs (note which legs found them).
 Prioritize by impact and effort. Be actionable.
 """
 depends_on = ["correctness", "performance", "security", "elegance", "resilience", "style", "smells", "wiring", "commit-discipline", "test-quality"]

@@ -10,7 +10,7 @@ Before running `gt done`, verify your work is ready:
 
 ```bash
 git status                          # Must be clean (no uncommitted changes)
-git log --oneline ofeaturein/main..HEAD # Must have at least 1 commit
+git log --oneline origin/main..HEAD # Must have at least 1 commit
 ```
 
 If there are uncommitted changes, commit them first:

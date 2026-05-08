@@ -1,33 +1,33 @@
 description = """
-Full pipeline from vague idea to approved, tickets-ready implementation plan.
+Full pipeline from vague idea to approved, beads-ready implementation plan.
 
-Start by describing your idea conversationally to your engineers worker.
+Start by describing your idea conversationally to your crew worker.
 They'll pour this formula and it takes over from there.
 
 ## Pipeline
 
 ```
-[You → Engineers]     Describe your idea (natural language, no structure needed)
+[You → Crew]     Describe your idea (natural language, no structure needed)
       ↓
-[intake]         Agent structures it into a draft PRD
+[intake]         Polecat structures it into a draft PRD
       ↓
-[prd-review]     6 agents review PRD in parallel (mol-prd-review convoy)
+[prd-review]     6 polecats review PRD in parallel (mol-prd-review convoy)
                  → requirements, gaps, ambiguity, feasibility, scope, stakeholders
       ↓
-[human-clarify]  Agent presents consolidated questions, you answer
+[human-clarify]  Polecat presents consolidated questions, you answer
       ↓
-[generate-plan]  6 agents design the implementation in parallel (design convoy)
+[generate-plan]  6 polecats design the implementation in parallel (design convoy)
                  → api, data, ux, scale, security, integration
       ↓
-[prd-align 1-3]  3 rounds × 2 agents: align plan with PRD, apply fixes each round
+[prd-align 1-3]  3 rounds × 2 polecats: align plan with PRD, apply fixes each round
                  → requirements, goals, constraints, non-goals, user-stories, open-questions
       ↓
-[plan-review 1-3] 3 rounds × 2 agents: review plan itself, apply fixes each round
+[plan-review 1-3] 3 rounds × 2 polecats: review plan itself, apply fixes each round
                   → completeness, sequencing, risk, scope-creep, testability, coherence
       ↓
-[create-tickets]   Agent converts the refined plan into tickets with dependencies
+[create-beads]   Polecat converts the refined plan into beads with dependencies
       ↓
-[verify-tickets]   3 sequential passes comparing plan to tickets, filling gaps
+[verify-beads]   3 sequential passes comparing plan to beads, filling gaps
 ```
 
 ## Human Gate
@@ -36,21 +36,21 @@ There is one human gate:
 1. **After PRD review**: You answer clarifying questions before plan generation
 
 This is the only step requiring your input. The 6-round iterative plan review
-runs autonomously — agents review, orchestrator applies fixes, repeat.
+runs autonomously — polecats review, orchestrator applies fixes, repeat.
 
 ## Orchestration Model
 
-This is a workflow formula. The orchestrating engineers worker runs through
+This is a workflow formula. The orchestrating crew worker runs through
 steps sequentially. The parallel review steps kick off convoy sub-workflows
-(separate agents for each review dimension) and await their synthesis reports
-via mail before proceeding. The iterative plan review rounds dispatch 2 agents
+(separate polecats for each review dimension) and await their synthesis reports
+via mail before proceeding. The iterative plan review rounds dispatch 2 polecats
 each, await their findings, apply fixes to the plan, then proceed to the next round.
 
 ## Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| problem | yes | Your idea / feature / problem statement |
+| problem | yes | Your idea / rig / problem statement |
 | context | no | Additional context: constraints, related code, prior decisions |
 """
 formula = "mol-idea-to-plan"
@@ -76,7 +76,7 @@ Write a structured PRD draft to `.prd-reviews/{{review_id}}/prd-draft.md`
 
 Use this structure:
 ```markdown
-# PRD: <feature name>
+# PRD: <rig name>
 
 ## Problem Statement
 (What problem are we solving? For whom? Why now?)
@@ -125,7 +125,7 @@ gt formula run mol-prd-review \\
   --context="See .prd-reviews/{{review_id}}/prd-draft.md. {{context}}"
 ```
 
-This spawns 6 agents in parallel:
+This spawns 6 polecats in parallel:
 - requirements — success criteria and acceptance conditions
 - gaps — missing requirements nobody thought of
 - ambiguity — unclear or contradictory language
@@ -215,7 +215,7 @@ gt formula run design \\
   --context="PRD with clarifications: .prd-reviews/{{review_id}}/prd-draft.md. {{context}}"
 ```
 
-This spawns 6 agents in parallel, each exploring a different dimension:
+This spawns 6 polecats in parallel, each exploring a different dimension:
 - api — interface design and developer ergonomics
 - data — data model, storage, migrations
 - ux — user experience and CLI/UI ergonomics
@@ -245,7 +245,7 @@ Pay attention to:
 # ============================================================================
 # PRD ALIGNMENT ROUNDS (1-3)
 #
-# Three rounds of 2 agents each. Each round identifies gaps between the PRD
+# Three rounds of 2 polecats each. Each round identifies gaps between the PRD
 # and the implementation plan, then the orchestrator applies all must-fix and
 # should-fix changes before proceeding to the next round.
 # ============================================================================
@@ -255,11 +255,11 @@ id = "prd-align-1"
 title = "PRD alignment round 1: requirements + goals"
 needs = ["generate-plan"]
 description = """
-First PRD-alignment round. Dispatch 2 agents to check the plan against the PRD.
+First PRD-alignment round. Dispatch 2 polecats to check the plan against the PRD.
 
-**1. Dispatch 2 agents:**
+**1. Dispatch 2 polecats:**
 
-Agent A — **requirements-coverage**:
+Polecat A — **requirements-coverage**:
 ```bash
 gt sling --prompt="Review an implementation plan for PRD alignment.
 
@@ -279,7 +279,7 @@ Classify each GAP/PARTIAL as must-fix or should-fix.
 Mail your full report back when done." --mail-back
 ```
 
-Agent B — **goals-alignment**:
+Polecat B — **goals-alignment**:
 ```bash
 gt sling --prompt="Review an implementation plan for PRD alignment.
 
@@ -300,7 +300,7 @@ Mail your full report back when done." --mail-back
 
 **2. Await reports:**
 ```bash
-gt mail inbox  # wait for both agents to report back
+gt mail inbox  # wait for both polecats to report back
 ```
 
 **3. Apply fixes to the plan:**
@@ -318,9 +318,9 @@ needs = ["prd-align-1"]
 description = """
 Second PRD-alignment round. The plan has been updated from round 1 findings.
 
-**1. Dispatch 2 agents:**
+**1. Dispatch 2 polecats:**
 
-Agent A — **constraints-compliance**:
+Polecat A — **constraints-compliance**:
 ```bash
 gt sling --prompt="Review an implementation plan for PRD alignment (round 2).
 
@@ -341,7 +341,7 @@ Classify each as must-fix or should-fix.
 Mail your full report back when done." --mail-back
 ```
 
-Agent B — **non-goals-enforcement**:
+Polecat B — **non-goals-enforcement**:
 ```bash
 gt sling --prompt="Review an implementation plan for PRD alignment (round 2).
 
@@ -381,9 +381,9 @@ needs = ["prd-align-2"]
 description = """
 Third and final PRD-alignment round. Plan has been updated from rounds 1-2.
 
-**1. Dispatch 2 agents:**
+**1. Dispatch 2 polecats:**
 
-Agent A — **user-stories-coverage**:
+Polecat A — **user-stories-coverage**:
 ```bash
 gt sling --prompt="Review an implementation plan for PRD alignment (round 3).
 
@@ -404,7 +404,7 @@ Classify each as must-fix or should-fix.
 Mail your full report back when done." --mail-back
 ```
 
-Agent B — **open-questions-resolution**:
+Polecat B — **open-questions-resolution**:
 ```bash
 gt sling --prompt="Review an implementation plan for PRD alignment (round 3).
 
@@ -412,7 +412,7 @@ Read the PRD: .prd-reviews/{{review_id}}/prd-draft.md
 Read the plan: .designs/<design-id>/design-doc.md
 Read prior changes: .plan-reviews/{{review_id}}/prd-align-round-1.md and round-2.md
 
-Check every OPEN QUESTION from the PRD (both the ofeatureinal Open Questions section
+Check every OPEN QUESTION from the PRD (both the original Open Questions section
 and any questions raised in the Clarifications from Human Review section).
 Verify each question is either:
 - Answered and reflected in the plan
@@ -451,10 +451,10 @@ Proceeding to plan self-review...
 # ============================================================================
 # PLAN SELF-REVIEW ROUNDS (1-3)
 #
-# Three rounds of 2 agents each. Each round reviews the plan itself (not
-# against the PRD) for internal quality. Covers the 5 ofeatureinal review angles
+# Three rounds of 2 polecats each. Each round reviews the plan itself (not
+# against the PRD) for internal quality. Covers the 5 original review angles
 # (completeness, sequencing, risk, scope-creep, testability) plus coherence,
-# distributed across 6 agent slots.
+# distributed across 6 polecat slots.
 # ============================================================================
 
 [[steps]]
@@ -465,9 +465,9 @@ description = """
 First plan self-review round. The plan has been PRD-aligned through 3 rounds.
 Now review the plan itself for internal quality.
 
-**1. Dispatch 2 agents:**
+**1. Dispatch 2 polecats:**
 
-Agent A — **completeness**:
+Polecat A — **completeness**:
 ```bash
 gt sling --prompt="Review an implementation plan for completeness.
 
@@ -475,7 +475,7 @@ Read the plan: .designs/<design-id>/design-doc.md
 Read the PRD alignment logs: .plan-reviews/{{review_id}}/prd-align-round-*.md
 
 Is the plan complete? Check for:
-- Missing infrastructure setup (build config, CI, env vars, feature flags)
+- Missing infrastructure setup (build config, CI, env vars, rig flags)
 - Missing data migrations or schema changes
 - Missing test tasks (unit, integration, e2e)
 - Missing documentation updates
@@ -491,21 +491,21 @@ Report format for each finding:
 Mail your full report back when done." --mail-back
 ```
 
-Agent B — **sequencing**:
+Polecat B — **sequencing**:
 ```bash
 gt sling --prompt="Review an implementation plan for correct sequencing.
 
 Read the plan: .designs/<design-id>/design-doc.md
 
 Check the ordering and dependencies of all plan phases and tasks:
-- Are tasks in the featureht order? Would any task fail if executed in sequence?
+- Are tasks in the right order? Would any task fail if executed in sequence?
 - Are there hidden dependencies (task X needs task Y but doesn't say so)?
 - Are there unnecessary serial dependencies (tasks that could be parallelized)?
 - Is there a critical path? Is it the shortest possible?
 - Are there circular dependencies?
 
 Report format for each finding:
-- FINDING: <sequencing ticket>
+- FINDING: <sequencing bead>
   Severity: must-fix | should-fix
   Suggested reorder: <how to fix the sequence>
 
@@ -530,9 +530,9 @@ needs = ["plan-review-1"]
 description = """
 Second plan self-review round.
 
-**1. Dispatch 2 agents:**
+**1. Dispatch 2 polecats:**
 
-Agent A — **risk**:
+Polecat A — **risk**:
 ```bash
 gt sling --prompt="Review an implementation plan for risk.
 
@@ -556,7 +556,7 @@ Report format for each risk:
 Mail your full report back when done." --mail-back
 ```
 
-Agent B — **scope-creep**:
+Polecat B — **scope-creep**:
 ```bash
 gt sling --prompt="Review an implementation plan for scope creep.
 
@@ -569,7 +569,7 @@ Look for unnecessary work in the plan:
 - Premature optimization: performance work before proving it's needed
 - Over-engineering: abstractions, frameworks, or generalization beyond requirements
 - Nice-to-haves disguised as requirements
-- Tasks that could be deferred to a follow-up without impacting the core feature
+- Tasks that could be deferred to a follow-up without impacting the core rig
 
 Report format:
 - CUT: <task/section> — unnecessary because... Suggested action: remove or defer
@@ -599,9 +599,9 @@ needs = ["plan-review-2"]
 description = """
 Third and final plan self-review round.
 
-**1. Dispatch 2 agents:**
+**1. Dispatch 2 polecats:**
 
-Agent A — **testability**:
+Polecat A — **testability**:
 ```bash
 gt sling --prompt="Review an implementation plan for testability.
 
@@ -612,7 +612,7 @@ For each task/phase in the plan, check:
 - Does it have clear acceptance criteria? (How do we know it's done?)
 - Can the acceptance criteria be verified automatically (test, script, query)?
 - Are there tasks for writing tests, or are tests assumed but not planned?
-- Is there an integration test or e2e test that validates the whole feature?
+- Is there an integration test or e2e test that validates the whole rig?
 - Can each phase be independently verified before moving to the next?
 
 Report format:
@@ -624,7 +624,7 @@ Classify each as must-fix or should-fix.
 Mail your full report back when done." --mail-back
 ```
 
-Agent B — **coherence**:
+Polecat B — **coherence**:
 ```bash
 gt sling --prompt="Review an implementation plan for overall coherence.
 
@@ -676,17 +676,17 @@ Log in `.plan-reviews/{{review_id}}/review-round-3.md`.
 **Final plan:** .designs/<design-id>/design-doc.md
 **Review logs:** .plan-reviews/{{review_id}}/
 
-Proceeding to ticket creation...
+Proceeding to bead creation...
 ```
 
 **Exit criteria:** All 6 review rounds complete. Plan is refined. Summary output to human."""
 
 [[steps]]
-id = "create-tickets"
-title = "Convert approved plan to tickets"
+id = "create-beads"
+title = "Convert approved plan to beads"
 needs = ["plan-review-3"]
 description = """
-Convert the refined implementation plan into tickets with dependencies.
+Convert the refined implementation plan into beads with dependencies.
 
 **1. Read the final plan:**
 ```bash
@@ -695,7 +695,7 @@ cat .designs/<design-id>/design-doc.md
 
 **2. Identify work items from the Implementation Plan section:**
 
-For each task/phase in the plan, create a ticket:
+For each task/phase in the plan, create a bead:
 ```bash
 bd create "Task title" --type=task --description="
 ## Context
@@ -714,7 +714,7 @@ From: {{problem}} implementation plan
 
 **3. Set up dependencies:**
 
-After creating all tickets, wire up the dependencies based on the plan's
+After creating all beads, wire up the dependencies based on the plan's
 sequencing:
 
 ```bash
@@ -746,38 +746,38 @@ bv --robot-mode  # if available: graph visualization
 Output:
 
 ```
-## Tickets Created: {{problem}}
+## Beads Created: {{problem}}
 
 ### Summary
-<list of created tickets with IDs>
+<list of created beads with IDs>
 
 ### Next Steps
-- Review tickets: bd list --type=task
+- Review beads: bd list --type=task
 - Start work: bd ready (shows unblocked tasks)
-- Kick off agent swarm: gt sling <first-ticket-id> <feature>
+- Kick off polecat swarm: gt sling <first-bead-id> <rig>
 ```
 
-**Exit criteria:** All plan tasks exist as tickets. Dependencies are correctly wired.
+**Exit criteria:** All plan tasks exist as beads. Dependencies are correctly wired.
 Epic created. Human notified."""
 
 [[steps]]
-id = "verify-tickets-pass-1"
-title = "Verify tickets coverage against plan (pass 1)"
-needs = ["create-tickets"]
+id = "verify-beads-pass-1"
+title = "Verify beads coverage against plan (pass 1)"
+needs = ["create-beads"]
 description = """
-First pass: find gaps between the implementation plan and the tickets just created.
+First pass: find gaps between the implementation plan and the beads just created.
 
 **1. Read the implementation plan:**
 ```bash
 cat .designs/<design-id>/design-doc.md
 ```
 
-**2. List all tickets just created:**
+**2. List all beads just created:**
 ```bash
 bd list --status=open
 ```
 
-For each ticket, read its full content:
+For each bead, read its full content:
 ```bash
 bd show <id>
 ```
@@ -785,21 +785,21 @@ bd show <id>
 **3. Systematically compare:**
 
 Walk through every section, phase, and task in the implementation plan. For each
-discrete work item, verify a corresponding ticket exists that covers it. Check:
+discrete work item, verify a corresponding bead exists that covers it. Check:
 
-- Does a ticket exist for this work item?
-- Does the ticket's description capture the key requirements from the plan?
+- Does a bead exist for this work item?
+- Does the bead's description capture the key requirements from the plan?
 - Are acceptance criteria present and specific?
 - Are file paths and technical details preserved?
 
-**4. Create missing tickets:**
+**4. Create missing beads:**
 
-For any plan item not covered by an existing ticket, create one:
+For any plan item not covered by an existing bead, create one:
 ```bash
 bd create --title="<task>" --type=task --description="
 ## Context
-Gap found in verify-tickets pass 1. This was in the implementation plan but
-not captured in the initial ticket creation.
+Gap found in verify-beads pass 1. This was in the implementation plan but
+not captured in the initial bead creation.
 
 ## What
 <task description from plan>
@@ -809,20 +809,20 @@ not captured in the initial ticket creation.
 "
 ```
 
-Wire dependencies for any newly created tickets:
+Wire dependencies for any newly created beads:
 ```bash
-bd dep add <new-ticket> <dependency-ticket>
+bd dep add <new-bead> <dependency-bead>
 ```
 
 **5. Report:**
 Log what you found and created. If no gaps: say so explicitly.
 
-**Exit criteria:** All plan items have corresponding tickets after this pass."""
+**Exit criteria:** All plan items have corresponding beads after this pass."""
 
 [[steps]]
-id = "verify-tickets-pass-2"
-title = "Verify tickets coverage against plan (pass 2)"
-needs = ["verify-tickets-pass-1"]
+id = "verify-beads-pass-2"
+title = "Verify beads coverage against plan (pass 2)"
+needs = ["verify-beads-pass-1"]
 description = """
 Second pass: re-read the plan from scratch and verify coverage again.
 
@@ -832,32 +832,32 @@ requirements that only become visible after the first pass filled gaps.
 **Same process as pass 1:**
 
 1. Re-read the full implementation plan
-2. List ALL tickets (including those created in pass 1)
+2. List ALL beads (including those created in pass 1)
 3. Walk through every plan section again — fresh eyes
-4. Create tickets for any remaining gaps
+4. Create beads for any remaining gaps
 5. Wire dependencies
 
 **Additional checks this pass:**
 - Are there implicit requirements (e.g., "update exports", "run migrations",
   "add tests") that the plan mentions in passing but weren't called out as
   discrete tasks?
-- Are there cross-cutting concerns (e.g., feature flags, config changes,
+- Are there cross-cutting concerns (e.g., rig flags, config changes,
   documentation updates) mentioned across multiple phases?
-- Do any tickets have descriptions that are too vague to be actionable?
+- Do any beads have descriptions that are too vague to be actionable?
   If so, update them with specifics from the plan.
 
 **Exit criteria:** Second pass complete. Any new gaps filled."""
 
 [[steps]]
-id = "verify-tickets-pass-3"
+id = "verify-beads-pass-3"
 title = "Final verification pass"
-needs = ["verify-tickets-pass-2"]
+needs = ["verify-beads-pass-2"]
 description = """
 Third and final pass: validate completeness and dependency graph integrity.
 
-**1. Final plan-to-tickets comparison:**
+**1. Final plan-to-beads comparison:**
 Re-read the plan one more time. At this point you should find zero gaps.
-If you do find something, create the ticket.
+If you do find something, create the bead.
 
 **2. Validate the dependency graph:**
 ```bash
@@ -866,19 +866,19 @@ bd ready         # verify at least one task is unblocked and ready to start
 bd stats         # summary of what was created
 ```
 
-**3. Spot-check 3 random tickets:**
-Pick 3 tickets at random. For each, re-read the corresponding plan section
-and verify the ticket fully captures the work. If not, update the ticket.
+**3. Spot-check 3 random beads:**
+Pick 3 beads at random. For each, re-read the corresponding plan section
+and verify the bead fully captures the work. If not, update the bead.
 
 **4. Final report to human in conversation:**
 
 Output:
 
 ```
-## Tickets Verified: {{problem}}
+## Beads Verified: {{problem}}
 
 ### Coverage
-- Total tickets: <count>
+- Total beads: <count>
 - Created in initial pass: <count>
 - Added in verification pass 1: <count>
 - Added in verification pass 2: <count>
@@ -897,15 +897,15 @@ with coverage report."""
 
 [vars]
 [vars.review_id]
-description = "Short slug for the review (e.g. notification-levels) — computed by the agent"
+description = "Short slug for the review (e.g. notification-levels) — computed by the polecat"
 required = false
 default = ""
 
 [vars.problem]
-description = "Your idea, feature, or problem statement"
+description = "Your idea, rig, or problem statement"
 required = true
 
 [vars.context]
-description = "Additional context: constraints, related code, prior decisions, linked tickets"
+description = "Additional context: constraints, related code, prior decisions, linked beads"
 required = false
 default = ""

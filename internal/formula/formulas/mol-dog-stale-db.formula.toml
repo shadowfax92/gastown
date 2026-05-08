@@ -1,8 +1,8 @@
 description = """
 Detect stale and test databases accumulating in the Dolt server.
 
-Stale databases are orphaned test databases (testdb_*, tickets_t*, tickets_pt*,
-doctest_*, doctortest_*, tickets_vr*) that accumulate on the production Dolt
+Stale databases are orphaned test databases (testdb_*, beads_t*, beads_pt*,
+doctest_*, doctortest_*, beads_vr*) that accumulate on the production Dolt
 server when tests leak or cleanup fails. These consume disk space, degrade
 server performance, and inflate SHOW DATABASES output.
 
@@ -10,7 +10,7 @@ The Dog already kills zombie processes; detecting zombie databases is the
 same domain — infrastructure hygiene.
 
 Current behavior (from doltserver.go FindOrphanedDatabases + gt dolt cleanup):
-- FindOrphanedDatabases: checks databases against feature metadata.json references
+- FindOrphanedDatabases: checks databases against rig metadata.json references
 - gt dolt cleanup: removes orphans via DROP DATABASE or filesystem cleanup
 
 This molecule adds continuous monitoring: detect orphan accumulation before
@@ -22,7 +22,7 @@ This is infrastructure work. You:
 1. Query SHOW DATABASES and identify stale/test databases
 2. Count and classify orphans
 3. Clean up if count is manageable, escalate if excessive
-4. Report findings to Senior Engineer
+4. Report findings to Deacon
 5. Return to kennel
 
 ## Variables
@@ -31,18 +31,18 @@ This is infrastructure work. You:
 |----------|--------|-------------|
 | port | config | Dolt server port (default 3307) |
 | max_orphans_for_sql | config | Max orphans for SQL-based cleanup (default 50) |
-| warn_threshold | config | Orphan count to tfeatureger warning (default 5) |
+| warn_threshold | config | Orphan count to trigger warning (default 5) |
 
 ## Safety
 
 Only removes databases matching known test/orphan patterns. Production databases
-are identified by feature metadata.json references and are never touched.
+are identified by rig metadata.json references and are never touched.
 Uses the same safety logic as gt dolt cleanup."""
 formula = "mol-dog-stale-db"
 version = 1
 
 [squash]
-tfeatureger = "on_complete"
+trigger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -62,13 +62,13 @@ Filter out Dolt internals (information_schema, mysql).
 
 Known test/orphan patterns:
 - `testdb_*` — test harness databases
-- `tickets_t*` — tickets test databases
-- `tickets_pt*` — tickets patrol test databases
-- `tickets_vr*` — tickets version test databases
+- `beads_t*` — beads test databases
+- `beads_pt*` — beads patrol test databases
+- `beads_vr*` — beads version test databases
 - `doctest_*` — documentation test databases
 - `doctortest_*` — doctor test databases
 
-Production databases are those referenced by any feature's metadata.json
+Production databases are those referenced by any rig's metadata.json
 (use the same logic as FindOrphanedDatabases in doltserver.go).
 
 **3. Record findings:**
@@ -108,7 +108,7 @@ gt escalate -s HIGH "Dolt: {{orphan_count}} orphan databases detected (too many 
 Recommend filesystem cleanup:
 ```
 gt dolt stop
-cd ~/gt/.dolt-data && rm -rf testdb_* tickets_t* tickets_pt* tickets_vr* doctest_* doctortest_*
+cd ~/gt/.dolt-data && rm -rf testdb_* beads_t* beads_pt* beads_vr* doctest_* doctortest_*
 gt dolt start
 ```
 
@@ -158,12 +158,12 @@ No action needed.
 **2. Warn if above threshold:**
 If orphan count >= {{warn_threshold}}, this is early warning:
 ```bash
-gt mail send senior engineer/ -s "WARN: {{orphan_count}} orphan databases detected" -m "..."
+gt mail send deacon/ -s "WARN: {{orphan_count}} orphan databases detected" -m "..."
 ```
 
-**3. Signal completion to Senior Engineer:**
+**3. Signal completion to Deacon:**
 ```bash
-gt mail send senior engineer/ -s "DOG_DONE: stale-db" -m "Task: stale-db-scan
+gt mail send deacon/ -s "DOG_DONE: stale-db" -m "Task: stale-db-scan
 Total DBs: {{total_count}}
 Production: {{prod_count}}
 Orphans: {{orphan_count}}
@@ -183,7 +183,7 @@ description = "Maximum orphan count for SQL-based cleanup (above this, escalate 
 default = "50"
 
 [vars.warn_threshold]
-description = "Orphan count that tfeaturegers a warning"
+description = "Orphan count that triggers a warning"
 default = "5"
 
 [vars.total_count]

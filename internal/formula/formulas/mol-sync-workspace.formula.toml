@@ -1,9 +1,9 @@
 description = """
 Workspace synchronization molecule for batch prep.
 
-This molecule prepares an agent's workspace for a new batch of work. It syncs git
-and tickets state, cleans up cruft, verifies the baseline is healthy, and reports
-readiness. Designed to be broadcast to all agents when preparing for coordinated
+This molecule prepares an polecat's workspace for a new batch of work. It syncs git
+and beads state, cleans up cruft, verifies the baseline is healthy, and reports
+readiness. Designed to be broadcast to all polecats when preparing for coordinated
 work.
 
 ## When to Use
@@ -17,13 +17,13 @@ work.
 
 **Preserve and re-land, not discard.**
 
-When git pull/rebase hits conflicts, the agent should:
+When git pull/rebase hits conflicts, the polecat should:
 1. Assess if the conflicting work is still valuable
-2. If valuable: re-envision against new baseline, file a ticket for re-implementation
+2. If valuable: re-envision against new baseline, file a bead for re-implementation
 3. If obsolete (e.g., touches deleted system): discard with a note
-4. If unclear: escalate to human/product manager
+4. If unclear: escalate to human/mayor
 
-Agents can file a ticket and delegate. Release Engineer must resolve inline.
+Polecats can file a bead and delegate. Refinery must resolve inline.
 
 ## Variables
 
@@ -32,18 +32,18 @@ Agents can file a ticket and delegate. Release Engineer must resolve inline.
 | setup_command | config | Setup/install command (empty = skip) |
 | typecheck_command | config | Type check command (empty = skip) |
 | lint_command | config | Lint command (empty = skip) |
-| test_command | feature config | Test command. Empty = skip. Feature must configure for its language. |
+| test_command | rig config | Test command. Empty = skip. Rig must configure for its language. |
 | build_command | config | Build command (empty = skip) |
 
 ## Failure Modes
 
 | Situation | Action |
 |-----------|--------|
-| Rebase conflict | Preserve work via ticket, complete sync on clean state |
+| Rebase conflict | Preserve work via bead, complete sync on clean state |
 | Uncommitted work | Stash or commit, then sync |
-| Untracked files | Warn, let agent decide (keep/delete/gitignore) |
-| bd doctor errors | Report findings, agent triages |
-| Test failures | File ticket if not already tracked, don't block sync |
+| Untracked files | Warn, let polecat decide (keep/delete/gitignore) |
+| bd doctor errors | Report findings, polecat triages |
+| Test failures | File bead if not already tracked, don't block sync |
 | Quality check failure | Must be resolved before marking sync complete |"""
 formula = "mol-sync-workspace"
 version = 2
@@ -57,9 +57,9 @@ Capture current state before any changes.
 **0. Prime context (critical for fresh sessions):**
 ```bash
 gt prime   # Load gt/mol context
-bd prime   # Load tickets context
+bd prime   # Load beads context
 ```
-These ensure the agent has full system context, especially after session
+These ensure the polecat has full system context, especially after session
 start, compaction, or context clear.
 
 **1. Check git status:**
@@ -69,7 +69,7 @@ git stash list
 git branch --show-current
 ```
 
-**2. Check tickets state:**
+**2. Check beads state:**
 ```bash
 bd sync --status
 ```
@@ -79,7 +79,7 @@ bd sync --status
 - Uncommitted changes (staged/unstaged)
 - Untracked files (list them)
 - Stash entries
-- Tickets sync status
+- Beads sync status
 
 This information guides decisions in subsequent steps.
 
@@ -111,7 +111,7 @@ For each untracked file, decide:
 - **Delete**: `rm <file>`
 - **Stash**: Can't stash untracked directly; commit or delete
 
-**WARN the agent**: Report untracked files prominently. They may be:
+**WARN the polecat**: Report untracked files prominently. They may be:
 - WIP that should be preserved
 - Build artifacts that should be gitignored
 - Cruft that should be deleted
@@ -136,7 +136,7 @@ id = "cleanup-worktrees"
 title = "Clean up stale worktrees"
 needs = ["handle-dirty-state"]
 description = """
-Remove orphaned worktrees from cross-feature work.
+Remove orphaned worktrees from cross-rig work.
 
 **1. List worktrees:**
 ```bash
@@ -160,7 +160,7 @@ git worktree remove --force <path>
 git worktree prune
 ```
 
-**CAUTION:** Don't remove worktrees for active cross-feature work.
+**CAUTION:** Don't remove worktrees for active cross-rig work.
 Check with `gt worktree list` if available.
 
 **Exit criteria:** Stale worktrees removed."""
@@ -174,18 +174,18 @@ Fetch and rebase onto current main.
 
 **1. Fetch latest:**
 ```bash
-git fetch ofeaturein
+git fetch origin
 ```
 
 **2. Check divergence:**
 ```bash
-git log --oneline HEAD..ofeaturein/main | head -5   # What's new on main
-git log --oneline ofeaturein/main..HEAD | head -5   # What we have locally
+git log --oneline HEAD..origin/main | head -5   # What's new on main
+git log --oneline origin/main..HEAD | head -5   # What we have locally
 ```
 
 **3. Rebase onto main:**
 ```bash
-git pull --rebase ofeaturein main
+git pull --rebase origin main
 ```
 
 **If rebase succeeds:** Continue to next step.
@@ -200,32 +200,32 @@ The Preservation Protocol:
 2. **If work is valuable:**
    ```bash
    git rebase --abort
-   # Create a ticket capturing the work
+   # Create a bead capturing the work
    bd create --title "Re-land: <description>" --type task --priority 2
-   # Note the changes needed in the ticket description
+   # Note the changes needed in the bead description
    # Reset to clean state
-   git reset --hard ofeaturein/main
+   git reset --hard origin/main
    ```
 
 3. **If work is obsolete:**
    ```bash
    git rebase --abort
-   git reset --hard ofeaturein/main
+   git reset --hard origin/main
    # Note why it was discarded
    ```
 
 4. **If unclear:**
-   - Escalate to human/product manager
+   - Escalate to human/mayor
    - Document the conflict
    - Proceed with sync on clean baseline
 
-**Release Engineer-specific conflict resolution:**
+**Refinery-specific conflict resolution:**
 
-Unlike agents who can file a ticket and delegate, the Release Engineer MUST resolve
-conflicts inline. The Release Engineer processes the merge queue - if it can't resolve
-a conflict, the queue backs up and agents' completed work never lands.
+Unlike polecats who can file a bead and delegate, the Refinery MUST resolve
+conflicts inline. The Refinery processes the merge queue - if it can't resolve
+a conflict, the queue backs up and polecats' completed work never lands.
 
-**Release Engineer conflict protocol:**
+**Refinery conflict protocol:**
 
 1. **Analyze the conflict:**
    ```bash
@@ -258,62 +258,62 @@ a conflict, the queue backs up and agents' completed work never lands.
    git rebase --continue
    ```
 
-4. **Complex conflicts (abort and notify agent):**
+4. **Complex conflicts (abort and notify polecat):**
    - Conflicting business logic changes
    - Unclear which version is correct
    - Risk of subtle bugs from incorrect merge
 
    ```bash
    git rebase --abort
-   gt mail send <feature>/agents/<worker> -s "Rebase needed" \
+   gt mail send <rig>/polecats/<worker> -s "Rebase needed" \
      -m "Your branch conflicts with main in <files>. Please rebase and resubmit via gt done."
    # Skip this branch, continue with queue
    ```
 
-**The Release Engineer judgment call:** When in doubt, abort and notify rather than
+**The Refinery judgment call:** When in doubt, abort and notify rather than
 risk merging incorrectly. A resubmitted branch is better than a broken main.
 
-**Exit criteria:** Local branch matches or is cleanly ahead of ofeaturein/main."""
+**Exit criteria:** Local branch matches or is cleanly ahead of origin/main."""
 
 [[steps]]
-id = "sync-tickets"
-title = "Sync tickets state"
+id = "sync-beads"
+title = "Sync beads state"
 needs = ["sync-git"]
 description = """
-Sync the tickets database with remote.
+Sync the beads database with remote.
 
 ```bash
 bd sync
 ```
 
 **If conflicts:**
-Tickets uses JSONL append-only format, so true conflicts are rare.
+Beads uses JSONL append-only format, so true conflicts are rare.
 If they occur:
 ```bash
 bd sync --status  # Diagnose
 ```
 
 Likely causes:
-- Two agents edited same ticket simultaneously
-- Corrupted tickets-sync branch
+- Two polecats edited same bead simultaneously
+- Corrupted beads-sync branch
 
 Resolution:
 ```bash
 # Try pulling fresh
-git fetch ofeaturein tickets-sync
+git fetch origin beads-sync
 bd sync
 ```
 
-If still failing, escalate to product manager.
+If still failing, escalate to mayor.
 
-**Exit criteria:** Tickets synced successfully."""
+**Exit criteria:** Beads synced successfully."""
 
 [[steps]]
 id = "run-doctor"
-title = "Run tickets health check"
-needs = ["sync-tickets"]
+title = "Run beads health check"
+needs = ["sync-beads"]
 description = """
-Check for tickets system tickets.
+Check for beads system beads.
 
 ```bash
 bd doctor
@@ -323,15 +323,15 @@ bd doctor
 
 | Finding | Action |
 |---------|--------|
-| Orphaned tickets (committed but not closed) | Review and close if complete |
+| Orphaned beads (committed but not closed) | Review and close if complete |
 | Missing dependencies | Fix with `bd dep add` |
 | Circular dependencies | Resolve or escalate |
 | Stale in_progress | Check if still active, update status |
 | Route misconfigurations | Fix routes.jsonl |
 
-**For each ticket found:**
+**For each bead found:**
 - Quick fix (<5 min): Fix now
-- Medium fix: File a ticket
+- Medium fix: File a bead
 - Unclear: Note for human review
 
 **Exit criteria:** Doctor findings triaged (not necessarily all fixed)."""
@@ -361,11 +361,11 @@ Empty commands mean "not configured for this project" — skip silently.
 
 **2. If quality checks fail:**
 
-This is a blocking ticket. Options:
+This is a blocking bead. Options:
 
 1. **Quick fix (<15 min):** Fix it now
    ```bash
-   # Fix the ticket
+   # Fix the bead
    git add <files>
    git commit -m "fix: quality check failure from sync"
    git push
@@ -390,7 +390,7 @@ description = """
 Verify tests pass on current baseline.
 
 ```bash
-{{test_command}}            # Run tests (configured per-feature)
+{{test_command}}            # Run tests (configured per-rig)
 ```
 
 **If tests pass:** Continue to next step.
@@ -405,7 +405,7 @@ However, they must be tracked.
    bd list --type=bug --status=open | grep -i test
    ```
 
-2. **If not tracked, file a ticket:**
+2. **If not tracked, file a bead:**
    ```bash
    bd create --title "Test failure: <test name>" --type bug --priority 1
    ```
@@ -413,7 +413,7 @@ However, they must be tracked.
 3. **Report in summary:**
    Note which tests are failing so batch assignment accounts for it.
 
-**Exit criteria:** Test results documented, failures tracked in tickets."""
+**Exit criteria:** Test results documented, failures tracked in beads."""
 
 [[steps]]
 id = "generate-report"
@@ -427,14 +427,14 @@ Summarize sync results for broadcast response.
 # Get current branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# Check divergence from ofeaturein/main
-BEHIND=$(git rev-list HEAD..ofeaturein/main --count)
-AHEAD=$(git rev-list ofeaturein/main..HEAD --count)
+# Check divergence from origin/main
+BEHIND=$(git rev-list HEAD..origin/main --count)
+AHEAD=$(git rev-list origin/main..HEAD --count)
 ```
 
-**Report format (for feature branches):**
+**Report format (for rig branches):**
 ```
-SYNC COMPLETE: <agent-name>
+SYNC COMPLETE: <polecat-name>
 
 Git:
   - Branch: <branch>
@@ -442,38 +442,38 @@ Git:
   - Commits ahead of main: <n>
   - Conflicts resolved: <y/n, details if yes>
 
-Tickets:
+Beads:
   - Sync status: OK
   - Doctor findings: <count> (fixed: <n>, filed: <n>, deferred: <n>)
 
 Quality checks: PASS
-Tests: PASS | FAIL (<count> failures, tracked in <ticket-ids>)
+Tests: PASS | FAIL (<count> failures, tracked in <bead-ids>)
 
 Worktrees cleaned: <count>
 
 Ready for work: YES | NO (<reason>)
 ```
 
-**Report format (for engineers on main):**
+**Report format (for crew on main):**
 
-When the agent is on the main branch directly (common for engineers workers),
+When the polecat is on the main branch directly (common for crew workers),
 use "Unpushed commits" instead of "Commits ahead of main":
 
 ```
-SYNC COMPLETE: <agent-name>
+SYNC COMPLETE: <polecat-name>
 
 Git:
   - Branch: main
-  - Commits behind ofeaturein: <n>
+  - Commits behind origin: <n>
   - Unpushed commits: <n>
   - Conflicts resolved: <y/n, details if yes>
 ...
 ```
 
 This distinction is important because:
-- Engineers workers often work directly on main
+- Crew workers often work directly on main
 - "Commits ahead of main" is confusing when you ARE on main
-- "Unpushed commits" is clearer - it means local work not yet on ofeaturein
+- "Unpushed commits" is clearer - it means local work not yet on origin
 
 **Exit criteria:** Report generated."""
 
@@ -491,7 +491,7 @@ gt mail send <coordinator> -s "SYNC_COMPLETE $(hostname)" -m "<report>"
 
 **If autonomous sync:**
 - Log the report
-- Update any relevant agent status
+- Update any relevant polecat status
 
 **If sync failed (couldn't pass quality checks):**
 ```bash
@@ -514,7 +514,7 @@ description = "Lint command (e.g., eslint .). Empty = skip."
 default = ""
 
 [vars.test_command]
-description = "Command to run tests (auto-detected from feature settings)"
+description = "Command to run tests (auto-detected from rig settings)"
 default = ""
 
 [vars.build_command]

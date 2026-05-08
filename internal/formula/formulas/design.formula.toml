@@ -1,11 +1,11 @@
 # Design Convoy Formula
 #
-# A convoy-style formula that spawns multiple agents in parallel,
+# A convoy-style formula that spawns multiple polecats in parallel,
 # each exploring a different dimension of a design problem. Results
 # are synthesized into a unified design document.
 #
 # Usage:
-#   gt formula run design --problem="Add notification levels to product manager"
+#   gt formula run design --problem="Add notification levels to mayor"
 #   gt formula run design --problem="Redesign the merge queue"
 
 description = """
@@ -23,8 +23,8 @@ are collected and synthesized into a unified design proposal with options.
 - **integration**: How it fits existing system, compatibility
 
 ## Execution Model
-1. Each leg spawns as a separate agent
-2. Agents work in parallel
+1. Each leg spawns as a separate polecat
+2. Polecats work in parallel
 3. Each writes analysis to their designated output
 4. Synthesis step combines all analyses into unified design
 
@@ -40,7 +40,7 @@ version = 1
 # Input variables - provided at runtime
 [inputs]
 [inputs.problem]
-description = "Problem statement or feature request to design"
+description = "Problem statement or rig request to design"
 type = "string"
 required = true
 
@@ -121,13 +121,13 @@ directory = ".designs/{{.design_id}}"
 leg_pattern = "{{.leg.id}}.md"
 synthesis = "design-doc.md"
 
-# Leg definitions - each spawns a parallel agent
+# Leg definitions - each spawns a parallel polecat
 [[legs]]
 id = "api"
 title = "API & Interface Design"
 focus = "Interface design and developer ergonomics"
 description = """
-Analyze the interface design for this feature.
+Analyze the interface design for this rig.
 
 **Explore:**
 - Command-line interface: flags, subcommands, ergonomics
@@ -138,7 +138,7 @@ Analyze the interface design for this feature.
 - Consistency with existing interfaces
 
 **Questions to answer:**
-- How will users discover and learn this feature?
+- How will users discover and learn this rig?
 - What's the happy path vs edge cases?
 - Does it follow existing CLI/API patterns?
 - What would make this a joy to use?
@@ -151,7 +151,7 @@ id = "data"
 title = "Data Model Design"
 focus = "Data model, storage, and migrations"
 description = """
-Analyze the data model requirements for this feature.
+Analyze the data model requirements for this rig.
 
 **Explore:**
 - Data structures: types, relationships, constraints
@@ -175,7 +175,7 @@ id = "ux"
 title = "User Experience Analysis"
 focus = "User experience and CLI ergonomics"
 description = """
-Analyze the user experience implications of this feature.
+Analyze the user experience implications of this rig.
 
 **Explore:**
 - Mental model: how users think about this
@@ -199,7 +199,7 @@ id = "scale"
 title = "Scalability Analysis"
 focus = "Performance at scale and bottlenecks"
 description = """
-Analyze the scalability implications of this feature.
+Analyze the scalability implications of this rig.
 
 **Explore:**
 - Scale dimensions: data size, request rate, user count
@@ -223,7 +223,7 @@ id = "security"
 title = "Security Analysis"
 focus = "Threat model and attack surface"
 description = """
-Analyze the security implications of this feature.
+Analyze the security implications of this rig.
 
 **Explore:**
 - Trust boundaries: what trusts what?
@@ -247,7 +247,7 @@ id = "integration"
 title = "Integration Analysis"
 focus = "How it fits existing system"
 description = """
-Analyze how this feature integrates with the existing system.
+Analyze how this rig integrates with the existing system.
 
 **Explore:**
 - Existing components: what does this touch?
@@ -261,7 +261,7 @@ Analyze how this feature integrates with the existing system.
 - Where does this code live?
 - How does it affect existing workflows?
 - What needs to change in dependent code?
-- Can we feature-flag or gradually roll out?
+- Can we rig-flag or gradually roll out?
 
 **Deliverable:** integration.md with integration plan
 """

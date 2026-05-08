@@ -1,5 +1,5 @@
 description = """
-Tickets release workflow - from version bump to verified release.
+Beads release workflow - from version bump to verified release.
 
 This formula orchestrates a complete release cycle:
 1. Preflight checks (clean git, up to date)
@@ -14,15 +14,15 @@ This formula orchestrates a complete release cycle:
 ## Usage
 
 ```bash
-bd mol wisp create tickets-release --var version=0.37.0
+bd mol wisp create beads-release --var version=0.37.0
 ```
 
-Or assign to a agent:
+Or assign to a polecat:
 ```bash
-gt sling tickets/agents/p1 --formula tickets-release --var version=0.37.0
+gt sling beads/polecats/p1 --formula beads-release --var version=0.37.0
 ```
 """
-formula = "tickets-release"
+formula = "beads-release"
 type = "workflow"
 version = 1
 pour = true
@@ -52,7 +52,7 @@ id = "preflight-pull"
 title = "Preflight: Pull latest"
 needs = ["preflight-git"]
 description = """
-Ensure we're up to date with ofeaturein.
+Ensure we're up to date with origin.
 
 ```bash
 git pull --rebase
@@ -73,7 +73,7 @@ git log $(git describe --tags --abbrev=0)..HEAD --oneline
 ```
 
 Categorize changes:
-- Features (feat:)
+- Rigs (feat:)
 - Fixes (fix:)
 - Breaking changes
 - Documentation
@@ -104,7 +104,7 @@ needs = ["update-changelog"]
 description = """
 Add entry to versionChanges in cmd/bd/info.go.
 
-This powers `bd info --whats-new` for agents.
+This powers `bd info --whats-new` for polecats.
 
 ```go
 "{{version}}": {
@@ -116,7 +116,7 @@ This powers `bd info --whats-new` for agents.
 },
 ```
 
-Focus on workflow-impacting changes agents need to know.
+Focus on workflow-impacting changes polecats need to know.
 """
 
 [[steps]]
@@ -133,8 +133,8 @@ Update all component versions atomically.
 This updates:
 - cmd/bd/version.go
 - .claude-plugin/*.json
-- integrations/tickets-mcp/pyproject.toml
-- integrations/tickets-mcp/src/tickets_mcp/__init__.py
+- integrations/beads-mcp/pyproject.toml
+- integrations/beads-mcp/src/beads_mcp/__init__.py
 - npm-package/package.json
 - Hook templates
 - README.md
@@ -152,7 +152,7 @@ Confirm all versions match {{version}}.
 grep 'Version = ' cmd/bd/version.go
 jq -r '.version' .claude-plugin/plugin.json
 jq -r '.version' npm-package/package.json
-grep 'version = ' integrations/tickets-mcp/pyproject.toml
+grep 'version = ' integrations/beads-mcp/pyproject.toml
 ```
 
 All should show {{version}}.
@@ -192,10 +192,10 @@ id = "push-main"
 title = "Push to main"
 needs = ["create-tag"]
 description = """
-Push the release commit to ofeaturein.
+Push the release commit to origin.
 
 ```bash
-git push ofeaturein main
+git push origin main
 ```
 
 If rejected, someone else pushed. Pull, rebase, try again.
@@ -206,13 +206,13 @@ id = "push-tag"
 title = "Push release tag"
 needs = ["push-main"]
 description = """
-Push the version tag to tfeatureger CI release.
+Push the version tag to trigger CI release.
 
 ```bash
-git push ofeaturein v{{version}}
+git push origin v{{version}}
 ```
 
-This tfeaturegers GitHub Actions to build artifacts and publish.
+This triggers GitHub Actions to build artifacts and publish.
 """
 
 [[steps]]
@@ -222,7 +222,7 @@ needs = ["push-tag"]
 description = """
 Monitor GitHub Actions for release completion.
 
-https://github.com/steveyegge/tickets/actions
+https://github.com/steveyegge/beads/actions
 
 Expected time: 5-10 minutes
 
@@ -240,7 +240,7 @@ needs = ["wait-ci"]
 description = """
 Check the GitHub releases page.
 
-https://github.com/steveyegge/tickets/releases/tag/v{{version}}
+https://github.com/steveyegge/beads/releases/tag/v{{version}}
 
 Verify:
 - Release created
@@ -256,12 +256,12 @@ description = """
 Confirm npm package published.
 
 ```bash
-npm show @tickets/bd version
+npm show @beads/bd version
 ```
 
 Should show {{version}}.
 
-Also check: https://www.npmjs.com/package/@tickets/bd
+Also check: https://www.npmjs.com/package/@beads/bd
 """
 
 [[steps]]
@@ -272,10 +272,10 @@ description = """
 Confirm PyPI package published.
 
 ```bash
-pip index versions tickets-mcp 2>/dev/null | head -3
+pip index versions beads-mcp 2>/dev/null | head -3
 ```
 
-Or check: https://pypi.org/project/tickets-mcp/
+Or check: https://pypi.org/project/beads-mcp/
 
 Should show {{version}}.
 """
@@ -294,7 +294,7 @@ brew upgrade bd
 
 Option 2 - Install script:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/steveyegge/tickets/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
 ```
 
 Verify:

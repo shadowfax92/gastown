@@ -1,32 +1,32 @@
 description = """
-Conflict resolution workflow for agents handling merge conflicts.
+Conflict resolution workflow for polecats handling merge conflicts.
 
-This molecule guides a agent through resolving merge conflicts for a previously
+This molecule guides a polecat through resolving merge conflicts for a previously
 submitted MR that failed to rebase. The workflow uses the merge-slot gate to
 serialize conflict resolution and prevent racing.
 
 ## Task Recognition
 
-Conflict resolution tasks are created by the Release Engineer when a mechanical rebase
+Conflict resolution tasks are created by the Refinery when a mechanical rebase
 fails. They are identified by:
 - Title prefix: "Resolve merge conflicts:"
-- Metadata fields in description: Ofeatureinal MR, Branch, Conflict SHA
+- Metadata fields in description: Original MR, Branch, Conflict SHA
 
-## Key Differences from Regular Agent Work
+## Key Differences from Regular Polecat Work
 
 | Aspect | Regular Work | Conflict Resolution |
 |--------|--------------|---------------------|
 | Branch source | Create new branch | Checkout existing MR branch |
 | Merge path | Submit to queue via `gt done` | Push directly to {{base_branch}} |
-| Ticket closure | Release Engineer closes after merge | Close MR ticket yourself |
+| Bead closure | Refinery closes after merge | Close MR bead yourself |
 | Serialization | None | Merge-slot gate required |
 
 ## Variables
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| task | hook_ticket | The conflict-resolution task ID |
-| ofeatureinal_mr | task metadata | The MR ticket that had conflicts |
+| task | hook_bead | The conflict-resolution task ID |
+| original_mr | task metadata | The MR bead that had conflicts |
 | branch | task metadata | The branch to rebase |
 | conflict_sha | task metadata | Base branch SHA when conflict occurred |
 | base_branch | sling vars | The base branch to rebase on (default: main) |
@@ -38,8 +38,8 @@ fails. They are identified by:
 | Merge slot held | Wait (--wait flag adds you to queue) |
 | Complex conflicts | Use judgment; escalate if unsure |
 | Tests fail after resolve | Fix them before pushing |
-| Resolution unclear | Read ofeatureinal ticket for context |"""
-formula = "mol-agent-conflict-resolve"
+| Resolution unclear | Read original bead for context |"""
+formula = "mol-polecat-conflict-resolve"
 version = 2
 
 [[steps]]
@@ -51,12 +51,12 @@ Initialize your session and understand the conflict resolution task.
 **1. Prime your environment:**
 ```bash
 gt prime                    # Load role context
-bd prime                    # Load tickets context
+bd prime                    # Load beads context
 ```
 
 **2. Check your hook:**
 ```bash
-gt hook                     # Shows your pinned molecule and hook_ticket
+gt hook                     # Shows your pinned molecule and hook_bead
 ```
 
 **3. Read the conflict resolution task:**
@@ -69,24 +69,24 @@ bd show {{task}}
 The task description contains structured metadata:
 ```
 ## Metadata
-- Ofeatureinal MR: <mr-id>
+- Original MR: <mr-id>
 - Branch: <branch>
 - Conflict with: <target>@<main-sha>
-- Ofeatureinal ticket: <source-ticket>
+- Original bead: <source-bead>
 - Retry count: <count>
 ```
 
 Parse and note:
-- **ofeatureinal_mr**: The MR ticket ID (you'll close this after merge)
+- **original_mr**: The MR bead ID (you'll close this after merge)
 - **branch**: The branch to checkout and rebase
-- **source_ticket**: The ofeatureinal work ticket (read for context if needed)
+- **source_bead**: The original work bead (read for context if needed)
 - **retry_count**: How many times this has been attempted
 
 **5. Understand the context:**
 
-If the conflict seems complex, read the ofeatureinal ticket:
+If the conflict seems complex, read the original bead:
 ```bash
-bd show <source-ticket>      # What was the ofeatureinal work?
+bd show <source-bead>      # What was the original work?
 ```
 
 **Exit criteria:** You have all metadata and understand the conflict context."""
@@ -98,7 +98,7 @@ needs = ["load-task"]
 description = """
 Acquire exclusive access to the merge slot before proceeding.
 
-The merge slot prevents multiple conflict-resolution agents from racing
+The merge slot prevents multiple conflict-resolution polecats from racing
 to push to {{base_branch}} simultaneously (the "Monkey Knife Fight" problem).
 
 **1. Check slot availability:**
@@ -127,7 +127,7 @@ bd merge-slot check --json
 ```
 
 **Important:** Once you have the slot, complete the workflow promptly.
-Other agents may be waiting.
+Other polecats may be waiting.
 
 **Exit criteria:** You hold the merge slot exclusively."""
 
@@ -148,13 +148,13 @@ If dirty, clean up first (stash or discard).
 
 **2. Fetch latest state:**
 ```bash
-git fetch ofeaturein
-git fetch ofeaturein {{branch}}:refs/remotes/ofeaturein/{{branch}}
+git fetch origin
+git fetch origin {{branch}}:refs/remotes/origin/{{branch}}
 ```
 
 **3. Checkout the branch:**
 ```bash
-git checkout -b temp-resolve ofeaturein/{{branch}}
+git checkout -b temp-resolve origin/{{branch}}
 ```
 
 Using `temp-resolve` as the local branch name keeps things clear.
@@ -162,7 +162,7 @@ Using `temp-resolve` as the local branch name keeps things clear.
 **4. Verify the branch state:**
 ```bash
 git log --oneline -5        # Recent commits
-git log ofeaturein/{{base_branch}}..HEAD   # Commits not on {{base_branch}}
+git log origin/{{base_branch}}..HEAD   # Commits not on {{base_branch}}
 ```
 
 **Exit criteria:** On temp-resolve branch, ready to rebase."""
@@ -176,7 +176,7 @@ Perform the rebase and resolve any conflicts.
 
 **1. Start the rebase:**
 ```bash
-git rebase ofeaturein/{{base_branch}}
+git rebase origin/{{base_branch}}
 ```
 
 **2. If conflicts occur:**
@@ -189,8 +189,8 @@ git diff                    # See conflict markers
 
 **Resolve using your judgment:**
 - Read both versions carefully
-- Consider the ofeatureinal intent (from source ticket)
-- If the MR was adding a feature, preserve that addition
+- Consider the original intent (from source bead)
+- If the MR was adding a rig, preserve that addition
 - If the MR was fixing a bug, ensure the fix remains
 
 **After resolving each file:**
@@ -200,21 +200,21 @@ git rebase --continue
 ```
 
 **3. If stuck on a conflict:**
-- Read the ofeatureinal ticket for context: `bd show <source-ticket>`
-- If still unclear, escalate to QA Engineer:
+- Read the original bead for context: `bd show <source-bead>`
+- If still unclear, escalate to Witness:
   ```bash
-  gt mail send <feature>/QA engineer -s "HELP: Complex conflict" -m "Task: {{task}}
+  gt mail send <rig>/witness -s "HELP: Complex conflict" -m "Task: {{task}}
   File: <conflicted-file>
-  Ticket: Cannot determine correct resolution"
+  Bead: Cannot determine correct resolution"
   ```
 
 **4. Verify rebase success:**
 ```bash
-git log --oneline ofeaturein/{{base_branch}}..HEAD   # Your commits rebased
+git log --oneline origin/{{base_branch}}..HEAD   # Your commits rebased
 git status                            # Clean working tree
 ```
 
-**Exit criteria:** Branch successfully rebased onto ofeaturein/{{base_branch}}."""
+**Exit criteria:** Branch successfully rebased onto origin/{{base_branch}}."""
 
 [[steps]]
 id = "run-tests"
@@ -233,12 +233,12 @@ go test ./...               # Or appropriate test command
 **2. If tests fail:**
 - Determine if it's a resolution error or pre-existing
 - If your resolution broke something: fix it
-- If pre-existing: file a ticket, but still must fix before pushing
+- If pre-existing: file a bead, but still must fix before pushing
 
 ```bash
 # Quick check: does {{base_branch}} pass?
 git stash
-git checkout ofeaturein/{{base_branch}}
+git checkout origin/{{base_branch}}
 go test ./...
 git checkout temp-resolve
 git stash pop
@@ -258,68 +258,68 @@ needs = ["run-tests"]
 description = """
 Push the resolved branch directly to {{base_branch}}.
 
-**Important:** Unlike normal agent work, conflict resolution pushes directly
+**Important:** Unlike normal polecat work, conflict resolution pushes directly
 to {{base_branch}}. This is because:
-1. The ofeatureinal MR was already reviewed/approved by being in the queue
+1. The original MR was already reviewed/approved by being in the queue
 2. We're just resolving conflicts, not adding new functionality
 3. Going back through the queue would create an infinite loop
 
 **1. Rebase one more time (in case main moved):**
 ```bash
-git fetch ofeaturein
-git rebase ofeaturein/{{base_branch}}
+git fetch origin
+git rebase origin/{{base_branch}}
 ```
 
 If new conflicts: resolve them (return to rebase-resolve step).
 
 **2. Push to main:**
 ```bash
-git push ofeaturein temp-resolve:{{base_branch}}
+git push origin temp-resolve:{{base_branch}}
 ```
 
 **3. Verify the push:**
 ```bash
-git log ofeaturein/{{base_branch}} --oneline -3    # Your commits should be there
+git log origin/{{base_branch}} --oneline -3    # Your commits should be there
 ```
 
-**Exit criteria:** Changes are on ofeaturein/{{base_branch}}."""
+**Exit criteria:** Changes are on origin/{{base_branch}}."""
 
 [[steps]]
-id = "close-tickets"
-title = "Close the ofeatureinal MR ticket and this task"
+id = "close-beads"
+title = "Close the original MR bead and this task"
 needs = ["push-to-main"]
 description = """
-Close the tickets to complete the work chain.
+Close the beads to complete the work chain.
 
-**1. Close the ofeatureinal MR ticket:**
+**1. Close the original MR bead:**
 ```bash
-bd close {{ofeatureinal_mr}} --reason="merged after conflict resolution"
+bd close {{original_mr}} --reason="merged after conflict resolution"
 ```
 
 This completes the MR that was blocked on conflicts.
 
-**2. Close the source ticket (if not already closed):**
+**2. Close the source bead (if not already closed):**
 ```bash
-bd show <source-ticket>      # Check status
-bd close <source-ticket> --reason="merged via conflict resolution"
+bd show <source-bead>      # Check status
+bd close <source-bead> --reason="merged via conflict resolution"
 ```
 
-The Release Engineer normally closes tickets after merge, but since we pushed
+The Refinery normally closes beads after merge, but since we pushed
 directly to {{base_branch}}, we handle it here.
 
-**3. Sync tickets:**
+**3. Sync beads:**
 ```bash
 bd sync
 ```
 
-**Exit criteria:** Ofeatureinal MR and source ticket are closed."""
+**Exit criteria:** Original MR and source bead are closed."""
 
 [[steps]]
 id = "release-slot"
 title = "Release merge slot"
-needs = ["close-tickets"]
+needs = ["close-beads"]
 description = """
-Release the merge slot so other agents can proceed.
+Release the merge slot so other polecats can proceed.
 
 **1. Release the slot:**
 ```bash
@@ -348,8 +348,8 @@ Clean up workspace and close the conflict resolution task.
 ```bash
 git checkout {{base_branch}}
 git branch -D temp-resolve
-git fetch ofeaturein
-git reset --hard ofeaturein/{{base_branch}}
+git fetch origin
+git reset --hard origin/{{base_branch}}
 ```
 
 **2. Verify clean state:**
@@ -368,17 +368,17 @@ bd close {{task}} --reason="Conflicts resolved and merged to {{base_branch}}"
 gt done
 ```
 
-You're now recyclable. The QA Engineer knows you've completed conflict resolution.
+You're now recyclable. The Witness knows you've completed conflict resolution.
 
-**Exit criteria:** Task closed, workspace clean, agent recyclable."""
+**Exit criteria:** Task closed, workspace clean, polecat recyclable."""
 
 [vars]
 [vars.task]
-description = "The conflict resolution task ID assigned to this agent"
+description = "The conflict resolution task ID assigned to this polecat"
 required = true
 
-[vars.ofeatureinal_mr]
-description = "The ofeatureinal MR ticket ID (extracted from task metadata)"
+[vars.original_mr]
+description = "The original MR bead ID (extracted from task metadata)"
 required = true
 
 [vars.branch]

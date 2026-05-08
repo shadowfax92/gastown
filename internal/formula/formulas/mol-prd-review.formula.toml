@@ -2,7 +2,7 @@ review_only = true  # All legs are analysis-only — no code commits expected (g
 
 description = """
 Parallel PRD review via specialized analysts. Uncovers missing requirements,
-ambiguities, feasibility risks, and scope tickets before implementation begins.
+ambiguities, feasibility risks, and scope beads before implementation begins.
 
 Each leg examines the PRD from a different perspective. Findings are
 synthesized into a prioritized list of clarifying questions for the human.
@@ -16,8 +16,8 @@ synthesized into a prioritized list of clarifying questions for the human.
 - **stakeholders**: Who's affected? Are there conflicting needs?
 
 ## Execution Model
-1. Each leg spawns as a separate agent
-2. Agents work in parallel
+1. Each leg spawns as a separate polecat
+2. Polecats work in parallel
 3. Each writes analysis to their designated output file
 4. Synthesis step combines all findings into consolidated questions for the human
 
@@ -32,12 +32,12 @@ version = 1
 
 [inputs]
 [inputs.problem]
-description = "The idea, feature, or problem statement to review"
+description = "The idea, rig, or problem statement to review"
 type = "string"
 required = true
 
 [inputs.context]
-description = "Additional context: existing code, constraints, prior decisions, related tickets"
+description = "Additional context: existing code, constraints, prior decisions, related beads"
 type = "string"
 required = false
 
@@ -49,7 +49,7 @@ You are a specialized analyst participating in a parallel PRD review convoy.
 
 ## Context
 - **Formula**: {{.formula_name}}
-- **Problem / Feature**: {{.problem}}
+- **Problem / Rig**: {{.problem}}
 - **Your dimension**: {{.leg.focus}}
 - **Leg ID**: {{.leg.id}}
 
@@ -125,7 +125,7 @@ Analyze whether the requirements are complete enough to build from.
 - Can someone write a test from this PRD? If not, what's missing?
 - Is "done" clearly defined and verifiable?
 - Are there implicit requirements that haven't been stated?
-- What would a QA engineer flag as untestable?
+- What would a witness flag as untestable?
 """
 
 [[legs]]
@@ -147,7 +147,7 @@ Identify requirements that are completely absent from the PRD.
 - Internationalization / localization needs
 - Accessibility requirements
 - Mobile / offline behavior (if applicable)
-- Admin tooling: how will support teams debug tickets?
+- Admin tooling: how will support teams debug beads?
 - Deprecation / cleanup: how does old behavior get removed?
 
 **Questions to answer:**
@@ -176,7 +176,7 @@ Find statements in the PRD that are ambiguous or open to multiple interpretation
 
 **Questions to answer:**
 - Which sentences could reasonably be interpreted two different ways?
-- What would two engineers disagree on when implementing this?
+- What would two crew disagree on when implementing this?
 - What will cause a PR review debate because the spec doesn't say?
 """
 
@@ -188,7 +188,7 @@ description = """
 Assess the technical feasibility and identify hard engineering challenges.
 
 **Look for:**
-- Features that assume capabilities the system doesn't have
+- Rigs that assume capabilities the system doesn't have
 - Third-party dependencies that may not support this use case
 - Performance requirements that may be fundamentally hard to meet
 - Consistency guarantees that conflict with the distributed architecture
@@ -214,8 +214,8 @@ Analyze scope boundaries and identify scope creep risk.
 
 **Look for:**
 - Missing explicit out-of-scope statements
-- Features that will inevitably be asked for given what's being built
-- Overlap with existing features that will cause confusion
+- Rigs that will inevitably be asked for given what's being built
+- Overlap with existing rigs that will cause confusion
 - Minimum viable definition: what's the smallest version that delivers value?
 - Requirements that are really phase 2 in disguise
 - Dependencies on other teams or systems that aren't scoped
@@ -240,7 +240,7 @@ Identify all affected stakeholders and assess whether their needs conflict.
 **Look for:**
 - Unstated users: are there actors the PRD doesn't mention?
 - Operator / admin perspective: what do ops / support teams need?
-- Developer experience: will this make other engineers' lives harder?
+- Developer experience: will this make other crew' lives harder?
 - Security team requirements not mentioned
 - Compliance / legal requirements not mentioned
 - Third-party integrators who will be affected
@@ -251,7 +251,7 @@ Identify all affected stakeholders and assess whether their needs conflict.
 **Questions to answer:**
 - Who is NOT mentioned in this PRD who will care about it?
 - Are there conflicting needs between user types that the PRD glosses over?
-- What will the support team need to handle tickets post-launch?
+- What will the support team need to handle beads post-launch?
 """
 
 # ============================================================================
@@ -313,7 +313,7 @@ All leg analyses from: {{.output.directory}}/
 
 ## Next Steps
 - [ ] Human answers critical questions above
-- [ ] Updated PRD ticket with answers
+- [ ] Updated PRD bead with answers
 - [ ] Pour `design` convoy to generate implementation plan
 ```
 

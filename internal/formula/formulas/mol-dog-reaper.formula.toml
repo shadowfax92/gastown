@@ -1,7 +1,7 @@
 description = """
-Reap stale wisps and close stale tickets across all Dolt databases.
+Reap stale wisps and close stale beads across all Dolt databases.
 
-The Reaper Dog executes this formula to clean up wisp and ticket tables.
+The Reaper Dog executes this formula to clean up wisp and bead tables.
 SQL operations are exposed via `gt reaper` CLI helpers — the Dog calls
 these commands, inspects results, and uses judgment for anomalies.
 
@@ -11,7 +11,7 @@ This is infrastructure cleanup work:
 1. Scan all production databases for candidates
 2. Reap (close) wisps past max_age whose parent is closed/missing
 3. Purge (delete) closed wisps past purge_age + old closed mail
-4. Auto-close stale tickets (>stale_ticket_age, not P0/P1, not epics, no active deps)
+4. Auto-close stale beads (>stale_bead_age, not P0/P1, not epics, no active deps)
 5. Report findings and flag anomalies
 
 ## Variables
@@ -20,9 +20,9 @@ This is infrastructure cleanup work:
 |----------|--------|-------------|
 | max_age | config | Max wisp age before reaping (default 24h) |
 | purge_age | config | Max closed wisp age before purging (default 7d) |
-| stale_ticket_age | config | Max ticket staleness before auto-close (default 30d) |
+| stale_bead_age | config | Max bead staleness before auto-close (default 30d) |
 | mail_delete_age | config | Max closed mail age before purging (default 7d) |
-| alert_threshold | config | Open wisp count that tfeaturegers escalation (default 500) |
+| alert_threshold | config | Open wisp count that triggers escalation (default 500) |
 | dry_run | config | If "true", report without acting |
 | databases | config | Comma-separated DB list (default: auto-discover) |
 | dolt_port | config | Dolt server port (default 3307) |
@@ -31,7 +31,7 @@ This is infrastructure cleanup work:
 
 Reaping closes wisps — reversible (can reopen). Purging deletes rows — irreversible
 but only targets already-closed wisps past retention. Auto-close only targets
-tickets that are not P0/P1, not epics, and have no active dependencies.
+beads that are not P0/P1, not epics, and have no active dependencies.
 
 ## Anomaly Detection
 
@@ -43,13 +43,13 @@ The Dog should watch for and flag:
 
 NOT anomalies (do NOT escalate these):
 - Scan/reap count mismatch (scan finds N, reap closes M < N): this is a benign
-  race condition — the QA engineer closes wisps for dead sessions concurrently.
+  race condition — the witness closes wisps for dead sessions concurrently.
   This is expected behavior, not a bug."""
 formula = "mol-dog-reaper"
 version = 2
 
 [squash]
-tfeatureger = "on_complete"
+trigger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -69,7 +69,7 @@ Or use configured database list from {{databases}} variable.
 ```bash
 gt reaper scan --db=<name> --port={{dolt_port}} \\
   --max-age={{max_age}} --purge-age={{purge_age}} \\
-  --mail-age={{mail_delete_age}} --stale-age={{stale_ticket_age}} \\
+  --mail-age={{mail_delete_age}} --stale-age={{stale_bead_age}} \\
   --json
 ```
 
@@ -100,7 +100,7 @@ gt reaper reap --db=<name> --port={{dolt_port}} \\
 
 **2. Inspect results:**
 - Compare reaped count to scan candidates. A mismatch (scan > reap) is NORMAL
-  and expected — the QA engineer may close wisps for dead agent sessions between
+  and expected — the witness may close wisps for dead polecat sessions between
   scan and reap. Do NOT escalate scan/reap count mismatches.
 - Only escalate if reap returns an actual error (not a zero count).
 - Check for any anomalies in the response
@@ -137,24 +137,24 @@ references are cleaned up to prevent dangling parent refs.
 
 [[steps]]
 id = "auto-close"
-title = "Auto-close stale tickets"
+title = "Auto-close stale beads"
 needs = ["purge"]
 description = """
-Close tickets that have been open with no status change past stale_ticket_age.
+Close beads that have been open with no status change past stale_bead_age.
 
 **1. For each database with stale candidates:**
 ```bash
 gt reaper auto-close --db=<name> --port={{dolt_port}} \\
-  --stale-age={{stale_ticket_age}} \\
+  --stale-age={{stale_bead_age}} \\
   {{#if dry_run}}--dry-run{{/if}} --json
 ```
 
 **2. Inspect results:**
-- Review the count of closed tickets
-- Verify exclusions are working (P0/P1, epics, dependency-linked tickets
+- Review the count of closed beads
+- Verify exclusions are working (P0/P1, epics, dependency-linked beads
   should never be auto-closed)
 
-**Exit criteria:** All eligible stale tickets auto-closed."""
+**Exit criteria:** All eligible stale beads auto-closed."""
 
 [[steps]]
 id = "report"
@@ -171,7 +171,7 @@ Generate summary and signal completion.
 **Wisps reaped**: (total closed stale open wisps)
 **Wisps purged**: (total deleted old closed wisps)
 **Mail purged**: (total deleted old closed mail)
-**Tickets auto-closed**: (stale > stale_ticket_age, excl. epics/P0-P1/deps)
+**Beads auto-closed**: (stale > stale_bead_age, excl. epics/P0-P1/deps)
 **Open wisps remaining**: (total)
 **Anomalies**: (list any anomalies found)
 ```
@@ -192,8 +192,8 @@ default = "24h"
 description = "Max closed wisp age before purging (e.g., '168h' = 7 days)"
 default = "168h"
 
-[vars.stale_ticket_age]
-description = "Max ticket staleness before auto-close (e.g., '720h' = 30 days)"
+[vars.stale_bead_age]
+description = "Max bead staleness before auto-close (e.g., '720h' = 30 days)"
 default = "720h"
 
 [vars.mail_delete_age]
@@ -201,7 +201,7 @@ description = "Max closed mail age before purging (e.g., '168h' = 7 days)"
 default = "168h"
 
 [vars.alert_threshold]
-description = "Open wisp count that tfeaturegers escalation warning"
+description = "Open wisp count that triggers escalation warning"
 default = "500"
 
 [vars.dry_run]

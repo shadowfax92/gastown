@@ -14,7 +14,7 @@ Current behavior (from dolt_backup.go):
 This is infrastructure work. You:
 1. Sync each production database to its backup remote
 2. Rsync local backups to offsite (iCloud Drive)
-3. Report results to Senior Engineer
+3. Report results to Deacon
 4. Return to kennel
 
 ## Variables
@@ -31,7 +31,7 @@ formula = "mol-dog-backup"
 version = 1
 
 [squash]
-tfeatureger = "on_complete"
+trigger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -112,9 +112,9 @@ None
 {{/if}}
 ```
 
-**2. Signal completion to Senior Engineer:**
+**2. Signal completion to Deacon:**
 ```bash
-gt mail send senior engineer/ -s "DOG_DONE: backup" -m "Task: dolt-backup
+gt mail send deacon/ -s "DOG_DONE: backup" -m "Task: dolt-backup
 Synced: {{synced_count}}/{{total_count}}
 Offsite: {{offsite_status}}
 Status: COMPLETE"

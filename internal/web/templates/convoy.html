@@ -27,13 +27,13 @@
             </div>
         </header>
 
-        <!-- Product Manager Status Banner -->
-        <div class="product manager-banner {{if .Product Manager}}{{if .Product Manager.IsAttached}}attached{{else}}detached{{end}}{{else}}detached{{end}}">
-            <div class="product manager-info">
-                <span class="product manager-icon">🎩</span>
-                <span class="product manager-title">The Product Manager</span>
-                {{if .Product Manager}}
-                    {{if .Product Manager.IsAttached}}
+        <!-- Mayor Status Banner -->
+        <div class="mayor-banner {{if .Mayor}}{{if .Mayor.IsAttached}}attached{{else}}detached{{end}}{{else}}detached{{end}}">
+            <div class="mayor-info">
+                <span class="mayor-icon">🎩</span>
+                <span class="mayor-title">The Mayor</span>
+                {{if .Mayor}}
+                    {{if .Mayor.IsAttached}}
                     <span class="badge badge-green">Attached</span>
                     {{else}}
                     <span class="badge badge-muted">Detached</span>
@@ -42,17 +42,17 @@
                 <span class="badge badge-muted">Unknown</span>
                 {{end}}
             </div>
-            {{if .Product Manager}}{{if .Product Manager.IsAttached}}
-            <div class="product manager-status">
-                <div class="product manager-stat">
-                    <span class="product manager-stat-label">Activity</span>
-                    <span class="product manager-stat-value {{if .Product Manager.IsActive}}active{{else}}idle{{end}}">
-                        {{.Product Manager.LastActivity}}
+            {{if .Mayor}}{{if .Mayor.IsAttached}}
+            <div class="mayor-status">
+                <div class="mayor-stat">
+                    <span class="mayor-stat-label">Activity</span>
+                    <span class="mayor-stat-value {{if .Mayor.IsActive}}active{{else}}idle{{end}}">
+                        {{.Mayor.LastActivity}}
                     </span>
                 </div>
-                <div class="product manager-stat">
-                    <span class="product manager-stat-label">Runtime</span>
-                    <span class="product manager-stat-value">{{.Product Manager.Runtime}}</span>
+                <div class="mayor-stat">
+                    <span class="mayor-stat-label">Runtime</span>
+                    <span class="mayor-stat-value">{{.Mayor.Runtime}}</span>
                 </div>
             </div>
             {{end}}{{end}}
@@ -65,12 +65,12 @@
                 {{if .Health}}
                 <div class="stat health-stat {{if .Health.HeartbeatFresh}}healthy{{else}}unhealthy{{end}}">
                     <span class="stat-value">{{if .Health.HeartbeatFresh}}✓{{else}}⚠{{end}}</span>
-                    <span class="stat-label">💓 {{.Health.Senior EngineerHeartbeat}}</span>
+                    <span class="stat-label">💓 {{.Health.Senior WorkerHeartbeat}}</span>
                 </div>
                 {{end}}
                 <div class="stat">
-                    <span class="stat-value">{{.Summary.AgentCount}}</span>
-                    <span class="stat-label">🦨 Agents</span>
+                    <span class="stat-value">{{.Summary.PolecatCount}}</span>
+                    <span class="stat-label">🦨 Polecats</span>
                 </div>
                 <div class="stat">
                     <span class="stat-value">{{.Summary.HookCount}}</span>
@@ -91,8 +91,8 @@
             </div>
             {{if .Summary.HasAlerts}}
             <div class="summary-alerts">
-                {{if .Summary.StuckAgents}}
-                <span class="alert-item alert-red">💀 {{.Summary.StuckAgents}} stuck</span>
+                {{if .Summary.StuckPolecats}}
+                <span class="alert-item alert-red">💀 {{.Summary.StuckPolecats}} stuck</span>
                 {{end}}
                 {{if .Summary.StaleHooks}}
                 <span class="alert-item alert-yellow">⏰ {{.Summary.StaleHooks}} stale hooks</span>
@@ -116,7 +116,7 @@
         {{end}}
 
         <div class="panels">
-            <!-- Row 1: Convoys, Agents, Sessions -->
+            <!-- Row 1: Convoys, Polecats, Sessions -->
 
             <!-- Convoys Panel -->
             <div class="panel" id="convoy-panel">
@@ -294,10 +294,10 @@
                 </div>
             </div>
 
-            <!-- Agents Panel -->
+            <!-- Polecats Panel -->
             <div class="panel">
                 <div class="panel-header">
-                    <h2>🦨 Agents</h2>
+                    <h2>🦨 Polecats</h2>
                     <span class="count">{{len .Workers}}</span>
                     <button class="collapse-btn" aria-label="Toggle panel">▼</button>
                     <button class="expand-btn">Expand</button>
@@ -317,11 +317,11 @@
                         </thead>
                         <tbody>
                             {{range .Workers}}
-                            <tr class="{{agentStatusClass .WorkStatus}}">
-                                <td><span class="agent-name">{{.Name}}</span></td>
-                                <td>{{if eq .AgentType "release engineer"}}<span class="badge badge-blue">release engineer</span>{{else}}<span class="badge badge-muted">agent</span>{{end}}</td>
-                                <td><span class="agent-feature">{{.Feature}}</span></td>
-                                <td class="agent-ticket">
+                            <tr class="{{polecatStatusClass .WorkStatus}}">
+                                <td><span class="polecat-name">{{.Name}}</span></td>
+                                <td>{{if eq .PolecatType "release engineer"}}<span class="badge badge-blue">release engineer</span>{{else}}<span class="badge badge-muted">polecat</span>{{end}}</td>
+                                <td><span class="polecat-feature">{{.Feature}}</span></td>
+                                <td class="polecat-ticket">
                                     {{if .TicketID}}
                                     <span class="ticket-id">{{.TicketID}}</span>
                                     <span class="ticket-title">{{.TicketTitle}}</span>
@@ -350,7 +350,7 @@
                     </table>
                     {{else}}
                     <div class="empty-state">
-                        <p>No agents</p>
+                        <p>No polecats</p>
                     </div>
                     {{end}}
                 </div>
@@ -418,7 +418,7 @@
                     <div class="tl-filter-group">
                         <label>Category:</label>
                         <button class="tl-filter-btn active" data-filter="category" data-value="all">All</button>
-                        <button class="tl-filter-btn" data-filter="category" data-value="agent">Agent</button>
+                        <button class="tl-filter-btn" data-filter="category" data-value="polecat">Polecat</button>
                         <button class="tl-filter-btn" data-filter="category" data-value="work">Work</button>
                         <button class="tl-filter-btn" data-filter="category" data-value="comms">Comms</button>
                         <button class="tl-filter-btn" data-filter="category" data-value="system">System</button>
@@ -430,9 +430,9 @@
                         </select>
                     </div>
                     <div class="tl-filter-group">
-                        <label>Agent:</label>
-                        <select class="tl-filter-select" id="tl-agent-filter">
-                            <option value="all">All agents</option>
+                        <label>Polecat:</label>
+                        <select class="tl-filter-select" id="tl-polecat-filter">
+                            <option value="all">All polecats</option>
                         </select>
                     </div>
                 </div>
@@ -441,7 +441,7 @@
                     {{if .Activity}}
                     <div class="tl-timeline" id="activity-timeline">
                         {{range .Activity}}
-                        <div class="tl-entry {{activityTypeClass .Category}}" data-category="{{.Category}}" data-feature="{{.Feature}}" data-agent="{{.Actor}}" data-type="{{.Type}}" data-ts="{{.RawTimestamp}}">
+                        <div class="tl-entry {{activityTypeClass .Category}}" data-category="{{.Category}}" data-feature="{{.Feature}}" data-polecat="{{.Actor}}" data-type="{{.Type}}" data-ts="{{.RawTimestamp}}">
                             <div class="tl-rail">
                                 <span class="tl-time">{{.Time}}</span>
                                 <span class="tl-node"></span>
@@ -452,7 +452,7 @@
                                     <span class="tl-summary">{{.Summary}}</span>
                                 </div>
                                 <div class="tl-meta">
-                                    {{if .Actor}}<span class="tl-badge tl-badge-agent">{{.Actor}}</span>{{end}}
+                                    {{if .Actor}}<span class="tl-badge tl-badge-polecat">{{.Actor}}</span>{{end}}
                                     {{if .Feature}}<span class="tl-badge tl-badge-feature">{{.Feature}}</span>{{end}}
                                     <span class="tl-badge tl-badge-type">{{.Type}}</span>
                                 </div>
@@ -729,20 +729,20 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Agents</th>
+                                <th>Polecats</th>
                                 <th>Engineers</th>
-                                <th>Agents</th>
+                                <th>Polecats</th>
                             </tr>
                         </thead>
                         <tbody>
                             {{range .Features}}
                             <tr>
                                 <td><span class="feature-name">{{.Name}}</span></td>
-                                <td>{{.AgentCount}}</td>
+                                <td>{{.PolecatCount}}</td>
                                 <td>{{.EngineersCount}}</td>
-                                <td class="agent-icons">
-                                    <span class="agent-icon{{if .HasQA Engineer}} active{{end}}" title="QA Engineer">👁</span>
-                                    <span class="agent-icon{{if .HasRelease Engineer}} active{{end}}" title="Release Engineer">⚗️</span>
+                                <td class="polecat-icons">
+                                    <span class="polecat-icon{{if .HasWitness}} active{{end}}" title="Witness">👁</span>
+                                    <span class="polecat-icon{{if .HasRefinery}} active{{end}}" title="Refinery">⚗️</span>
                                 </td>
                             </tr>
                             {{end}}
@@ -778,7 +778,7 @@
                         <tbody>
                             {{range .Dogs}}
                             <tr>
-                                <td><span class="agent-name">{{.Name}}</span></td>
+                                <td><span class="polecat-name">{{.Name}}</span></td>
                                 <td>
                                     {{if eq .State "idle"}}<span class="badge badge-green">Idle</span>
                                     {{else}}<span class="badge badge-yellow">Working</span>{{end}}
@@ -954,7 +954,7 @@
                             <tr>
                                 <th>Ticket</th>
                                 <th>Title</th>
-                                <th>Agent</th>
+                                <th>Polecat</th>
                                 <th>Hooked</th>
                                 <th></th>
                             </tr>
@@ -964,7 +964,7 @@
                             <tr class="{{if .IsStale}}hook-stale{{end}}">
                                 <td><span class="hook-id">{{.ID}}</span></td>
                                 <td class="hook-title">{{.Title}}</td>
-                                <td class="hook-agent">{{.Agent}}</td>
+                                <td class="hook-polecat">{{.Polecat}}</td>
                                 <td class="hook-age">
                                     {{if .IsStale}}
                                     <span class="badge badge-yellow">{{.Age}}</span>

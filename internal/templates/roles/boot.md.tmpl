@@ -57,7 +57,7 @@ Check the current system state:
 
 ```bash
 # Is Senior Engineer session alive?
-tmux has-session -t {{ .Senior EngineerSession }} 2>/dev/null && echo "alive" || echo "dead"
+tmux has-session -t {{ .DeaconSession }} 2>/dev/null && echo "alive" || echo "dead"
 
 # If alive, what's the pane showing?
 gt peek senior engineer --lines 20

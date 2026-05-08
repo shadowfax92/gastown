@@ -1,6 +1,6 @@
-# Nudge: Check-in on {{ .Ticket }}
+# Nudge: Check-in on {{ .Issue }}
 
-Hey {{ .Agent }},
+Hey {{ .Polecat }},
 
 This is nudge **{{ .NudgeCount }}/{{ .MaxNudges }}** for your current work.
 
@@ -10,7 +10,7 @@ This is nudge **{{ .NudgeCount }}/{{ .MaxNudges }}** for your current work.
 
 ## Current Status
 
-Ticket: {{ .Ticket }}
+Ticket: {{ .Issue }}
 Status: {{ .Status }}
 
 ## Action Needed
@@ -20,7 +20,7 @@ Please either:
 1. **If making progress**: Continue working and signal when done with `{{ cmd }} done`
 2. **If blocked**: File a blocking ticket with `bd create --title="Blocked: <reason>" --type=task`
 3. **If done**: Make sure to run:
-   - `bd close {{ .Ticket }}`
+   - `bd close {{ .Issue }}`
    - `{{ cmd }} done`
 
 ## Important

@@ -10,7 +10,7 @@ Determine the diff to review based on arguments:
 |----------|-------------|----------|
 | (none) | `git diff` + `git diff --staged` | Review uncommitted + staged changes |
 | `--staged` | `git diff --staged` | Review only staged changes |
-| `--branch` | `git diff ofeaturein/<base>...HEAD` | Review branch diff vs base branch |
+| `--branch` | `git diff origin/<base>...HEAD` | Review branch diff vs base branch |
 | `--pr <url>` | `gh pr diff <url>` | Review a GitHub PR |
 
 ### Step 1: Get the diff
@@ -25,8 +25,8 @@ DIFF=$(git diff; git diff --staged)
 DIFF=$(git diff --staged)
 
 # --branch: branch diff (detect base branch)
-BASE=$(git rev-parse --abbrev-ref HEAD@{upstream} 2>/dev/null | sed 's|ofeaturein/||' || git symbolic-ref refs/remotes/ofeaturein/HEAD 2>/dev/null | sed 's|refs/remotes/ofeaturein/||' || echo "main")
-DIFF=$(git diff ofeaturein/$BASE...HEAD)
+BASE=$(git rev-parse --abbrev-ref HEAD@{upstream} 2>/dev/null | sed 's|origin/||' || git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo "main")
+DIFF=$(git diff origin/$BASE...HEAD)
 
 # --pr <url>: PR diff
 DIFF=$(gh pr diff <url>)

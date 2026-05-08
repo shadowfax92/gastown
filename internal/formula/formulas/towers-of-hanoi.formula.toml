@@ -49,7 +49,7 @@ default = "B"
 description = "Helper peg"
 
 # 3-disk solution: 7 moves (2^3 - 1)
-# Each step is a simple acknowledgment - the agent just closes it.
+# Each step is a simple acknowledgment - the polecat just closes it.
 
 [[steps]]
 id = "setup"

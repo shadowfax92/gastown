@@ -1,17 +1,17 @@
 description = """
 Archive completed convoys and notify overseer.
 
-Dogs work through molecules (poured from this formula) when convoys complete. The Senior Engineer detects completed
-convoys (all tracked tickets closed) and slings this work to a dog for:
+Dogs work through molecules (poured from this formula) when convoys complete. The Deacon detects completed
+convoys (all tracked beads closed) and slings this work to a dog for:
 - Generating convoy summary
 - Archiving convoy state
-- Notifying the overseer (Product Manager)
+- Notifying the overseer (Mayor)
 - Updating activity feed
 
 ## Dog Contract
 
 This is infrastructure work. You:
-1. Receive convoy ID via hook_ticket
+1. Receive convoy ID via hook_bead
 2. Generate summary of completed work
 3. Archive to appropriate location
 4. Notify stakeholders
@@ -21,20 +21,20 @@ This is infrastructure work. You:
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| convoy | hook_ticket | The convoy ID to archive |
+| convoy | hook_bead | The convoy ID to archive |
 
 ## Failure Modes
 
 | Situation | Action |
 |-----------|--------|
-| Convoy not found | Exit with error, notify Senior Engineer |
+| Convoy not found | Exit with error, notify Deacon |
 | Archive location full | Create space, retry, or escalate |
 | Mail send fails | Retry once, then proceed anyway |"""
 formula = "mol-convoy-cleanup"
 version = 1
 
 [squash]
-tfeatureger = "on_complete"
+trigger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -42,29 +42,29 @@ include_metrics = true
 id = "load-convoy"
 title = "Load convoy and verify completion"
 description = """
-Load the convoy ticket and verify it's ready for archival.
+Load the convoy bead and verify it's ready for archival.
 
 **1. Check your assignment:**
 ```bash
-gt hook               # Shows hook_ticket = convoy ID
+gt hook               # Shows hook_bead = convoy ID
 bd show {{convoy}}          # Full convoy details
 ```
 
 **2. Verify convoy is complete:**
-- Status should be 'closed' or all tracked tickets closed
-- If convoy is still open, exit - Senior Engineer dispatched too early
+- Status should be 'closed' or all tracked beads closed
+- If convoy is still open, exit - Deacon dispatched too early
 
 ```bash
 bd show {{convoy}}
 # Check 'tracks' or 'dependencies' field
-# All tracked tickets should be closed
+# All tracked beads should be closed
 ```
 
 **3. Gather convoy metadata:**
 - Start date (created_at)
 - End date (last closure timestamp)
-- Total tickets tracked
-- Contributing agents
+- Total beads tracked
+- Contributing polecats
 
 **Exit criteria:** Convoy loaded, verified complete, metadata gathered."""
 
@@ -75,16 +75,16 @@ needs = ["load-convoy"]
 description = """
 Create a summary of the convoy's completed work.
 
-**1. Collect tracked ticket details:**
+**1. Collect tracked bead details:**
 ```bash
-# For each tracked ticket
+# For each tracked bead
 bd show <tracked-id>
 # Extract: title, type, assignee, duration
 ```
 
 **2. Calculate statistics:**
 - Total duration (convoy start to finish)
-- Tickets by type (task, bug, feature)
+- Beads by type (task, bug, rig)
 - Contributors (unique assignees)
 - Commits generated (if tracked)
 
@@ -93,16 +93,16 @@ bd show <tracked-id>
 ## Convoy Summary: {{convoy.title}}
 
 **Duration**: X days/hours
-**Tickets completed**: N
+**Beads completed**: N
 
 ### Work Breakdown
 - Tasks: N
 - Bugs: N
-- Features: N
+- Rigs: N
 
 ### Contributors
-- agent-1: N tickets
-- agent-2: N tickets
+- polecat-1: N beads
+- polecat-2: N beads
 
 ### Key Outcomes
 - <notable achievement 1>
@@ -116,7 +116,7 @@ id = "archive-convoy"
 title = "Close convoy and prepare for archival"
 needs = ["generate-summary"]
 description = """
-Close the convoy to mark it complete. Tickets retention handles archival.
+Close the convoy to mark it complete. Beads retention handles archival.
 
 **1. Close convoy:**
 ```bash
@@ -141,11 +141,11 @@ id = "notify-overseer"
 title = "Send completion notification to overseer"
 needs = ["archive-convoy"]
 description = """
-Notify the Product Manager (overseer) of convoy completion.
+Notify the Mayor (overseer) of convoy completion.
 
 **1. Send completion mail:**
 ```bash
-gt mail send product manager/ -s "Convoy complete: {{convoy.title}}" -m "$(cat <<EOF
+gt mail send mayor/ -s "Convoy complete: {{convoy.title}}" -m "$(cat <<EOF
 Convoy {{convoy}} has completed and been closed.
 
 ## Summary
@@ -153,7 +153,7 @@ Convoy {{convoy}} has completed and been closed.
 
 ## Metrics
 - Duration: {{duration}}
-- Tickets: {{ticket_count}}
+- Beads: {{bead_count}}
 - Contributors: {{contributor_list}}
 
 This convoy has been closed. View details: bd show {{convoy}}
@@ -177,9 +177,9 @@ needs = ["notify-overseer"]
 description = """
 Signal work complete and return to available pool.
 
-**1. Signal completion to Senior Engineer:**
+**1. Signal completion to Deacon:**
 ```bash
-gt mail send senior engineer/ -s "DOG_DONE $(hostname)" -m "Task: convoy-cleanup
+gt mail send deacon/ -s "DOG_DONE $(hostname)" -m "Task: convoy-cleanup
 Convoy: {{convoy}}
 Status: COMPLETE
 Duration: {{work_duration}}
@@ -192,10 +192,10 @@ Ready for next assignment."
 - Workspace should already be clean
 
 **3. Return to kennel:**
-Dog returns to available state in the pool. Senior Engineer will assign next work
+Dog returns to available state in the pool. Deacon will assign next work
 or retire the dog if pool is oversized.
 
-**Exit criteria:** Senior Engineer notified, dog ready for next work or retirement."""
+**Exit criteria:** Deacon notified, dog ready for next work or retirement."""
 
 [vars]
 [vars.convoy]
@@ -203,7 +203,7 @@ description = "The convoy ID to archive"
 required = true
 
 [vars.contributor_list]
-description = "List of contributing agents (computed during execution)"
+description = "List of contributing polecats (computed during execution)"
 default = ""
 
 [vars.duration]
@@ -214,8 +214,8 @@ default = ""
 description = "Generated convoy summary text (computed during execution)"
 default = ""
 
-[vars.ticket_count]
-description = "Number of tickets in the convoy (computed during execution)"
+[vars.bead_count]
+description = "Number of beads in the convoy (computed during execution)"
 default = ""
 
 [vars.work_duration]

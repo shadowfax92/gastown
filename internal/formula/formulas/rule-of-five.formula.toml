@@ -1,10 +1,10 @@
-description = "Jeffrey Emanuel's discovery: LLM agents produce best work through 4-5 iterative refinements. Breadth-first exploration, then editorial passes."
+description = "Jeffrey Emanuel's discovery: LLM polecats produce best work through 4-5 iterative refinements. Breadth-first exploration, then editorial passes."
 formula = "rule-of-five"
 type = "expansion"
 version = 1
 
 [[template]]
-description = "Initial attempt at: {target.description}. Don't aim for perfection. Get the shape featureht. Breadth over depth."
+description = "Initial attempt at: {target.description}. Don't aim for perfection. Get the shape right. Breadth over depth."
 id = "{target}.draft"
 title = "Draft: {target.title}"
 

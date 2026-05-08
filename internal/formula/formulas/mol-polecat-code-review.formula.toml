@@ -1,28 +1,28 @@
-review_only = true  # Analysis-only — findings filed as tickets, no code commits (gt-kvf)
+review_only = true  # Analysis-only — findings filed as beads, no code commits (gt-kvf)
 
 description = """
-Review code and file tickets for tickets found.
+Review code and file beads for beads found.
 
-This molecule guides a agent through a code review task - examining a portion
-of the codebase for bugs, security tickets, code quality problems, or improvement
-opportunities. The output is a set of tickets capturing actionable findings.
+This molecule guides a polecat through a code review task - examining a portion
+of the codebase for bugs, security beads, code quality problems, or improvement
+opportunities. The output is a set of beads capturing actionable findings.
 
-## Agent Contract (Self-Cleaning Model)
+## Polecat Contract (Self-Cleaning Model)
 
 You are a self-cleaning worker. You:
 1. Receive work via your hook (pinned molecule + review scope)
 2. Work through molecule steps using `bd mol current` / `bd close <step>`
 3. Complete and self-clean via `gt done` (submit findings + nuke yourself)
-4. You are GONE - your findings are recorded in tickets
+4. You are GONE - your findings are recorded in beads
 
 **Self-cleaning:** When you run `gt done`, you submit your findings, nuke your
 sandbox, and exit. There is no idle state. Done means gone.
 
 **Important:** This formula defines the template. Your molecule already has step
-tickets created from it. Use `bd mol current` to find them - do NOT read this file directly.
+beads created from it. Use `bd mol current` to find them - do NOT read this file directly.
 
 **You do NOT:**
-- Fix the tickets yourself (file tickets, let other agents fix)
+- Fix the beads yourself (file beads, let other polecats fix)
 - Scope creep into unrelated areas
 - Wait for someone to act on findings (you're done after filing)
 
@@ -30,18 +30,18 @@ tickets created from it. Use `bd mol current` to find them - do NOT read this fi
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| scope | hook_ticket | What to review (file path, directory, or description) |
-| ticket | hook_ticket | The tracking ticket for this review task |
-| focus | hook_ticket | Optional focus area (security, performance, etc.) |
+| scope | hook_bead | What to review (file path, directory, or description) |
+| bead | hook_bead | The tracking bead for this review task |
+| focus | hook_bead | Optional focus area (security, performance, etc.) |
 
 ## Failure Modes
 
 | Situation | Action |
 |-----------|--------|
-| Scope too broad | Mail QA Engineer, request narrower scope |
-| Can't understand code | Mail QA Engineer for context |
-| Critical ticket found | Mail QA Engineer immediately, then continue |"""
-formula = "mol-agent-code-review"
+| Scope too broad | Mail Witness, request narrower scope |
+| Can't understand code | Mail Witness for context |
+| Critical bead found | Mail Witness immediately, then continue |"""
+formula = "mol-polecat-code-review"
 version = 1
 
 [[steps]]
@@ -53,17 +53,17 @@ Initialize your session and understand what you're reviewing.
 **1. Prime your environment:**
 ```bash
 gt prime                    # Load role context
-bd prime                    # Load tickets context
+bd prime                    # Load beads context
 ```
 
 **2. Check your hook:**
 ```bash
-gt hook               # Shows your pinned molecule and hook_ticket
+gt hook               # Shows your pinned molecule and hook_bead
 ```
 
-The hook_ticket describes your review scope. Read the tracking ticket:
+The hook_bead describes your review scope. Read the tracking bead:
 ```bash
-bd show {{ticket}}           # Full ticket details
+bd show {{bead}}           # Full bead details
 ```
 
 **3. Understand the scope:**
@@ -127,7 +127,7 @@ id = "detailed-review"
 title = "Perform detailed code review"
 needs = ["survey-code"]
 description = """
-Systematically review the code for tickets.
+Systematically review the code for beads.
 
 **Review checklist:**
 
@@ -148,17 +148,17 @@ cat {{scope}}               # For single file
 # Or read files systematically for a directory
 ```
 
-**2. For each ticket found, note:**
+**2. For each bead found, note:**
 - File and line number
 - Category (bug, security, performance, etc.)
 - Severity (critical, high, medium, low)
-- Description of the ticket
+- Description of the bead
 - Suggested fix (if obvious)
 
-**3. Don't fix tickets yourself:**
-Your job is to find and report, not fix. File tickets.
+**3. Don't fix beads yourself:**
+Your job is to find and report, not fix. File beads.
 
-**Exit criteria:** You've reviewed all code in scope and noted tickets."""
+**Exit criteria:** You've reviewed all code in scope and noted beads."""
 
 [[steps]]
 id = "prioritize-findings"
@@ -171,38 +171,38 @@ Organize your findings by priority and category.
 
 | Priority | Description | Action |
 |----------|-------------|--------|
-| P0 | Security vulnerability, data loss risk | Mail QA Engineer immediately |
+| P0 | Security vulnerability, data loss risk | Mail Witness immediately |
 | P1 | Bug affecting users, broken functionality | File as bug, high priority |
-| P2 | Code quality ticket, potential future bug | File as task |
+| P2 | Code quality bead, potential future bug | File as task |
 | P3 | Improvement opportunity, nice-to-have | File as task, low priority |
 
 **1. Sort your findings:**
 Group by priority, then by category.
 
-**2. For P0 tickets:**
+**2. For P0 beads:**
 ```bash
-gt mail send {{feature}}/QA engineer -s "CRITICAL: Security ticket found" -m "Scope: {{scope}}
-Ticket: {{ticket}}
-Finding: <description of critical ticket>
+gt mail send {{rig}}/witness -s "CRITICAL: Security bead found" -m "Scope: {{scope}}
+Bead: {{bead}}
+Finding: <description of critical bead>
 Location: <file:line>"
 ```
 
-**3. Prepare ticket descriptions:**
+**3. Prepare bead descriptions:**
 For each finding, prepare:
 - Clear title
 - File/line location
-- Description of the ticket
+- Description of the bead
 - Why it matters
 - Suggested fix (if known)
 
 **Exit criteria:** Findings prioritized and ready to file."""
 
 [[steps]]
-id = "file-tickets"
-title = "File tickets for all findings"
+id = "file-beads"
+title = "File beads for all findings"
 needs = ["prioritize-findings"]
 description = """
-Create tickets for each finding.
+Create beads for each finding.
 
 **1. For bugs (P0, P1):**
 ```bash
@@ -212,7 +212,7 @@ bd create --type=bug --priority=1 \
 
 Location: <file:line>
 
-Ticket:
+Bead:
 <description>
 
 Impact:
@@ -222,7 +222,7 @@ Suggested fix:
 <if known>"
 ```
 
-**2. For code quality tickets (P2, P3):**
+**2. For code quality beads (P2, P3):**
 ```bash
 bd create --type=task --priority=2 \
   --title="<clear description>" \
@@ -230,31 +230,31 @@ bd create --type=task --priority=2 \
 
 Location: <file:line>
 
-Ticket:
+Bead:
 <description>
 
 Suggestion:
 <how to improve>"
 ```
 
-**3. Track filed tickets:**
-Note each ticket ID as you create them.
+**3. Track filed beads:**
+Note each bead ID as you create them.
 
-**4. If no tickets found:**
+**4. If no beads found:**
 That's a valid outcome! Note that the code review passed.
 
-**Exit criteria:** All findings filed as tickets."""
+**Exit criteria:** All findings filed as beads."""
 
 [[steps]]
 id = "summarize-review"
 title = "Summarize review results"
-needs = ["file-tickets"]
+needs = ["file-beads"]
 description = """
-Update the tracking ticket with review summary.
+Update the tracking bead with review summary.
 
 **1. Create summary:**
 ```bash
-bd update {{ticket}} --notes "Code review complete.
+bd update {{bead}} --notes "Code review complete.
 
 Scope: {{scope}}
 Focus: {{focus}}
@@ -265,19 +265,19 @@ Findings:
 - P2 (medium): <count>
 - P3 (low): <count>
 
-Tickets filed:
-<list of ticket IDs>
+Beads filed:
+<list of bead IDs>
 
 Overall assessment:
-<brief summary - healthy, needs attention, significant tickets, etc.>"
+<brief summary - healthy, needs attention, significant beads, etc.>"
 ```
 
-**2. Sync tickets:**
+**2. Sync beads:**
 ```bash
 bd sync
 ```
 
-**Exit criteria:** Tracking ticket updated with summary."""
+**Exit criteria:** Tracking bead updated with summary."""
 
 [[steps]]
 id = "complete-and-exit"
@@ -288,7 +288,7 @@ Signal completion and clean up. You cease to exist after this step.
 
 **Self-Cleaning Model:**
 Once you run `gt done`, you're gone. The command:
-1. Syncs tickets (final sync)
+1. Syncs beads (final sync)
 2. Nukes your sandbox
 3. Exits your session immediately
 
@@ -299,27 +299,27 @@ gt done
 ```
 
 **What happens next (not your concern):**
-- Other agents may be assigned to fix the tickets you found
-- QA Engineer may escalate critical findings
+- Other polecats may be assigned to fix the beads you found
+- Witness may escalate critical findings
 - The codebase improves based on your findings
 
 You are NOT involved in any of that. You're gone. Done means gone.
 
-**Exit criteria:** Tickets synced, sandbox nuked, session exited."""
+**Exit criteria:** Beads synced, sandbox nuked, session exited."""
 
 [vars]
 [vars.scope]
 description = "What to review - file path, directory, or description"
 required = true
 
-[vars.ticket]
-description = "The tracking ticket for this review task"
+[vars.bead]
+description = "The tracking bead for this review task"
 required = true
 
 [vars.focus]
 description = "Optional focus area (security, performance, correctness, etc.)"
 required = false
 
-[vars.feature]
-description = "The feature this review is for"
+[vars.rig]
+description = "The rig this review is for"
 required = true

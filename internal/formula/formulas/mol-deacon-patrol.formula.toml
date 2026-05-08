@@ -1,38 +1,38 @@
 description = """
-Product Manager's daemon patrol loop.
+Mayor's daemon patrol loop.
 
-The Senior Engineer is the Product Manager's background process that runs continuously, handling callbacks, monitoring feature health, and performing cleanup. Each patrol cycle runs these steps in sequence, then loops or exits.
+The Deacon is the Mayor's background process that runs continuously, handling callbacks, monitoring rig health, and performing cleanup. Each patrol cycle runs these steps in sequence, then loops or exits.
 
 ## Idle Town Principle
 
-**The Senior Engineer should be silent/invisible when the town is healthy and idle.**
+**The Deacon should be silent/invisible when the town is healthy and idle.**
 
 - Skip HEALTH_CHECK nudges when no active work exists
 - Sleep 60+ seconds between patrol cycles (longer when idle)
-- Let the feed subscription wake agents on actual events
+- Let the feed subscription wake polecats on actual events
 - The daemon (10-minute heartbeat) is the safety net for dead sessions
 
-This prevents flooding idle agents with health checks every few seconds.
+This prevents flooding idle polecats with health checks every few seconds.
 
-## Product Manager Nudge Policy
+## Mayor Nudge Policy
 
-**NEVER nudge the Product Manager for health checks, pings, or routine status.**
-The Product Manager should ONLY be nudged for genuine emergencies:
-- Escalations that require Product Manager decision-making
-- Sending mail to product manager/ (which is non-interruptive)
+**NEVER nudge the Mayor for health checks, pings, or routine status.**
+The Mayor should ONLY be nudged for genuine emergencies:
+- Escalations that require Mayor decision-making
+- Sending mail to mayor/ (which is non-interruptive)
 
-Health pings to the Product Manager are a ZFC violation — they burn Product Manager context
-on ceremony instead of work. The Product Manager is your boss, not a subordinate
-to be monitored. Use `gt mail send product manager/` for non-urgent communication.
+Health pings to the Mayor are a ZFC violation — they burn Mayor context
+on ceremony instead of work. The Mayor is your boss, not a subordinate
+to be monitored. Use `gt mail send mayor/` for non-urgent communication.
 
 ## Second-Order Monitoring
 
-QA Engineeres passively monitor Senior Engineer health by checking the Senior Engineer's agent ticket
+Witnesses passively monitor Deacon health by checking the Deacon's polecat bead
 last_activity timestamp. This prevents the "who watches the watchers" problem —
-if the Senior Engineer dies, QA Engineeres detect it and escalate to the Product Manager.
+if the Deacon dies, Witnesses detect it and escalate to the Mayor.
 
-No WITNESS_PING mail is sent. QA Engineeres observe the Senior Engineer's last_activity
-timestamp instead, and only send an alert to the Product Manager if the Senior Engineer appears
+No WITNESS_PING mail is sent. Witnesses observe the Deacon's last_activity
+timestamp instead, and only send an alert to the Mayor if the Deacon appears
 unresponsive (>5 minutes stale). This avoids heartbeat mail spam.
 
 ## Abbreviated Patrol Mode (Idle Effort Tuning)
@@ -51,7 +51,7 @@ Abbreviated patrol rules:
 - **resolve-external-deps**: SKIP.
 - **fire-notifications**: SKIP.
 - **heartbeat-mid**: SKIP (short cycle doesn't need mid-cycle refresh).
-- **health-scan**: Quick `gt QA engineer status` / `gt release engineer status` only. Skip nudges.
+- **health-scan**: Quick `gt witness status` / `gt refinery status` only. Skip nudges.
 - **dolt-health**: SKIP.
 - **zombie-scan**: SKIP.
 - **plugin-run**: SKIP.
@@ -71,7 +71,7 @@ Abbreviated patrol rules:
 When `await-signal` outputs `EFFORT: full`, run all steps thoroughly (normal mode).
 
 The goal: idle cycles should burn ~10% of the tokens a full patrol uses."""
-formula = "mol-senior engineer-patrol"
+formula = "mol-deacon-patrol"
 version = 14
 
 [vars]
@@ -89,20 +89,20 @@ title = "Refresh heartbeat"
 description = """
 Signal liveness to the daemon.
 
-The daemon monitors `senior engineer/heartbeat.json` and kills the Senior Engineer if it goes stale
+The daemon monitors `deacon/heartbeat.json` and kills the Deacon if it goes stale
 (>20 minutes without update). Refresh the heartbeat at the start of every patrol cycle
 so the daemon knows we are alive.
 
 ```bash
-gt senior engineer heartbeat "starting patrol cycle"
+gt deacon heartbeat "starting patrol cycle"
 ```
 
 This MUST run before any other step. Skipping it risks the daemon killing a healthy
-Senior Engineer mid-cycle."""
+Deacon mid-cycle."""
 
 [[steps]]
 id = "inbox-check"
-title = "Handle callbacks from agents"
+title = "Handle callbacks from polecats"
 needs = ["heartbeat"]
 description = """
 First, clean up wisps from previous cycles (closed wisps + abandoned wisps):
@@ -111,13 +111,13 @@ bd mol wisp gc --closed --force
 bd mol wisp gc --age 1h --force
 ```
 
-Then handle callbacks from agents.
+Then handle callbacks from polecats.
 
-Check the Product Manager's inbox for messages from:
-- QA Engineeres reporting agent status
+Check the Mayor's inbox for messages from:
+- Witnesses reporting polecat status
 - Refineries reporting merge results
-- Agents requesting help or escalation
-- External tfeaturegers (webhooks, timers)
+- Polecats requesting help or escalation
+- External triggers (webhooks, timers)
 
 ```bash
 gt mail inbox
@@ -127,14 +127,14 @@ gt mail read <id>
 ```
 
 **HELP / Escalation**:
-Assess and handle or forward to Product Manager.
+Assess and handle or forward to Mayor.
 Archive after handling:
 ```bash
 gt mail archive <message-id>
 ```
 
 **LIFECYCLE messages**:
-Agents reporting completion, refineries reporting merge results.
+Polecats reporting completion, refineries reporting merge results.
 Archive after processing:
 ```bash
 gt mail archive <message-id>
@@ -153,49 +153,49 @@ gt mail archive <message-id>
 Dogs return to idle automatically. The report is informational - no action needed
 unless the dog reports errors that require escalation.
 
-**CONVOY_NEEDS_FEEDING messages** (from Release Engineer):
+**CONVOY_NEEDS_FEEDING messages** (from Refinery):
 The daemon's ConvoyManager handles convoy feeding (event-driven, 5s poll).
-Simply archive these messages — no senior engineer action needed.
+Simply archive these messages — no deacon action needed.
 ```bash
 # For each CONVOY_NEEDS_FEEDING message:
 gt mail read <id>
 gt mail archive <message-id>
 ```
 
-**RECOVERED_BEAD messages** (from QA Engineer):
-When a QA Engineer detects a dead agent with abandoned work, it resets the ticket
-to open status and sends a RECOVERED_BEAD mail. The Senior Engineer auto re-dispatches:
-Subject format: `RECOVERED_BEAD <ticket-id>`
+**RECOVERED_BEAD messages** (from Witness):
+When a Witness detects a dead polecat with abandoned work, it resets the bead
+to open status and sends a RECOVERED_BEAD mail. The Deacon auto re-dispatches:
+Subject format: `RECOVERED_BEAD <bead-id>`
 ```bash
 # For each RECOVERED_BEAD message:
 gt mail read <id>
-# Extract ticket ID from subject
-gt senior engineer redispatch <ticket-id>
+# Extract bead ID from subject
+gt deacon redispatch <bead-id>
 gt mail archive <message-id>
 ```
 
 The `redispatch` command handles:
-- Rate-limiting (5-minute cooldown between re-dispatches of same ticket)
-- Failure tracking (after 3 failures, escalates to Product Manager instead of re-slinging)
-- Auto-detection of target feature from ticket prefix
-- Skipping tickets that were already claimed by another agent
+- Rate-limiting (5-minute cooldown between re-dispatches of same bead)
+- Failure tracking (after 3 failures, escalates to Mayor instead of re-slinging)
+- Auto-detection of target rig from bead prefix
+- Skipping beads that were already claimed by another polecat
 
 Exit codes: 0=dispatched, 2=cooldown, 3=skipped. Non-zero non-error codes are
 informational - archive the message regardless.
 
-Callbacks may spawn new agents, update ticket state, or tfeatureger other actions.
+Callbacks may spawn new polecats, update bead state, or trigger other actions.
 
 **Hygiene principle**: Archive messages after they're fully processed.
 Keep inbox near-empty - only unprocessed items should remain."""
 
 [[steps]]
 id = "orphan-process-cleanup"
-title = "Clean up orphaned claude subagent processes"
+title = "Clean up orphaned claude subpolecat processes"
 needs = ["inbox-check"]
 description = """
-Clean up orphaned claude subagent processes.
+Clean up orphaned claude subpolecat processes.
 
-Claude Code's Task tool spawns subagent processes that sometimes don't clean up
+Claude Code's Task tool spawns subpolecat processes that sometimes don't clean up
 properly after completion. These accumulate and consume significant memory.
 
 **Detection method:**
@@ -204,7 +204,7 @@ instances in terminals have a TTY like "pts/0".
 
 **Run cleanup:**
 ```bash
-gt senior engineer cleanup-orphans
+gt deacon cleanup-orphans
 ```
 
 This command:
@@ -216,12 +216,12 @@ This command:
 
 **Multi-town awareness:**
 Multiple Gas Town instances may share the same machine, each with its own tmux
-socket and agent processes. `ps` output shows Claude processes from ALL towns,
-but each town's senior engineer should only clean up processes belonging to its own town.
+socket and polecat processes. `ps` output shows Claude processes from ALL towns,
+but each town's deacon should only clean up processes belonging to its own town.
 
-- The `gt senior engineer cleanup-orphans` output shows `town=<path>` for each orphan
+- The `gt deacon cleanup-orphans` output shows `town=<path>` for each orphan
 - Only clean up processes where the town path matches this town's root (`$GT_ROOT`)
-- Processes belonging to other towns are managed by those towns' own senior engineers
+- Processes belonging to other towns are managed by those towns' own deacons
 - If you use manual process inspection (`ps aux`), verify a process's working
   directory is under this town's root before killing it
 
@@ -229,7 +229,7 @@ but each town's senior engineer should only clean up processes belonging to its 
 - Processes in terminals (your personal sessions) have a TTY - they won't be touched
 - Only kills processes that have no controlling terminal
 - These orphans are children of the tmux server with no TTY, indicating they're
-  detached subagents that failed to exit
+  detached subpolecats that failed to exit
 
 **If cleanup fails:**
 Log the error but continue patrol - this is best-effort cleanup.
@@ -260,12 +260,12 @@ gt dolt kill-imposters 2>/dev/null || true
 
 **2. Stale test temp dirs**
 
-Glob `tickets-test-dolt-*` and `tickets-bd-tests-*` in TMPDIR. If the directory
+Glob `beads-test-dolt-*` and `beads-bd-tests-*` in TMPDIR. If the directory
 name contains a PID and that PID is dead, clean up.
 
 ```bash
 TMPDIR="${TMPDIR:-/tmp}"
-for dir in "$TMPDIR"/tickets-test-dolt-* "$TMPDIR"/tickets-bd-tests-*; do
+for dir in "$TMPDIR"/beads-test-dolt-* "$TMPDIR"/beads-bd-tests-*; do
   [ -d "$dir" ] || continue
   # Extract PID from dir name if present, or check if any process has it open
   # Use lsof to check if any process is using files in this dir
@@ -281,7 +281,7 @@ done
 Scan for dead PID files in /tmp:
 
 ```bash
-for pidfile in /tmp/dolt-test-server-*.pid /tmp/tickets-test-dolt-*.pid; do
+for pidfile in /tmp/dolt-test-server-*.pid /tmp/beads-test-dolt-*.pid; do
   [ -f "$pidfile" ] || continue
   PID=$(cat "$pidfile" 2>/dev/null)
   if [ -n "$PID" ] && ! kill -0 "$PID" 2>/dev/null; then
@@ -296,21 +296,21 @@ If a dog's tmux session is dead but worktree dirs remain, prune them.
 
 ```bash
 # For each dog directory
-for dogdir in ~/gt/senior engineer/dogs/*/; do
+for dogdir in ~/gt/deacon/dogs/*/; do
   DOG=$(basename "$dogdir")
   # Check if dog has a live tmux session
   if ! tmux has-session -t "dog-$DOG" 2>/dev/null; then
     # Dog session is dead - check for leftover worktree dirs
-    for featurerepo in "$dogdir"*/; do
-      [ -d "$featurerepo/.git" ] || continue
+    for rigrepo in "$dogdir"*/; do
+      [ -d "$rigrepo/.git" ] || continue
       # Worktree exists but session is dead - prune it
-      git -C "$featurerepo" worktree list 2>/dev/null
-      echo "Dead dog worktree: $DOG/$(basename "$featurerepo") (session dead)"
+      git -C "$rigrepo" worktree list 2>/dev/null
+      echo "Dead dog worktree: $DOG/$(basename "$rigrepo") (session dead)"
       # Use git worktree remove to clean up properly
-      MAIN_REPO=$(git -C "$featurerepo" rev-parse --git-common-dir 2>/dev/null)
+      MAIN_REPO=$(git -C "$rigrepo" rev-parse --git-common-dir 2>/dev/null)
       if [ -n "$MAIN_REPO" ]; then
-        git worktree remove --force "$featurerepo" 2>/dev/null && \
-          echo "Pruned worktree: $featurerepo"
+        git worktree remove --force "$rigrepo" 2>/dev/null && \
+          echo "Pruned worktree: $rigrepo"
       fi
     done
   fi
@@ -344,7 +344,7 @@ description = """
 Evaluate pending async gates.
 
 Gates are async coordination primitives that block until conditions are met.
-The Senior Engineer is responsible for monitoring gates and closing them when ready.
+The Deacon is responsible for monitoring gates and closing them when ready.
 
 **Timer gates** (await_type: timer):
 Check if elapsed time since creation exceeds the timeout duration.
@@ -383,30 +383,30 @@ bd ready --gated --json
 This returns molecules where:
 - Status is in_progress
 - Current step has a gate dependency
-- The gate ticket is now closed
-- No agent currently has it hooked
+- The gate bead is now closed
+- No polecat currently has it hooked
 
-**Step 2: For each ready molecule, dispatch to the appropriate feature**
+**Step 2: For each ready molecule, dispatch to the appropriate rig**
 ```bash
-# Determine target feature from molecule metadata
+# Determine target rig from molecule metadata
 bd mol show <mol-id> --json
-# Look for feature field or infer from prefix
+# Look for rig field or infer from prefix
 
-# Dispatch to that feature's agent pool
-gt sling <mol-id> <feature>/agents
+# Dispatch to that rig's polecat pool
+gt sling <mol-id> <rig>/polecats
 ```
 
 **Step 3: Log dispatch**
 Note which molecules were dispatched for observability:
 ```bash
-# Molecule <mol-id> dispatched to <feature>/agents (gate <gate-id> cleared)
+# Molecule <mol-id> dispatched to <rig>/polecats (gate <gate-id> cleared)
 ```
 
 **If no gate-ready molecules:**
 Skip - nothing to dispatch. Gates haven't closed yet or molecules
-already have active agents working on them.
+already have active polecats working on them.
 
-**Exit criteria:** All gate-ready molecules dispatched to agents."""
+**Exit criteria:** All gate-ready molecules dispatched to polecats."""
 
 [[steps]]
 id = "check-convoy-completion"
@@ -415,10 +415,10 @@ needs = ["inbox-check"]
 description = """
 Check convoy completion status.
 
-Convoys are coordination tickets that track multiple tickets across features. When all tracked tickets close, the convoy auto-closes.
+Convoys are coordination beads that track multiple beads across rigs. When all tracked beads close, the convoy auto-closes.
 
 **IMPORTANT**: Use `gt convoy` commands (not `bd list`) because convoys are stored in
-town-level HQ tickets and the Senior Engineer runs from ~/gt/senior engineer/. The `gt` commands are
+town-level HQ beads and the Deacon runs from ~/gt/deacon/. The `gt` commands are
 town-aware and will find convoys regardless of current directory.
 
 **Step 1: Find open convoys**
@@ -433,49 +433,49 @@ gt convoy check
 
 This command:
 - Finds all open convoys
-- Checks if all tracked tickets are closed (handles cross-feature resolution)
+- Checks if all tracked beads are closed (handles cross-rig resolution)
 - Auto-closes convoys where all tracked work is complete
 - Sends notifications to convoy owners
 
-**Note**: Convoys support cross-prefix tracking (e.g., hq-* convoy can track gt-*, bd-* tickets).
-The `gt convoy` commands handle cross-feature ticket resolution automatically.
+**Note**: Convoys support cross-prefix tracking (e.g., hq-* convoy can track gt-*, bd-* beads).
+The `gt convoy` commands handle cross-rig bead resolution automatically.
 
 Stranded convoy feeding is handled by the daemon's ConvoyManager (event-driven + 30s periodic scan).
-The senior engineer no longer feeds convoys directly — this avoids double-dispatch races between senior engineer dogs and daemon."""
+The deacon no longer feeds convoys directly — this avoids double-dispatch races between deacon dogs and daemon."""
 
 [[steps]]
 id = "resolve-external-deps"
 title = "Resolve external dependencies"
 needs = ["check-convoy-completion"]
 description = """
-Resolve external dependencies across features.
+Resolve external dependencies across rigs.
 
-When an ticket in one feature closes, any dependencies in other features should be notified. This enables cross-feature coordination without tight coupling.
+When an bead in one rig closes, any dependencies in other rigs should be notified. This enables cross-rig coordination without tight coupling.
 
 **Step 1: Check recent closures from feed**
 ```bash
 gt feed --since 10m --plain | grep "✓"
-# Look for recently closed tickets
+# Look for recently closed beads
 ```
 
-**Step 2: For each closed ticket, check cross-feature dependents**
+**Step 2: For each closed bead, check cross-rig dependents**
 ```bash
-bd show <closed-ticket>
-# Look at 'blocks' field - these are tickets that were waiting on this one
-# If any blocked ticket is in a different feature/prefix, it may now be unblocked
+bd show <closed-bead>
+# Look at 'blocks' field - these are beads that were waiting on this one
+# If any blocked bead is in a different rig/prefix, it may now be unblocked
 ```
 
 **Step 3: Update blocked status**
-For blocked tickets in other features, the closure should automatically unblock them (tickets handles this). But verify:
+For blocked beads in other rigs, the closure should automatically unblock them (beads handles this). But verify:
 ```bash
 bd blocked
-# Should no longer show the previously-blocked ticket if dependency is met
+# Should no longer show the previously-blocked bead if dependency is met
 ```
 
-**Cross-feature scenarios:**
+**Cross-rig scenarios:**
 - bd-xxx closes → gt-yyy that depended on it is unblocked
-- External ticket closes → internal convoy step can proceed
-- Feature A ticket closes → Feature B ticket waiting on it proceeds
+- External bead closes → internal convoy step can proceed
+- Rig A bead closes → Rig B bead waiting on it proceeds
 
 No manual intervention needed if dependencies are properly tracked - this step just validates the propagation occurred."""
 
@@ -484,35 +484,35 @@ id = "fire-notifications"
 title = "Fire notifications"
 needs = ["resolve-external-deps"]
 description = """
-Fire notifications for convoy and cross-feature events.
+Fire notifications for convoy and cross-rig events.
 
-After convoy completion or cross-feature dependency resolution, notify relevant parties.
+After convoy completion or cross-rig dependency resolution, notify relevant parties.
 
 **Convoy completion notifications:**
-When a convoy closes (all tracked tickets done), notify the Overseer:
+When a convoy closes (all tracked beads done), notify the Overseer:
 ```bash
 # Convoy gt-convoy-xxx just completed
-gt mail send product manager/ -s "Convoy complete: <convoy-title>" \\
-  -m "Convoy <id> has completed. All tracked tickets closed.
+gt mail send mayor/ -s "Convoy complete: <convoy-title>" \\
+  -m "Convoy <id> has completed. All tracked beads closed.
       Duration: <start to end>
-      Tickets: <count>
+      Beads: <count>
 
       Summary: <brief description of what was accomplished>"
 ```
 
-**Cross-feature resolution notifications:**
-When a cross-feature dependency resolves, notify the affected feature:
+**Cross-rig resolution notifications:**
+When a cross-rig dependency resolves, notify the affected rig:
 ```bash
-# Ticket bd-xxx closed, unblocking gt-yyy
-gt mail send gastown/QA engineer -s "Dependency resolved: <bd-xxx>" \\
+# Bead bd-xxx closed, unblocking gt-yyy
+gt mail send gastown/witness -s "Dependency resolved: <bd-xxx>" \\
   -m "External dependency bd-xxx has closed.
       Unblocked: gt-yyy (<title>)
-      This ticket may now proceed."
+      This bead may now proceed."
 ```
 
 **Notification targets:**
-- Convoy complete → product manager/ (for strategic visibility)
-- Cross-feature dep resolved → <feature>/QA engineer (for operational awareness)
+- Convoy complete → mayor/ (for strategic visibility)
+- Cross-rig dep resolved → <rig>/witness (for operational awareness)
 
 Keep notifications brief and actionable. The recipient can run bd show for details."""
 
@@ -524,31 +524,31 @@ description = """
 Refresh the heartbeat mid-cycle to prevent the daemon from killing us during long patrols.
 
 ```bash
-gt senior engineer heartbeat "mid-cycle checkpoint"
+gt deacon heartbeat "mid-cycle checkpoint"
 ```"""
 
 [[steps]]
 id = "health-scan"
-title = "Check QA Engineer and Release Engineer health"
+title = "Check Witness and Refinery health"
 needs = ["heartbeat-mid"]
 description = """
-Check QA Engineer and Release Engineer health for each feature.
+Check Witness and Refinery health for each rig.
 
-**IMPORTANT: Skip DOCKED/PARKED features**
-Before checking any feature, verify its operational state:
+**IMPORTANT: Skip DOCKED/PARKED rigs**
+Before checking any rig, verify its operational state:
 ```bash
-gt feature status <feature>
+gt rig status <rig>
 # Check the Status: line - if DOCKED or PARKED, skip entirely
 ```
 
-DOCKED features are intentionally offline (Product Manager or human docked them). Do NOT:
-- Check their QA engineer/release engineer status
+DOCKED rigs are intentionally offline (Mayor or human docked them). Do NOT:
+- Check their witness/refinery status
 - Send health pings
 - Attempt restarts
-- Undock the feature (NEVER run `gt feature undock`)
-- Escalate or send mail about a docked feature being offline
-- "Restore" a docked feature to operational status
-A docked feature is NOT broken. It is off on purpose. Skip it entirely.
+- Undock the rig (NEVER run `gt rig undock`)
+- Escalate or send mail about a docked rig being offline
+- "Restore" a docked rig to operational status
+A docked rig is NOT broken. It is off on purpose. Skip it entirely.
 
 **IMPORTANT: Idle Town Protocol**
 Before sending health check nudges, check if the town is idle:
@@ -558,7 +558,7 @@ bd list --status=in_progress --limit=5
 ```
 
 If NO active work (empty result or only patrol molecules):
-- **Skip HEALTH_CHECK nudges** - don't disturb idle agents
+- **Skip HEALTH_CHECK nudges** - don't disturb idle polecats
 - Just verify sessions exist via status commands
 - The town should be silent when healthy and idle
 
@@ -567,39 +567,39 @@ If ACTIVE work exists:
 
 **ZFC Principle**: You (Claude) make the judgment call about what is "stuck" or "unresponsive" - there are no hardcoded thresholds in Go. Read the signals, consider context, and decide.
 
-For each feature, run:
+For each rig, run:
 ```bash
-gt QA engineer status <feature>
-gt release engineer status <feature>
+gt witness status <rig>
+gt refinery status <rig>
 
 # ONLY if active work exists - health ping (clears backoff as side effect)
 # Use --mode=queue to avoid interrupting in-flight tool calls
-gt nudge --mode=queue <feature>/QA engineer 'HEALTH_CHECK from senior engineer'
-gt nudge --mode=queue <feature>/release engineer 'HEALTH_CHECK from senior engineer'
+gt nudge --mode=queue <rig>/witness 'HEALTH_CHECK from deacon'
+gt nudge --mode=queue <rig>/refinery 'HEALTH_CHECK from deacon'
 ```
 
 **Health Ping Benefit**: The queued nudge commands serve as a **backoff reset** —
-any nudge resets the agent's backoff to base interval, ensuring patrol agents
+any nudge resets the polecat's backoff to base interval, ensuring patrol polecats
 remain responsive during active work periods. Formal liveness verification is
-handled separately by `gt senior engineer health-check` (which uses immediate delivery).
+handled separately by `gt deacon health-check` (which uses immediate delivery).
 
 **Signals to assess:**
 
 | Component | Healthy Signals | Concerning Signals |
 |-----------|-----------------|-------------------|
-| QA Engineer | State: running, recent activity | State: not running, no heartbeat |
-| Release Engineer | State: running, queue processing | Queue stuck, merge failures |
+| Witness | State: running, recent activity | State: not running, no heartbeat |
+| Refinery | State: running, queue processing | Queue stuck, merge failures |
 
 **Tracking unresponsive cycles:**
 
 Maintain in your patrol state (persisted across cycles):
 ```
 health_state:
-  <feature>:
-    QA engineer:
+  <rig>:
+    witness:
       unresponsive_cycles: 0
       last_seen_healthy: <timestamp>
-    release engineer:
+    refinery:
       unresponsive_cycles: 0
       last_seen_healthy: <timestamp>
 ```
@@ -609,18 +609,18 @@ health_state:
 | Cycles Unresponsive | Suggested Action |
 |---------------------|------------------|
 | 1-2 | Note it, check again next cycle |
-| 3-4 | Attempt restart: gt QA engineer restart <feature> |
-| 5+ | Escalate to Product Manager with context |
+| 3-4 | Attempt restart: gt witness restart <rig> |
+| 5+ | Escalate to Mayor with context |
 
 **Restart commands:**
 ```bash
-gt QA engineer restart <feature>
-gt release engineer restart <feature>
+gt witness restart <rig>
+gt refinery restart <rig>
 ```
 
 **Escalation:**
 ```bash
-gt mail send product manager/ -s "Health: <feature> <component> unresponsive" \\
+gt mail send mayor/ -s "Health: <rig> <component> unresponsive" \\
   -m "Component has been unresponsive for N cycles. Restart attempts failed.
       Last healthy: <timestamp>
       Error signals: <details>"
@@ -646,7 +646,7 @@ gt health --json
 
 Parse the JSON output (HealthReport schema):
 - `server`: running, pid, port, latency_ms, connections, disk_usage_human
-- `databases[]`: name, tickets, open_tickets, wisps, open_wisps, commits
+- `databases[]`: name, beads, open_beads, wisps, open_wisps, commits
 - `backups`: dolt_stale, dolt_freshness, jsonl_stale, jsonl_freshness
 - `processes`: zombie_count, zombie_pids
 - `orphans[]`: name, size
@@ -686,7 +686,7 @@ gt dog dispatch --formula mol-dog-backup
 ```
 
 **Zombie processes:**
-Log the PIDs. The zombie-scan step (next) handles agent zombies;
+Log the PIDs. The zombie-scan step (next) handles polecat zombies;
 this catches zombie *Dolt server* processes. Kill them:
 ```bash
 gt dolt kill-imposters
@@ -709,57 +709,57 @@ Log `Dolt health: OK` and move on.
 
 [[steps]]
 id = "zombie-scan"
-title = "Detect zombie agents (NO KILL AUTHORITY)"
+title = "Detect zombie polecats (NO KILL AUTHORITY)"
 needs = ["dolt-health"]
 description = """
-Defense-in-depth DETECTION of zombie agents that QA Engineer should have cleaned.
+Defense-in-depth DETECTION of zombie polecats that Witness should have cleaned.
 
-**⚠️ CRITICAL: The Senior Engineer has NO kill authority.**
+**⚠️ CRITICAL: The Deacon has NO kill authority.**
 
 These are workers with context, mid-task progress, unsaved state. Every kill
 destroys work. File the warrant and let Boot handle interrogation and execution.
 You do NOT have kill authority.
 
 **Why this exists:**
-The QA Engineer is responsible for cleaning up agents after they complete work.
-This step provides backup DETECTION in case the QA Engineer fails to clean up.
+The Witness is responsible for cleaning up polecats after they complete work.
+This step provides backup DETECTION in case the Witness fails to clean up.
 Detection only - Boot handles termination.
 
 **Zombie criteria:**
 - State: idle or done (no active work assigned)
 - Session: not running (tmux session dead)
-- No hooked work (nothing pending for this agent)
+- No hooked work (nothing pending for this polecat)
 - Last activity: older than 10 minutes
 
 **Run the zombie scan (DRY RUN ONLY):**
 ```bash
-gt senior engineer zombie-scan --dry-run
+gt deacon zombie-scan --dry-run
 ```
 
 **NEVER run:**
-- `gt senior engineer zombie-scan` (without --dry-run)
+- `gt deacon zombie-scan` (without --dry-run)
 - `tmux kill-session`
-- `gt agent nuke`
+- `gt polecat nuke`
 - Any command that terminates a session
 
 **If zombies detected:**
 1. Review the output to confirm they are truly abandoned
 2. File a death warrant for each detected zombie:
    ```bash
-   gt warrant file <agent> --reason "Zombie detected: no session, no hook, idle >10m"
+   gt warrant file <polecat> --reason "Zombie detected: no session, no hook, idle >10m"
    ```
 3. Boot will handle interrogation and execution
-4. Notify the Product Manager about QA Engineer failure:
+4. Notify the Mayor about Witness failure:
    ```bash
-   gt mail send product manager/ -s "QA Engineer cleanup failure" \
-     -m "Filed death warrant for <agent>. QA Engineer failed to clean up."
+   gt mail send mayor/ -s "Witness cleanup failure" \
+     -m "Filed death warrant for <polecat>. Witness failed to clean up."
    ```
 
 **If no zombies:**
-No action needed - QA Engineer is doing its job.
+No action needed - Witness is doing its job.
 
 **Note:** This is a backup mechanism. If you frequently detect zombies,
-investigate why the QA Engineer isn't cleaning up properly."""
+investigate why the Witness isn't cleaning up properly."""
 
 [[steps]]
 id = "plugin-run"
@@ -770,20 +770,20 @@ Execute registered plugins.
 
 Scan $GT_ROOT/plugins/ for plugin directories. Each plugin has a plugin.md with TOML frontmatter defining its gate (when to run) and instructions (what to do).
 
-See docs/senior engineer-plugins.md for full documentation.
+See docs/deacon-plugins.md for full documentation.
 
 Gate types:
 - cooldown: Time since last run (e.g., 24h)
 - cron: Schedule-based (e.g., "0 9 * * *")
 - condition: Metric threshold (e.g., wisp count > 50)
-- event: Tfeatureger-based (e.g., startup, heartbeat)
+- event: Trigger-based (e.g., startup, heartbeat)
 
 For each plugin:
 1. Read plugin.md frontmatter to check gate
 2. Compare against state.json (last run, etc.)
 3. If gate is open, execute the plugin
 
-Plugins marked parallel: true can run concurrently using Task tool subagents. Sequential plugins run one at a time in directory order.
+Plugins marked parallel: true can run concurrently using Task tool subpolecats. Sequential plugins run one at a time in directory order.
 
 Skip this step if $GT_ROOT/plugins/ does not exist or is empty."""
 
@@ -862,11 +862,11 @@ is_stuck = duration > stuck_threshold
 For dogs working > timeout:
 ```bash
 # Option A: File death warrant (Boot handles termination)
-gt warrant file senior engineer/dogs/<name> --reason "Stuck: working on <work> for <duration>"
+gt warrant file deacon/dogs/<name> --reason "Stuck: working on <work> for <duration>"
 
 # Option B: Force clear work and notify
 gt dog clear <name> --force
-gt mail send senior engineer/ -s "DOG_TIMEOUT <name>" -m "Dog <name> timed out on <work> after <duration>"
+gt mail send deacon/ -s "DOG_TIMEOUT <name>" -m "Dog <name> timed out on <work> after <duration>"
 ```
 
 **Decision matrix:**
@@ -875,12 +875,12 @@ gt mail send senior engineer/ -s "DOG_TIMEOUT <name>" -m "Dog <name> timed out o
 |----------------------|--------|
 | < 2x timeout | Log warning, check next cycle |
 | 2x - 5x timeout | File death warrant |
-| > 5x timeout | Force clear + escalate to Product Manager |
+| > 5x timeout | Force clear + escalate to Mayor |
 
 **Step 4: Track chronic failures**
 If same dog gets stuck repeatedly:
 ```bash
-gt mail send product manager/ -s "Dog <name> chronic failures" \
+gt mail send mayor/ -s "Dog <name> chronic failures" \
   -m "Dog has timed out N times in last 24h. Consider removing from pool."
 ```
 
@@ -895,23 +895,23 @@ description = """
 
 **Step 1: Quick orphan scan**
 ```bash
-# Check for in_progress tickets with dead assignees
+# Check for in_progress beads with dead assignees
 bd list --status=in_progress --json | head -20
 ```
 
-For each in_progress ticket, check if assignee session exists:
+For each in_progress bead, check if assignee session exists:
 ```bash
-gt session status <feature>/<name> --json | jq -r '.running' | grep -q true && echo "alive" || echo "orphan"
+gt session status <rig>/<name> --json | jq -r '.running' | grep -q true && echo "alive" || echo "orphan"
 ```
 
 **Step 2: If orphans detected, dispatch to dog**
 ```bash
 # Sling orphan-scan formula to an idle dog
-gt sling mol-orphan-scan senior engineer/dogs --var scope=town
+gt sling mol-orphan-scan deacon/dogs --var scope=town
 ```
 
 **Important:** Do NOT fix orphans inline. Dogs handle recovery.
-The Senior Engineer's job is detection and dispatch, not execution.
+The Deacon's job is detection and dispatch, not execution.
 
 **Step 3: If no orphans detected**
 Skip dispatch - nothing to do.
@@ -936,12 +936,12 @@ bd list --status=open --json 2>/dev/null | jq length
 **Step 2: If cleanup needed, dispatch to dog**
 ```bash
 # Sling session-gc formula to an idle dog
-gt sling mol-session-gc senior engineer/dogs --var mode=conservative
+gt sling mol-session-gc deacon/dogs --var mode=conservative
 ```
 
 **Important:** Do NOT run `gt doctor -v` or `gt doctor --fix` inline.
 `gt doctor -v` takes 60+ seconds and blocks the patrol loop.
-Dogs handle cleanup. The Senior Engineer stays lightweight - detection only.
+Dogs handle cleanup. The Deacon stays lightweight - detection only.
 
 **Step 3: If nothing to clean**
 Skip dispatch - system is healthy.
@@ -984,7 +984,7 @@ Note promoted/deleted/skipped counts for the patrol digest.
 
 **Performance:**
 Compaction runs every patrol cycle. The query is fast (single bd list + filter).
-If performance becomes an ticket, add a cooldown gate (e.g., run once per hour).
+If performance becomes an bead, add a cooldown gate (e.g., run once per hour).
 
 **Exit criteria:** Wisps compacted (or nothing to compact)."""
 
@@ -1002,9 +1002,9 @@ gt compact report
 
 This runs compaction (capturing JSON results), queries active wisps,
 builds a per-category breakdown (Heartbeats, Patrols, Errors, Untyped),
-detects anomalies, and sends the digest to senior engineer/ (cc product manager/).
+detects anomalies, and sends the digest to deacon/ (cc mayor/).
 
-A permanent event ticket (wisp.compaction) is created for audit trail.
+A permanent event bead (wisp.compaction) is created for audit trail.
 Skips automatically if today's digest was already sent.
 
 **Step 2: Weekly rollup (Mondays only, idempotent)**
@@ -1013,8 +1013,8 @@ If today is Monday, also send the weekly rollup:
 gt compact report --weekly
 ```
 
-This aggregates the past 7 days of compaction event tickets and sends
-trend data (totals, promotion rate, avg deleted/day) to product manager/.
+This aggregates the past 7 days of compaction event beads and sends
+trend data (totals, promotion rate, avg deleted/day) to mayor/.
 Skips automatically if this week's rollup was already sent.
 
 **Exit criteria:** Compaction digest sent (or nothing to report)."""
@@ -1052,9 +1052,9 @@ needs = ["costs-digest"]
 description = """
 **DAILY DIGEST** - Aggregate yesterday's patrol cycle digests.
 
-Patrol cycles (Senior Engineer, QA Engineer, Release Engineer) create ephemeral per-cycle digests
+Patrol cycles (Deacon, Witness, Refinery) create ephemeral per-cycle digests
 to avoid JSONL pollution. This step aggregates them into a single permanent
-"Patrol Report YYYY-MM-DD" ticket for audit purposes.
+"Patrol Report YYYY-MM-DD" bead for audit purposes.
 
 **Step 1: Check if digest is needed**
 ```bash
@@ -1071,7 +1071,7 @@ gt patrol digest --yesterday
 
 This:
 - Queries all ephemeral patrol digests from yesterday
-- Creates a single "Patrol Report YYYY-MM-DD" ticket with aggregated data
+- Creates a single "Patrol Report YYYY-MM-DD" bead with aggregated data
 - Deletes the source digests
 
 **Step 3: Verify**
@@ -1091,18 +1091,18 @@ Maintain daemon logs and state files.
 
 **Step 1: Rotate oversized logs**
 
-The daemon automatically rotates logs every heartbeat (3 min), but the senior engineer
-can tfeatureger a force-rotation to ensure cleanup happens during patrol:
+The daemon automatically rotates logs every heartbeat (3 min), but the deacon
+can trigger a force-rotation to ensure cleanup happens during patrol:
 ```bash
 gt daemon rotate-logs
 ```
 
-This rotates Dolt server logs (dolt.log, dolt-server.log, feature-level dolt-server.log)
+This rotates Dolt server logs (dolt.log, dolt-server.log, rig-level dolt-server.log)
 using copytruncate (safe for child processes with open fds). daemon.log uses
 lumberjack for automatic rotation and is handled separately.
 
 Log locations: $GT_ROOT/daemon/dolt.log, $GT_ROOT/daemon/dolt-server.log,
-and per-feature .tickets/dolt-server.log files.
+and per-rig .beads/dolt-server.log files.
 
 **Step 2: Prune state.json of dead sessions**
 
@@ -1146,7 +1146,7 @@ gt mail archive <message-id>
 ```
 
 **Goal**: Inbox should have ≤2 active messages at end of cycle.
-Senior Engineer mail should flow through quickly - no accumulation."""
+Deacon mail should flow through quickly - no accumulation."""
 
 [[steps]]
 id = "context-check"
@@ -1155,7 +1155,7 @@ needs = ["patrol-cleanup"]
 description = """
 Check own context limit.
 
-The Senior Engineer runs in a Claude session with finite context. Check if approaching the limit:
+The Deacon runs in a Claude session with finite context. Check if approaching the limit:
 
 ```bash
 gt context --usage
@@ -1166,7 +1166,7 @@ If context is high (>80%), prepare for handoff:
 - Note any pending work
 - Write handoff to molecule state
 
-This enables the Senior Engineer to burn and respawn cleanly."""
+This enables the Deacon to burn and respawn cleanly."""
 
 [[steps]]
 id = "loop-or-exit"
@@ -1180,31 +1180,31 @@ End of patrol cycle decision.
 Refresh the heartbeat again immediately before the long idle wait:
 
 ```bash
-gt senior engineer heartbeat "pre-await checkpoint"
+gt deacon heartbeat "pre-await checkpoint"
 ```
 
 Use await-signal with exponential backoff to wait for activity:
 
 ```bash
-gt mol step await-signal --agent-ticket hq-senior engineer \
+gt mol step await-signal --polecat-bead hq-deacon \
   --backoff-base 60s --backoff-mult 2 --backoff-max 15m
 ```
 
 This command:
-1. Subscribes to `bd activity --follow` (tickets activity feed)
-2. Returns IMMEDIATELY when any tickets activity occurs
+1. Subscribes to `bd activity --follow` (beads activity feed)
+2. Returns IMMEDIATELY when any beads activity occurs
 3. If no activity, times out with exponential backoff:
    - First timeout: 60s
    - Second timeout: 120s
    - Third timeout: 240s
    - ...capped at 15 minutes max
-4. Tracks `idle:N` label on hq-senior engineer ticket for backoff state
+4. Tracks `idle:N` label on hq-deacon bead for backoff state
 5. Outputs `EFFORT: reduced` or `EFFORT: full` directive for next cycle
 
 **On signal received** (activity detected):
 Reset the idle counter and start next patrol cycle:
 ```bash
-gt agent state hq-senior engineer --set idle=0
+gt polecat state hq-deacon --set idle=0
 ```
 
 **On timeout** (no activity):
@@ -1249,9 +1249,9 @@ This closes the current patrol wisp and automatically creates a new one.
 **If context HIGH** (approaching limit):
 1. Write handoff mail with notable observations:
 ```bash
-gt handoff -s "Senior Engineer patrol handoff" -m "<observations>"
+gt handoff -s "Deacon patrol handoff" -m "<observations>"
 ```
-2. Exit cleanly - the daemon will respawn a fresh Senior Engineer session
+2. Exit cleanly - the daemon will respawn a fresh Deacon session
 
 **IMPORTANT**: You must either report and loop (context LOW) or exit (context HIGH).
 Never leave the session idle without work on your hook."""

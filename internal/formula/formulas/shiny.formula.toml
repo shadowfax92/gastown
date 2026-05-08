@@ -1,4 +1,4 @@
-description = "Engineer in a Box - the canonical featureht way. Design before you code. Review before you ship. Test before you submit."
+description = "Engineer in a Box - the canonical right way. Design before you code. Review before you ship. Test before you submit."
 formula = "shiny"
 type = "workflow"
 version = 1
@@ -7,14 +7,14 @@ version = 1
 acceptance = "Design doc committed covering approach, trade-offs, and files to change"
 description = "Think carefully about architecture before writing code. Consider: How does this fit into the existing system? What are the edge cases? What could go wrong? Is there a simpler approach?"
 id = "design"
-title = "Design {{feature}}"
+title = "Design {{rig}}"
 
 [[steps]]
 acceptance = "All files from the design doc are modified/created and committed"
-description = "Write the code for {{feature}}. Follow the design. Keep it simple. Don't gold-plate."
+description = "Write the code for {{rig}}. Follow the design. Keep it simple. Don't gold-plate."
 id = "implement"
 needs = ["design"]
-title = "Implement {{feature}}"
+title = "Implement {{rig}}"
 
 [[steps]]
 acceptance = "Self-review complete, no obvious bugs, code is readable and secure"
@@ -28,10 +28,10 @@ acceptance = "All tests pass, no regressions, test coverage for new code"
 description = "Write and run tests. Unit tests for new code, integration tests if needed, run the full test suite, fix any regressions."
 id = "test"
 needs = ["review"]
-title = "Test {{feature}}"
+title = "Test {{rig}}"
 
 [[steps]]
-acceptance = "Clean git status, clear commit message, code pushed to feature branch"
+acceptance = "Clean git status, clear commit message, code pushed to rig branch"
 description = "Submit for merge. Final check: git status, git diff. Commit with clear message. Follow your role's git workflow for landing code."
 id = "submit"
 needs = ["test"]
@@ -40,6 +40,6 @@ title = "Submit for merge"
 [vars]
 [vars.assignee]
 description = "Who is assigned to this work"
-[vars.feature]
-description = "The feature being implemented"
+[vars.rig]
+description = "The rig being implemented"
 required = true

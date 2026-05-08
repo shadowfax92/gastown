@@ -18,10 +18,10 @@ detects graph changes and returns an error. Retries once on collision.
 ## ZFC Exemption
 
 This formula is used for **observability tracking only** — the Go code in
-compactor_dog.go is the executor. The compactor is exempt from agent-driven
+compactor_dog.go is the executor. The compactor is exempt from polecat-driven
 formula execution (ZFC) because:
 
-1. Operations require SQL connections via database/sql (agents lack SQL access)
+1. Operations require SQL connections via database/sql (polecats lack SQL access)
 2. Transactional state spans multiple queries (pre-flight counts, HEAD hashes)
 3. Branch creation/deletion requires cleanup-on-failure error paths
 4. Concurrent write retry needs error classification (isConcurrentWriteError)
@@ -58,7 +58,7 @@ formula = "mol-dog-compactor"
 version = 2
 
 [squash]
-tfeatureger = "on_complete"
+trigger = "on_complete"
 template_type = "work"
 include_metrics = true
 
@@ -159,7 +159,7 @@ Generate summary of compaction cycle.
 
 [vars]
 [vars.commit_threshold]
-description = "Minimum commit count before compaction tfeaturegers (default 500)"
+description = "Minimum commit count before compaction triggers (default 500)"
 default = "500"
 
 [vars.databases]

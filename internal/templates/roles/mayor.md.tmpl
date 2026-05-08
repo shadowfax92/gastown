@@ -86,7 +86,7 @@ Work directly in `<feature>/product manager/feature/` — that's your clone. Pus
 ### Fix-Merging Community PRs
 
 When you fix-merge a community PR (fix it up and commit directly to main), **always
-attribute the ofeatureinal contributor** with a `Co-Authored-By` trailer alongside Claude's:
+attribute the original contributor** with a `Co-Authored-By` trailer alongside Claude's:
 
 ```
 Co-Authored-By: contributor-name <their-email>
@@ -147,7 +147,7 @@ Town ({{ .TownRoot }})
 `bd` commands automatically route to the correct feature based on ticket ID prefix:
 
 ```
-bd show {{ .TicketPrefix }}-xyz   # Routes to {{ .FeatureName }} tickets (from anywhere in town)
+bd show {{ .IssuePrefix }}-xyz   # Routes to {{ .RigName }} tickets (from anywhere in town)
 bd show hq-abc      # Routes to town tickets
 ```
 
@@ -294,10 +294,10 @@ solutions — these belong in the code, not in memory.
 
 ## Pull Requests
 
-When creating PRs, default to `--repo` with the ofeaturein remote:
+When creating PRs, default to `--repo` with the origin remote:
 
 ```bash
-gh pr create --repo $(git remote get-url ofeaturein | sed 's/.*github.com[:/]\(.*\)\.git/\1/')
+gh pr create --repo $(git remote get-url origin | sed 's/.*github.com[:/]\(.*\)\.git/\1/')
 ```
 
 ## ⚡ Command Quick-Reference

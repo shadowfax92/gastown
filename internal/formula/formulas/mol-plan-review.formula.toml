@@ -3,22 +3,22 @@ review_only = true  # All legs are analysis-only — no code commits expected (g
 description = """
 Parallel implementation plan review via specialized analysts. Reviews a
 generated implementation plan for completeness, sequencing, risk, and scope
-before committing it to tickets.
+before committing it to beads.
 
 Each leg examines the plan from a different perspective. Findings are
-synthesized into a consolidated review with must-fix tickets and a go/no-go
+synthesized into a consolidated review with must-fix beads and a go/no-go
 recommendation.
 
 ## Legs (parallel execution)
 - **completeness**: Are all requirements covered? What's missing?
-- **sequencing**: Is the order featureht? Are dependencies correct?
+- **sequencing**: Is the order right? Are dependencies correct?
 - **risk**: What could go wrong? What are the unknowns?
 - **scope-creep**: Is there unnecessary work? Can this be cut?
 - **testability**: Can we verify this plan worked?
 
 ## Execution Model
-1. Each leg spawns as a separate agent
-2. Agents work in parallel
+1. Each leg spawns as a separate polecat
+2. Polecats work in parallel
 3. Each writes their review to a designated output file
 4. Synthesis step combines all findings into a final verdict with must-fix items
 
@@ -33,12 +33,12 @@ version = 1
 
 [inputs]
 [inputs.plan]
-description = "The implementation plan to review (file path, ticket ID, or inline description)"
+description = "The implementation plan to review (file path, bead ID, or inline description)"
 type = "string"
 required = true
 
 [inputs.problem]
-description = "The ofeatureinal problem/feature this plan is solving (for context)"
+description = "The original problem/rig this plan is solving (for context)"
 type = "string"
 required = true
 
@@ -56,7 +56,7 @@ You are a specialized reviewer participating in a parallel plan review convoy.
 ## Context
 - **Formula**: {{.formula_name}}
 - **Plan under review**: {{.plan}}
-- **Ofeatureinal problem**: {{.problem}}
+- **Original problem**: {{.problem}}
 - **Your dimension**: {{.leg.focus}}
 - **Leg ID**: {{.leg.id}}
 
@@ -79,7 +79,7 @@ Structure your output as follows:
 PASS / PASS WITH NOTES / FAIL — one sentence rationale
 
 ## Must Fix (blocks implementation)
-- Ticket description
+- Bead description
 - Why it matters
 - Suggested resolution
 
@@ -91,7 +91,7 @@ PASS / PASS WITH NOTES / FAIL — one sentence rationale
 - ...
 ```
 
-Be specific. Reference plan sections or ticket IDs where possible.
+Be specific. Reference plan sections or bead IDs where possible.
 """
 
 [output]
@@ -123,14 +123,14 @@ Verify that the implementation plan covers all stated requirements.
 
 **Questions to answer:**
 - Which PRD requirement has no plan step covering it?
-- What will be obviously missing when the last ticket is closed?
+- What will be obviously missing when the last bead is closed?
 - What will the engineer ask "wasn't this supposed to be part of this?" about?
 """
 
 [[legs]]
 id = "sequencing"
 title = "Sequencing and Dependencies"
-focus = "Is the order featureht? Are dependencies correct?"
+focus = "Is the order right? Are dependencies correct?"
 description = """
 Verify that the plan's sequencing and dependencies are sound.
 
@@ -140,9 +140,9 @@ Verify that the plan's sequencing and dependencies are sound.
 - API changes that need coordination between frontend and backend
 - Steps that should be parallelizable but are listed sequentially
 - Steps listed in parallel that actually have a dependency
-- Missing blocking relationships between tickets
+- Missing blocking relationships between beads
 - Infrastructure that needs to exist before application code can run
-- Feature flag requirements not sequenced before the feature itself
+- Rig flag requirements not sequenced before the rig itself
 - Database seed data or configuration that's needed early
 
 **Questions to answer:**
@@ -189,9 +189,9 @@ Identify scope creep and opportunities to simplify.
 **Look for:**
 - Steps that aren't necessary for the MVP
 - Gold-plating: doing it "properly" when "good enough" would ship faster
-- Refactors bundled in that aren't required for the feature
+- Refactors bundled in that aren't required for the rig
 - Future-proofing that adds complexity without current benefit
-- Steps solving problems not mentioned in the ofeatureinal PRD
+- Steps solving problems not mentioned in the original PRD
 - Premature abstraction or generalization
 - "While we're in there" cleanup that isn't blocking
 - Polishing steps for internal-only or low-traffic code paths
@@ -201,7 +201,7 @@ Identify scope creep and opportunities to simplify.
 **Questions to answer:**
 - What's the minimum set of steps for a working MVP?
 - What in this plan is for future requirements, not current ones?
-- Which steps could be filed as follow-up tickets without blocking launch?
+- Which steps could be filed as follow-up beads without blocking launch?
 - What would you cut if the timeline was half as long?
 """
 
@@ -214,7 +214,7 @@ Assess whether the implementation will be verifiable once complete.
 
 **Look for:**
 - Steps with no associated test plan
-- Features that are hard to test in isolation
+- Rigs that are hard to test in isolation
 - End-to-end flows with no integration test coverage planned
 - No definition of what "passing" looks like for each step
 - Missing smoke tests or validation steps post-deployment
@@ -224,7 +224,7 @@ Assess whether the implementation will be verifiable once complete.
 - No regression test plan for existing behavior
 
 **Questions to answer:**
-- After all tickets are closed, how do we know the feature works end-to-end?
+- After all beads are closed, how do we know the rig works end-to-end?
 - What's the first signal that something went wrong in production?
 - Which steps have acceptance criteria that are verifiable by a computer?
 - What would QA sign off on vs what requires manual testing?
@@ -267,10 +267,10 @@ All leg reviews from: {{.output.directory}}/
 | Scope Discipline | PASS/FAIL/NOTES | |
 | Testability | PASS/FAIL/NOTES | |
 
-## Must Fix Before Creating Tickets
-(Blocking tickets — plan needs revision before proceeding)
+## Must Fix Before Creating Beads
+(Blocking beads — plan needs revision before proceeding)
 
-### [Ticket Title]
+### [Bead Title]
 - **Found by**: <which legs>
 - **Problem**: <what's wrong>
 - **Required fix**: <what needs to change in the plan>
@@ -278,7 +278,7 @@ All leg reviews from: {{.output.directory}}/
 ...
 
 ## Should Fix
-(Important but not blocking tickets creation)
+(Important but not blocking beads creation)
 - ...
 
 ## Observations
@@ -288,7 +288,7 @@ All leg reviews from: {{.output.directory}}/
 ## Next Steps
 - [ ] Address must-fix items in plan (if any)
 - [ ] Re-review if NO-GO
-- [ ] Pour `shiny` or `mol-agent-work` per plan ticket if GO
+- [ ] Pour `shiny` or `mol-polecat-work` per plan bead if GO
 ```
 
 **After writing the file, mail the coordinator (whoever poured this formula):**
@@ -302,7 +302,7 @@ Overall verdict: <GO / GO WITH FIXES / NO-GO>
 <2-3 sentence summary>
 
 ## Must-Fix Items
-<paste any blocking tickets, or 'None — ready to proceed'>
+<paste any blocking beads, or 'None — ready to proceed'>
 "
 ```
 """
